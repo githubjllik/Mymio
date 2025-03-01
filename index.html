@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mio - L'Univers Mental</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jodit/3.24.2/jodit.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jodit/3.24.2/jodit.min.js"></script>
+<!-- Lien vers le fichier CSS -->
+<link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+    <div class="universe-container">
+      <nav class="main-nav">
+    <div class="nav-item active" id="nav-universe" data-category="universe">
+        🧠
+        <span class="tooltip">Mon Univers</span>
+    </div>
+    <div class="nav-item" id="nav-thoughts" data-category="Pensées">
+        💭
+        <span class="tooltip">Pensées</span>
+    </div>
+    <div class="nav-item" id="nav-ideas" data-category="Idées">
+        💡
+        <span class="tooltip">Idées</span>
+    </div>
+    <div class="nav-item" id="nav-objectives" data-category="Objectifs">
+        🎯
+        <span class="tooltip">Objectifs</span>
+    </div>
+    <div class="nav-item" id="nav-learning" data-category="Apprentissage">
+        📚
+        <span class="tooltip">Apprentissage</span>
+    </div>
+    <div class="nav-item" id="nav-media" data-category="Média">
+        🎬
+        <span class="tooltip">Média</span>
+    </div>
+    <div class="nav-item" id="nav-music" data-category="Musique">
+        🎵
+        <span class="tooltip">Musique</span>
+    </div>
+        <div class="nav-item" id="nav-extra-1" data-category="Extra 1">
+        📝
+        <span class="tooltip">Extra 1</span>
+    </div>
+    <div class="nav-item" id="nav-extra-2" data-category="Extra 2">
+        🎮
+        <span class="tooltip">Extra 2</span>
+    </div>
+    <div class="nav-item" id="nav-extra-3" data-category="Extra 3">
+        🌟
+        <span class="tooltip">Extra 3</span>
+    </div>
+    <div class="nav-item" id="nav-extra-4" data-category="Extra 4">
+        🧩
+        <span class="tooltip">Extra 4</span>
+    </div>
+    <div class="nav-item" id="nav-extra-5" data-category="Extra 5">
+        🚀
+        <span class="tooltip">Extra 5</span>
+    </div>
+    
+    <!-- Ajouter à la fin de .main-nav, avant la fermeture de </nav> -->
+<div class="nav-item identity-nav" id="nav-identity" data-category="Identity">
+    👤
+    <span class="tooltip">Identity</span>
+</div>
+
+</nav>
+
+        <aside class="categories-panel">
+            <div class="categories-search">
+                <input type="text" class="search-input" placeholder="Rechercher dans les catégories...">
+            </div>
+
+            <div class="category-group">
+                <h3 class="category-title">
+                    <span>Pensées & Réflexions</span>
+                    <span class="count">128</span>
+                </h3>
+                <div class="category-item active">
+                    <span class="icon">📝</span>
+                    <span>Journal de pensées</span>
+                    <span class="meta">32</span>
+                </div>
+                <div class="category-item">
+                    <span class="icon">🤔</span>
+                    <span>Questions existentielles</span>
+                    <span class="meta">45</span>
+                </div>
+                <div class="category-item">
+                    <span class="icon">💫</span>
+                    <span>Insights personnels</span>
+                    <span class="meta">51</span>
+                </div>
+            </div>
+
+            <div class="category-group">
+                <h3 class="category-title">
+                    <span>Apprentissage</span>
+                    <span class="count">95</span>
+                </h3>
+                <div class="category-item">
+                    <span class="icon">📖</span>
+                    <span>À comprendre</span>
+                    <span class="meta">28</span>
+                </div>
+                <div class="category-item">
+                    <span class="icon">🎓</span>
+                    <span>Leçons apprises</span>
+                    <span class="meta">42</span>
+                </div>
+                <div class="category-item">
+                    <span class="icon">🔍</span>
+                    <span>En exploration</span>
+                    <span class="meta">25</span>
+                </div>
+            </div>
+
+            <div class="category-group">
+                <h3 class="category-title">
+                    <span>Objectifs & Projets</span>
+                    <span class="count">76</span>
+                </h3>
+                <div class="category-item">
+                    <span class="icon">🎯</span>
+                    <span>En cours</span>
+                    <span class="meta">18</span>
+                </div>
+                <div class="category-item">
+                    <span class="icon">🚀</span>
+                    <span>À venir</span>
+                    <span class="meta">33</span>
+                </div>
+                <div class="category-item">
+                    <span class="icon">✅</span>
+                    <span>Accomplis</span>
+                    <span class="meta">25</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content-area">
+            <nav class="sub-nav">
+                <div class="breadcrumb-nav">
+                    <div class="breadcrumb-item">Univers</div>
+                    <div class="breadcrumb-item">Pensées</div>
+                    <div class="breadcrumb-item">Journal</div>
+                </div>
+                <div class="view-controls">
+                    <div class="view-control-btn active">📑</div>
+                    <div class="view-control-btn">📊</div>
+                    <div class="view-control-btn">🗂️</div>
+                </div>
+            </nav>
+
+            <div class="filters">
+                <div class="filter-tag active">Tous</div>
+                <div class="filter-tag">Récents</div>
+                <div class="filter-tag">Importants</div>
+                <div class="filter-tag">En cours</div>
+                <div class="filter-tag">Archivés</div>
+                <div class="filter-tag">Favoris</div>
+            </div>
+
+            <div class="content-grid" id="contentGrid">
+                <!-- Les cartes seront générées dynamiquement ici -->
+            </div>
+
+            <!-- Interface de Chat (cachée par défaut) -->
+            <div class="chat-container" id="chatContainer" style="display: none;">
+                <div class="chat-setup" id="setupForm">
+                    <h1 class="chat-setup-title">Démarrer une nouvelle conversation</h1>
+                    <form class="chat-setup-form" onsubmit="startChat(event)">
+                        <div class="chat-input-group">
+                            <label class="chat-input-label">Nom du contact</label>
+                            <input type="text" class="chat-input" id="contactName" required>
+                        </div>
+                        <div class="chat-input-group">
+                            <label for="profilePic" class="chat-input-label">Photo de profil (optionnel)</label>
+                            <div class="profile-upload-container">
+                                <input type="file" class="chat-input profile-input" id="profilePic" accept="image/*" onchange="previewImage(event)">
+                                <label for="profilePic" class="profile-upload-label">Choisir une photo</label>
+                            </div>
+                            <div id="imagePreview" class="image-preview"></div>
+                        </div>
+                        <button type="submit" class="chat-start-btn">Commencer le chat</button>
+                    </form>
+                </div>
+
+                <div class="chat-interface" id="chatInterface" style="display: none;">
+                    <div class="chat-header">
+                        <div class="chat-profile-img" id="contactImg"></div>
+                        <div class="chat-profile-name" id="contactNameDisplay"></div>
+                    </div>
+
+                   <div class="chat-messages snap-y scroll-smooth" id="messageContainer">
+    <!-- Les messages envoyés/reçus apparaîtront ici -->
+</div>
+
+
+<div class="chat-input-wrapper">
+    <!-- Bouton pour upload d'images -->
+    <div class="image-upload-wrapper">
+        <button class="image-upload-button" onclick="document.getElementById('messageImages').click()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+        </button>
+        <input type="file" id="messageImages" multiple accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+    </div>
+
+    <!-- Zone de saisie -->
+    <div class="chat-input-area">
+        <textarea class="chat-textbox" id="messageInput" placeholder="Écrivez votre message..." rows="1"></textarea>
+        <button class="chat-send-btn" onclick="showContextMenu(event)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+            </svg>
+                                        <div class="chat-context-menu" id="contextMenu">
+                                <div class="chat-context-option" onclick="sendMessage('receive')">Recevoir</div>
+                                <div class="chat-context-option" onclick="sendMessage('send')">Envoyer</div>
+                            </div>
+        </button>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="chat-quick-actions">
+        <div class="chat-quick-action" onclick="sendMessage('receive')">
+            <div class="chat-profile-img" id="quickContactImg"></div>
+            <span>Recevoir</span>
+        </div>
+        <div class="chat-quick-action" onclick="sendMessage('send')">
+            <div class="chat-profile-img">Moi</div>
+            <span>Envoyer</span>
+        </div>
+    </div>
+</div>
+
+
+
+                    <!-- Bouton Retour/Quitter -->
+                    <button class="chat-back-btn" onclick="exitChat()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                        Retour
+                    </button>
+                </div>
+
+                <!-- Modal d'Image (cachée par défaut) -->
+                <div class="image-modal" id="imageModal" onclick="closeImageModal()">
+                    <button class="modal-button-prev" onclick="changeModalImage(-1); event.stopPropagation();">←</button>
+                    <img id="modalImage" class="modal-image">
+                    <button class="modal-button-next" onclick="changeModalImage(1); event.stopPropagation();">→</button>
+                    <div class="modal-controls">
+                        <button class="modal-button" onclick="downloadImage(event)">Télécharger</button>
+                        <button class="modal-button" onclick="closeImageModal()">Fermer</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Interface de Note (cachée par défaut) -->
+<div class="note-container" id="noteContainer" style="display: none;">
+    <div class="editor-container">
+        <textarea id="editor"></textarea>
+    </div>
+    <button class="chat-back-btn" onclick="exitNote()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 18l-6-6 6-6"></path>
+        </svg>
+        Retour
+    </button>
+</div>
+<!-- Interface de Dossier (cachée par défaut) -->
+<div class="folder-container" id="folderContainer" style="display: none;">
+    <!-- Navigation secondaire pour le dossier -->
+    <nav class="sub-nav">
+        <div class="breadcrumb-nav">
+            <div class="breadcrumb-item" onclick="exitFolder()">Retour</div>
+        </div>
+    </nav>
+
+    <!-- Grille des dossiers et fichiers -->
+    <div class="folder-grid" id="folderGrid"></div>
+
+    <!-- Bouton pour créer un nouveau dossier -->
+    <div class="create-new" onclick="showFolderCreateModal()">+</div>
+
+    <!-- Modal pour créer un nouveau dossier -->
+    <div class="modal" id="folderCreateModal" style="display: none;">
+        <div class="modal-content">
+            <h3 class="modal-title">Créer un nouveau dossier</h3>
+            <input type="text" class="modal-input" placeholder="Nom du dossier" id="folderName">
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" onclick="hideFolderCreateModal()">Annuler</button>
+                <button class="modal-btn btn-create" onclick="createFolder()">Créer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Interface Identity (cachée par défaut) -->
+<div class="identity-container" id="identityContainer" style="display: none;">
+    <div class="identity-content">
+        <div class="identity-header">
+            <div class="identity-avatar"></div>
+            <div class="identity-info">
+                <h1 class="identity-name">Jean-Louis LIKULA BASOMBOLI</h1>
+                <div class="identity-quote">
+                    "Je suis cette voix intérieure qui cherche constamment à comprendre qui elle est vraiment"
+                </div>
+            </div>
+            <div class="mood-indicator">
+                <span class="mood-emoji">🤔</span>
+                <span>En réflexion...</span>
+            </div>
+        </div>
+
+        <div class="birth-existence">
+            <h2 class="birth-date">Mardi, le 01 Avril 2003</h2>
+            <div class="current-age" id="currentAge">
+                <!-- Rempli par JavaScript -->
+            </div>
+            <div class="birth-quote">
+                "Le début d'une conscience qui ne cesse d'évoluer"
+            </div>
+        </div>
+
+        <div class="birthday-countdown">
+            <div class="countdown-numbers" id="birthdayCountdown">
+                <!-- Rempli par JavaScript -->
+            </div>
+        </div>
+
+        <div class="identity-section">
+            <h2 class="identity-section-title">
+                <span>🎭</span> État d'Esprit Actuel
+            </h2>
+            <div class="mindset-container">
+                <div class="floating-thoughts" id="floatingThoughts">
+                    <!-- Généré par JavaScript -->
+                </div>
+                <p class="current-mindset">
+                    "Toujours être prudent, mais ouvert aux possibilités infinies"
+                </p>
+            </div>
+        </div>
+
+        <div class="doubt-section">
+            <h2 class="identity-section-title">
+                <span>⚖️</span> Mes Dilemmes Actuels
+            </h2>
+            <div class="doubt-container">
+                <div class="doubt-option">
+                    <h3>Stabilité</h3>
+                    <p>Rester dans ma zone de confort</p>
+                </div>
+                <span class="vs-badge">VS</span>
+                <div class="doubt-option">
+                    <h3>Aventure</h3>
+                    <p>Explorer l'inconnu</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="evolution-section">
+            <h2 class="identity-section-title">
+                <span>🔄</span> Évolution Continue
+            </h2>
+            <div class="mood-slider" id="moodSlider">
+                <!-- Généré par JavaScript -->
+            </div>
+            <div class="thought-process">
+                <div class="thought-item">
+                    <h3>Hier</h3>
+                    <p>Ce que j'étais</p>
+                </div>
+                <div class="thought-item">
+                    <h3>Aujourd'hui</h3>
+                    <p>Ce que je suis</p>
+                </div>
+                <div class="thought-item">
+                    <h3>Demain</h3>
+                    <p>Ce que je deviendrai</p>
+                </div>
+            </div>
+            <div class="evolution-note">
+                "Je change à chaque instant, mes désirs et mes pensées évoluent constamment..."
+            </div>
+        </div>
+
+        <div class="current-dreams">
+            <h2 class="identity-section-title">
+                <span>✨</span> Rêves et Aspirations Actuels
+            </h2>
+            <div class="dream-items">
+                <!-- Généré par JavaScript -->
+            </div>
+        </div>
+
+        <div class="identity-section">
+            <h2 class="identity-section-title">
+                <span>✨</span> Ce qui me fait vibrer
+            </h2>
+            <div class="identity-list">
+                <!-- Généré par JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+        </main>
+    </div>
+
+
+
+ 
+<!-- Bouton de création universel (le "+" stylisé) -->
+<div class="creation-hub">
+    <svg class="creation-button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+        <defs>
+            <linearGradient id="buttonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="var(--accent-1)" />
+                <stop offset="50%" stop-color="var(--accent-2)" />
+                <stop offset="100%" stop-color="var(--accent-3)" />
+            </linearGradient>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="4" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+        </defs>
+        <g class="orbit-system">
+            <circle class="orbit" cx="50" cy="50" r="30" />
+            <circle class="orbit" cx="50" cy="50" r="40" />
+            <circle class="particle particle-1" cx="50" cy="20" r="3" />
+            <circle class="particle particle-2" cx="80" cy="50" r="2" />
+            <circle class="particle particle-3" cx="50" cy="90" r="4" />
+        </g>
+        <circle class="button-bg" cx="50" cy="50" r="25" fill="url(#buttonGradient)" filter="url(#glow)" />
+        <path class="plus-icon" d="M50,37 L50,63 M37,50 L63,50" stroke="white" stroke-width="4" stroke-linecap="round" />
+        <g class="idea-pulse" opacity="0">
+            <circle cx="50" cy="50" r="35" fill="none" stroke="white" stroke-width="1" />
+            <circle cx="50" cy="50" r="45" fill="none" stroke="white" stroke-width="0.5" />
+        </g>
+    </svg>
+    
+    <!-- Menu pop-up de création -->
+   <!-- Menu pop-up de création -->
+<div class="creation-menu">
+    <div class="creation-item" data-type="dossier">
+        <div class="icon-container">
+            <svg class="creation-icon" viewBox="0 0 24 24">
+                <path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" />
+            </svg>
+        </div>
+        <span>Dossier</span>
+    </div>
+    <div class="creation-item" data-type="note">
+        <div class="icon-container">
+            <svg class="creation-icon" viewBox="0 0 24 24">
+                <path d="M14,10H19.5L14,4.5V10M5,3H15L21,9V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5C3,3.89 3.89,3 5,3M5,5V19H19V12H12V5H5Z" />
+            </svg>
+        </div>
+        <span>Note</span>
+    </div>
+    <div class="creation-item" data-type="chat">
+        <div class="icon-container">
+            <svg class="creation-icon" viewBox="0 0 24 24">
+                <path d="M12,3C17.5,3 22,6.58 22,11C22,15.42 17.5,19 12,19C10.76,19 9.57,18.82 8.47,18.5C5.55,21 2,21 2,21C4.33,18.67 4.7,17.1 4.75,16.5C3.05,15.07 2,13.13 2,11C2,6.58 6.5,3 12,3M17,12V10H15V12H17M13,12V10H11V12H13M9,12V10H7V12H9Z" />
+            </svg>
+        </div>
+        <span>Chat</span>
+    </div>
+</div>
+
+</div>
+ 
+<!-- Ajoutez ce code à la fin de votre document HTML, juste avant la fermeture de la balise </body> -->
+<div id="creation-modal" class="creation-modal">
+    <div class="creation-modal-content">
+        <div class="creation-modal-header">
+            <div class="type-indicator">
+                <div class="type-icon"></div>
+                <h2 class="modal-title">Créer un nouvel élément</h2>
+            </div>
+            <button class="close-modal">&times;</button>
+        </div>
+        
+        <div class="creation-modal-body">
+            <div class="form-group type-selection">
+                <label>Type</label>
+                <div class="type-options">
+                    <div class="type-option" data-type="dossier">
+                        <div class="type-icon">📁</div>
+                        <span>Dossier</span>
+                    </div>
+                    <div class="type-option" data-type="note">
+                        <div class="type-icon">📝</div>
+                        <span>Note</span>
+                    </div>
+                    <div class="type-option" data-type="chat">
+                        <div class="type-icon">💬</div>
+                        <span>Chat</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="category-select">Catégorie</label>
+                <div class="category-selector">
+                    <div class="category-grid"></div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="title-input">Titre <span class="char-counter">0/100</span></label>
+                <input type="text" id="title-input" placeholder="Donnez un titre à votre création..." maxlength="100">
+            </div>
+            
+            <div class="form-group">
+                <label for="description-input">Description <span class="optional">(optionnel)</span></label>
+                <textarea id="description-input" placeholder="Ajoutez une description..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="tags-input">Tags <span class="hint">(max 3)</span></label>
+                <div class="tags-container">
+                    <div class="tags-list"></div>
+                    <input type="text" id="tags-input" placeholder="Ajoutez des tags...">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Priorité</label>
+                <div class="priority-options">
+                    <div class="priority-option" data-priority="low">
+                        <div class="priority-icon">🔽</div>
+                        <span>Basse</span>
+                    </div>
+                    <div class="priority-option" data-priority="medium">
+                        <div class="priority-icon">➖</div>
+                        <span>Moyenne</span>
+                    </div>
+                    <div class="priority-option" data-priority="high">
+                        <div class="priority-icon">🔼</div>
+                        <span>Haute</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creation-modal-footer">
+            <div class="quantum-particles"></div>
+            <button class="cancel-btn">Annuler</button>
+            <button class="create-btn">Créer</button>
+        </div>
+    </div>
+</div>
+
+<div id="authContainer" class="auth-container">
+    <div class="auth-layers">
+        <div class="auth-layer auth-nebula" style="opacity: 0.7;"></div>
+        <div class="auth-layer auth-stars" style="opacity: 0.6;"></div>
+        <div class="auth-identity-pattern"></div>
+    </div>
+    
+    <div class="auth-brain-layer" style="opacity: 1;">
+        <div class="auth-brain-container">
+            <div class="auth-brain">
+                <svg width="300" height="300" viewBox="0 0 100 100">
+                    <g fill="none" stroke="rgba(99, 102, 241, 0.6)" stroke-width="0.5">
+                        <path d="M50,20 C60,20 70,30 70,40 C70,50 65,55 50,55 C35,55 30,50 30,40 C30,30 40,20 50,20 Z" />
+                        <path d="M50,55 C65,55 75,65 75,75 C75,85 65,90 50,90 C35,90 25,85 25,75 C25,65 35,55 50,55 Z" />
+                        <path d="M40,30 C30,30 25,40 25,45 C25,50 30,55 35,55" />
+                        <path d="M60,30 C70,30 75,40 75,45 C75,50 70,55 65,55" />
+                        <path d="M35,65 C30,65 25,70 25,75" />
+                        <path d="M65,65 C70,65 75,70 75,75" />
+                    </g>
+                    <g class="brain-connections">
+                        <path class="brain-path" d="M30,40 Q40,20 50,40" />
+                        <path class="brain-path" d="M50,40 Q60,20 70,40" />
+                        <path class="brain-path" d="M30,40 Q50,30 70,40" />
+                        <path class="brain-path" d="M25,75 Q50,60 75,75" />
+                        <path class="brain-path" d="M40,30 Q50,50 60,30" />
+                        <path class="brain-path" d="M35,65 Q50,80 65,65" />
+                        
+                        <circle class="brain-node" cx="30" cy="40" r="3" style="animation-delay: 0.5s;" />
+                        <circle class="brain-node" cx="70" cy="40" r="3" style="animation-delay: 1s;" />
+                        <circle class="brain-node" cx="50" cy="40" r="3" style="animation-delay: 1.5s;" />
+                        <circle class="brain-node" cx="40" cy="30" r="3" style="animation-delay: 2s;" />
+                        <circle class="brain-node" cx="60" cy="30" r="3" style="animation-delay: 2.5s;" />
+                        <circle class="brain-node" cx="25" cy="75" r="3" style="animation-delay: 3s;" />
+                        <circle class="brain-node" cx="75" cy="75" r="3" style="animation-delay: 3.5s;" />
+                        <circle class="brain-node" cx="35" cy="65" r="3" style="animation-delay: 4s;" />
+                        <circle class="brain-node" cx="65" cy="65" r="3" style="animation-delay: 4.5s;" />
+                        <circle class="brain-node" cx="50" cy="55" r="3" style="animation-delay: 5s;" />
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+    
+    <div class="auth-name-container">
+        <div class="auth-name-letters">
+            <span class="auth-letter" style="animation-delay: 0.1s;">J</span>
+            <span class="auth-letter" style="animation-delay: 0.2s;">E</span>
+            <span class="auth-letter" style="animation-delay: 0.3s;">A</span>
+            <span class="auth-letter" style="animation-delay: 0.4s;">N</span>
+            <span class="auth-letter" style="animation-delay: 0.5s;">-</span>
+            <span class="auth-letter" style="animation-delay: 0.6s;">L</span>
+            <span class="auth-letter" style="animation-delay: 0.7s;">O</span>
+            <span class="auth-letter" style="animation-delay: 0.8s;">U</span>
+            <span class="auth-letter" style="animation-delay: 0.9s;">I</span>
+            <span class="auth-letter" style="animation-delay: 1.0s;">S</span>
+        </div>
+        <div class="auth-name-subtitle">Accès à l'univers mental personnel</div>
+    </div>
+    
+    <div id="authForm" class="auth-form">
+        <h2 class="auth-title">Authentification</h2>
+        
+        <div class="auth-input-group">
+            <input type="password" id="passwordInput" class="auth-input" placeholder="Mot de passe personnel" autocomplete="off">
+            <button type="button" id="togglePassword" class="auth-toggle-view">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+            </button>
+        </div>
+        
+        <button id="authButton" class="auth-btn">Accéder à mon espace</button>
+        
+        <div id="authFeedback" class="auth-feedback"></div>
+        
+        <div class="auth-help">
+            <span>Mot de passe oublié?</span>
+            <button id="alternativeAuthBtn" class="auth-help-btn">Méthode alternative</button>
+        </div>
+    </div>
+    
+    <div id="questionContainer" class="auth-question-container">
+        <div class="auth-question-form">
+            <button class="auth-close-btn" id="closeQuestionBtn">✕</button>
+            <h3 class="auth-question-title">Vérification d'identité</h3>
+            <p class="auth-question-desc">Sélectionnez les symboles qui ont une signification particulière pour vous.</p>
+            
+            <div class="auth-grid-container" id="symbolsGrid">
+                <!-- Rempli dynamiquement par JavaScript -->
+            </div>
+            
+            <div class="auth-input-group">
+                <input type="text" id="personalDateInput" class="auth-input" placeholder="Date importante (JJ/MM/AAAA)" autocomplete="off">
+            </div>
+            
+            <div class="auth-input-group">
+                <input type="text" id="personalPhraseInput" class="auth-input" placeholder="Phrase personnelle" autocomplete="off">
+            </div>
+            
+            <div class="auth-progress-container">
+                <div id="authProgress" class="auth-progress-bar"></div>
+            </div>
+            
+            <button id="verifyIdentityBtn" class="auth-btn">Vérifier mon identité</button>
+            
+            <div id="questionFeedback" class="auth-feedback"></div>
+        </div>
+    </div>
+    
+    <div id="authLoading" class="auth-loading hidden">
+        <div class="auth-loading-progress">
+            <div class="auth-loading-circle"></div>
+        </div>
+        <div class="auth-loading-text">Accès en cours à votre espace mental...</div>
+    </div>
+</div>
+
+ <!-- Lien vers le fichier JavaScript -->
+<script src="scripts.js"></script>
+
+
+
+</body>
+</html>
