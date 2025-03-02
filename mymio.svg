@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200" viewBox="0 0 200 200" version="1.1">
+  <!-- Fond avec gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0b1e" />
+      <stop offset="100%" stop-color="#1a1c35" />
+    </linearGradient>
+    
+    <!-- Gradient pour le cerveau -->
+    <linearGradient id="brainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="50%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+    
+    <!-- Effet de lueur -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  
+  <!-- Fond du logo -->
+  <circle cx="100" cy="100" r="90" fill="url(#bgGradient)" />
+  
+  <!-- Étoiles en arrière-plan -->
+  <g fill="#ffffff" opacity="0.6">
+    <circle cx="30" cy="40" r="1" />
+    <circle cx="60" cy="20" r="1.2" />
+    <circle cx="150" cy="30" r="1" />
+    <circle cx="170" cy="60" r="0.8" />
+    <circle cx="130" cy="140" r="1.3" />
+    <circle cx="40" cy="150" r="1" />
+    <circle cx="70" cy="170" r="0.7" />
+    <circle cx="120" cy="50" r="1.5" />
+  </g>
+  
+  <!-- Structure du cerveau stylisé -->
+  <g fill="none" stroke="url(#brainGradient)" stroke-width="2.5" filter="url(#glow)">
+    <!-- Lobe frontal -->
+    <path d="M100,50 C120,50 135,65 135,85 C135,105 125,115 100,115 C75,115 65,105 65,85 C65,65 80,50 100,50 Z" />
+    
+    <!-- Lobe temporal -->
+    <path d="M100,115 C125,115 140,130 140,145 C140,160 125,170 100,170 C75,170 60,160 60,145 C60,130 75,115 100,115 Z" />
+    
+    <!-- Connexions cérébrales -->
+    <path d="M85,70 C70,70 62,80 62,95 C62,105 72,115 80,115" />
+    <path d="M115,70 C130,70 138,80 138,95 C138,105 128,115 120,115" />
+    <path d="M80,130 C72,130 62,140 62,145" />
+    <path d="M120,130 C128,130 138,140 138,145" />
+  </g>
+  
+  <!-- Connexions neuronales animées -->
+  <g>
+    <path id="connection1" d="M80,80 Q100,60 120,80" stroke="#6366f1" stroke-width="1" opacity="0.6">
+      <animate attributeName="opacity" from="0.2" to="0.8" dur="3s" repeatCount="indefinite" />
+    </path>
+    <path id="connection2" d="M65,85 Q100,70 135,85" stroke="#8b5cf6" stroke-width="1" opacity="0.4">
+      <animate attributeName="opacity" from="0.8" to="0.2" dur="4s" repeatCount="indefinite" />
+    </path>
+    <path id="connection3" d="M60,145 Q100,125 140,145" stroke="#ec4899" stroke-width="1" opacity="0.8">
+      <animate attributeName="opacity" from="0.5" to="1" dur="2.5s" repeatCount="indefinite" />
+    </path>
+    
+    <!-- Noeuds avec animation de pulsation -->
+    <circle cx="80" cy="80" r="4" fill="#6366f1">
+      <animate attributeName="r" values="3;5;3" dur="2s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="120" cy="80" r="4" fill="#8b5cf6">
+      <animate attributeName="r" values="4;6;4" dur="3s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="100" cy="115" r="5" fill="#ec4899">
+      <animate attributeName="r" values="4;7;4" dur="2.5s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="65" cy="85" r="3" fill="#6366f1">
+      <animate attributeName="r" values="2;4;2" dur="3.5s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="135" cy="85" r="3" fill="#8b5cf6">
+      <animate attributeName="r" values="2;5;2" dur="4s" repeatCount="indefinite" />
+    </circle>
+  </g>
+  
+  <!-- Lettre M stylisée intégrée au cerveau -->
+  <path d="M80,100 L90,80 L100,100 L110,80 L120,100" 
+        stroke="#ffffff" stroke-width="4" fill="none" 
+        stroke-linecap="round" stroke-linejoin="round" opacity="0.8" />
+  
+  <!-- Texte "mymio" -->
+  <text x="100" y="135" font-family="Inter, sans-serif" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">mymio</text>
+</svg>
