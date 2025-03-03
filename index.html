@@ -20,6 +20,101 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jodit/3.24.2/jodit.min.js"></script>
 <!-- Lien vers le fichier CSS -->
 <link rel="stylesheet" href="styles.css">
+   <!-- Ajoutez ces lignes -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Initialisation de Supabase avec vos identifiants
+        const SUPABASE_URL = 'https://hnomubsievlxongoducr.supabase.co'; // Remplacez par votre URL
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhub211YnNpZXZseG9uZ29kdWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA5ODUyMjAsImV4cCI6MjA1NjU2MTIyMH0.Bplv54BJ18n9jO4XLU-U76gkw_9u_imCbM0xVCLLl0M'; // Remplacez par votre clé publique
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    </script>
+    <!-- Fin des ajouts -->
+<style>
+    /* Styles pour les boutons d'action des cartes */
+    .card-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 5px;
+        padding: 8px;
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .content-card:hover .card-actions {
+        opacity: 1;
+    }
+    
+    .card-edit-btn, .card-delete-btn {
+        background: rgba(0, 0, 0, 0.6);
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        font-size: 16px;
+        transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    
+    .card-edit-btn:hover, .card-delete-btn:hover {
+        transform: scale(1.1);
+    }
+    
+    .card-edit-btn:hover {
+        background-color: rgba(99, 102, 241, 0.8);
+    }
+    
+    .card-delete-btn:hover {
+        background-color: rgba(239, 68, 68, 0.8);
+    }
+    
+    /* Animation pour la mise à jour */
+    .updating {
+        position: relative;
+    }
+    
+    .updating::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
+    
+    .error-message {
+        position: absolute;
+        bottom: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(239, 68, 68, 0.9);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-weight: 500;
+        z-index: 100;
+        animation: fadeInOut 3s forwards;
+    }
+    
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translate(-50%, 20px); }
+        10% { opacity: 1; transform: translate(-50%, 0); }
+        90% { opacity: 1; transform: translate(-50%, 0); }
+        100% { opacity: 0; transform: translate(-50%, -20px); }
+    }
+</style>
 
 </head>
 <body>
@@ -573,6 +668,73 @@
         </div>
     </div>
 </div>
+
+<!-- Modal pour éditer un élément existant -->
+<div id="edit-modal" class="creation-modal">
+    <div class="creation-modal-content">
+        <div class="creation-modal-header">
+            <div class="type-indicator">
+                <div class="type-icon"></div>
+                <h2 class="modal-title">Modifier l'élément</h2>
+            </div>
+            <button class="close-modal">&times;</button>
+        </div>
+        
+        <div class="creation-modal-body">
+            <input type="hidden" id="edit-id">
+            
+            <div class="form-group">
+                <label for="edit-title-input">Titre <span class="char-counter">0/100</span></label>
+                <input type="text" id="edit-title-input" placeholder="Titre de l'élément..." maxlength="100">
+            </div>
+            
+            <div class="form-group">
+                <label for="edit-category-select">Catégorie</label>
+                <div class="category-selector">
+                    <div class="edit-category-grid"></div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit-description-input">Description <span class="optional">(optionnel)</span></label>
+                <textarea id="edit-description-input" placeholder="Description de l'élément..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit-tags-input">Tags <span class="hint">(max 3)</span></label>
+                <div class="tags-container">
+                    <div class="edit-tags-list"></div>
+                    <input type="text" id="edit-tags-input" placeholder="Ajouter un tag...">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Priorité</label>
+                <div class="edit-priority-options">
+                    <div class="priority-option" data-priority="low">
+                        <div class="priority-icon">🔽</div>
+                        <span>Basse</span>
+                    </div>
+                    <div class="priority-option" data-priority="medium">
+                        <div class="priority-icon">➖</div>
+                        <span>Moyenne</span>
+                    </div>
+                    <div class="priority-option" data-priority="high">
+                        <div class="priority-icon">🔼</div>
+                        <span>Haute</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creation-modal-footer">
+            <div class="quantum-particles"></div>
+            <button class="cancel-btn">Annuler</button>
+            <button class="update-btn">Mettre à jour</button>
+        </div>
+    </div>
+</div>
+
 
 <div id="authContainer" class="auth-container">
     <div class="auth-layers">

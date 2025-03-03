@@ -1,6 +1,26 @@
 //══════════════════════════════╗
 // 🟢 JS PARTIE 1
 //══════════════════════════════╝
+// Vérifier l'authentification
+async function checkAuthentication() {
+    // Vérifier l'authentification locale
+    const isLocalAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (isLocalAuthenticated) {
+        // L'utilisateur est authentifié localement
+        const authContainer = document.getElementById('authContainer');
+        if (authContainer) {
+            authContainer.remove();
+        }
+        
+        // Charger les données
+        await loadDataFromSupabase();
+        return true;
+    }
+    
+    return false;
+}
+
 
 
         // Données de démonstration
@@ -388,63 +408,71 @@ function updateNavOrder() {
     otherNavs.forEach(nav => mainNav.appendChild(nav)); // Ajoute le reste dans l'ordre
 }
 
-        // Fonction pour créer une carte de contenu
-        function createContentCard(data) {
-            // Fonction pour générer l'affichage des images
-            const generateImagesDisplay = (type, images) => {
-                if (!data.description) {
-                    return `
-                        <div class="card-images ${type}-images">
-                            ${images.map(image => `<span class="card-image ${type}-image">${image}</span>`).join('')}
-                        </div>
-                    `;
-                }
-                return '';
-            };
-
-            // Détermine l'icône en fonction du type
-            const typeIcon = {
-                chat: "💬",
-                note: "📝",
-                dossier: "📁"
-            }[data.type] || "📄";
-
+// Fonction pour créer une carte de contenu
+function createContentCard(data) {
+    // Fonction pour générer l'affichage des images
+    const generateImagesDisplay = (type, images) => {
+        if (!data.description) {
             return `
-                <div class="content-card ${data.type}-card" data-type="${data.type}" data-title="${data.title}">
-                    <div class="card-header">
-                        <div class="card-category">
-                            <span class="type-icon">${typeIcon}</span>
-                            ${data.category}
-                        </div>
-                        <h3 class="card-title">${data.title}</h3>
-                        <div class="card-meta">
-                            <span>📅 ${data.date}</span>
-                            <span>⭐ ${data.priority}</span>
-                        </div>
-                    </div>
-                    <div class="card-content">
-                        ${data.description ? 
-                            `<p class="card-description">${data.description}</p>` : 
-                            generateImagesDisplay(data.type, data.images)
-                        }
-                        <div class="card-tags">
-                            ${data.tags.map(tag => `<span class="card-tag">${tag}</span>`).join('')}
-                        </div>
-                    </div>
+                <div class="card-images ${type}-images">
+                    ${images.map(image => `<span class="card-image ${type}-image">${image}</span>`).join('')}
                 </div>
             `;
         }
+        return '';
+    };
 
-        // Fonction pour peupler la grille
-        function populateGrid() {
-            const grid = document.getElementById('contentGrid');
-            grid.innerHTML = ''; // Réinitialiser le contenu
+    // Détermine l'icône en fonction du type
+    const typeIcon = {
+        chat: "💬",
+        note: "📝",
+        dossier: "📁"
+    }[data.type] || "📄";
 
-            sampleData.forEach(data => {
-                grid.innerHTML += createContentCard(data);
-            });
-            attachCardClickHandlers();
-        }
+    return `
+        <div class="content-card ${data.type}-card" data-type="${data.type}" data-title="${data.title}" data-id="${data.id}">
+            <div class="card-header">
+                <div class="card-category">
+                    <span class="type-icon">${typeIcon}</span>
+                    ${data.category}
+                </div>
+                <h3 class="card-title">${data.title}</h3>
+                <div class="card-meta">
+                    <span>📅 ${data.date}</span>
+                    <span>⭐ ${data.priority}</span>
+                </div>
+            </div>
+            <div class="card-content">
+                ${data.description ? 
+                    `<p class="card-description">${data.description}</p>` : 
+                    generateImagesDisplay(data.type, data.images)
+                }
+                <div class="card-tags">
+                    ${data.tags.map(tag => `<span class="card-tag">${tag}</span>`).join('')}
+                </div>
+            </div>
+            <div class="card-actions">
+                <button class="card-edit-btn" data-id="${data.id}">✏️</button>
+                <button class="card-delete-btn" data-id="${data.id}">🗑️</button>
+            </div>
+        </div>
+    `;
+}
+
+
+       // Fonction pour peupler la grille
+function populateGrid() {
+    const grid = document.getElementById('contentGrid');
+    grid.innerHTML = ''; // Réinitialiser le contenu
+
+    sampleData.forEach(data => {
+        grid.innerHTML += createContentCard(data);
+    });
+    
+    attachCardClickHandlers();
+    attachCardActionHandlers(); // Ajouter cette ligne
+}
+
 
         function updateCurrentAge() {
     const birthDate = new Date('2003-04-01');
@@ -833,11 +861,40 @@ function scrollToBottom() {
         });
 
         // Initialisation
-        document.addEventListener('DOMContentLoaded', () => {
-            populateGrid();
-updateCategoryCounts();
+// Ajouter à la fin de votre script, avant la fermeture de l'événement DOMContentLoaded
+function checkSupabaseInitialization() {
+    try {
+        if (!supabase) {
+            console.error("Supabase n'est pas initialisé");
+            return false;
+        }
+        console.log("Supabase est correctement initialisé");
+        return true;
+    } catch (error) {
+        console.error("Erreur lors de la vérification de l'initialisation de Supabase:", error);
+        return false;
+    }
+}
 
+// Ajouter au début de l'événement DOMContentLoaded
+document.addEventListener('DOMContentLoaded', async () => {
+    // Vérifier l'initialisation de Supabase
+    const isSupabaseInitialized = checkSupabaseInitialization();
+    if (!isSupabaseInitialized) {
+        console.error("ATTENTION: Supabase n'est pas correctement initialisé!");
+    }
+    
+    // Suite de votre code...
 
+    // Vérifier l'authentification
+    const isAuthenticated = await checkAuthentication();
+    
+    if (isAuthenticated) {
+        // Utilisateur déjà authentifié, initialiser l'application
+        populateGrid();
+        updateCategoryCounts();
+        updateNavOrder();
+        
             // Gestion des filtres
             document.querySelectorAll('.filter-tag').forEach(tag => {
                 tag.addEventListener('click', () => {
@@ -862,10 +919,6 @@ updateCategoryCounts();
                     filterContentByCategory(category);
                 });
             });
-
-            // Appel initial pour organiser les nav-items
-            updateNavOrder();
-
             // Animation au scroll
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -879,7 +932,11 @@ updateCategoryCounts();
             document.querySelectorAll('.content-card').forEach(card => {
                 observer.observe(card);
             });
-        });
+    } else {
+        // Afficher le formulaire d'authentification
+        // (déjà visible par défaut, rien à faire)
+    }
+});
 
         // Recherche dans les catégories
         const searchInput = document.querySelector('.search-input');
@@ -996,6 +1053,44 @@ function exitNote() {
                 card.addEventListener('click', handleCardClick);
             });
         }
+        
+        // Fonction pour attacher les gestionnaires de boutons d'action
+function attachCardActionHandlers() {
+    // Gestionnaires pour les boutons de modification
+    document.querySelectorAll('.card-edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Empêcher le clic de la carte
+            const id = btn.dataset.id;
+            const card = btn.closest('.content-card');
+            openEditModal(id, card);
+        });
+    });
+    
+    // Gestionnaires pour les boutons de suppression
+    document.querySelectorAll('.card-delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation(); // Empêcher le clic de la carte
+            const id = btn.dataset.id;
+            
+            if (confirm('Êtes-vous sûr de vouloir supprimer cet élément?')) {
+                const success = await deleteElementFromSupabase(id);
+                
+                if (success) {
+                    // Supprimer l'élément du tableau local
+                    window.sampleData = window.sampleData.filter(item => item.id !== id);
+                    
+                    // Actualiser l'interface
+                    populateGrid();
+                    updateCategoryCounts();
+                    updateNavOrder();
+                } else {
+                    alert('Erreur lors de la suppression de l\'élément.');
+                }
+            }
+        });
+    });
+}
+
         
         // Variables et Icônes pour Dossier
 let folderCurrentPath = [];
@@ -1456,11 +1551,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Ouvrir le modal de création
     function openCreationModal(type) {
+              // Réinitialiser le formulaire
+        resetForm();
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden'; // Empêcher le défilement
         
-        // Réinitialiser le formulaire
-        resetForm();
+
         
         // Pré-sélectionner le type
         typeOptions.forEach(option => {
@@ -1589,11 +1685,15 @@ document.addEventListener('DOMContentLoaded', function() {
         tagsList.appendChild(tag);
     }
     
-    // Fermer le modal
-    function closeModal() {
-        modal.style.display = 'none';
-        document.body.style.overflow = ''; // Réactiver le défilement
-    }
+// Fermer le modal
+function closeModal() {
+    modal.style.display = 'none';
+    document.body.style.overflow = ''; // Réactiver le défilement
+    
+    // Réinitialiser complètement le formulaire et supprimer l'animation de succès
+    resetForm();
+}
+
     
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
@@ -1605,21 +1705,35 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Réinitialiser le formulaire
-    function resetForm() {
-        selectedCategory = null;
-        selectedPriority = null;
-        currentTags = [];
-        
-        titleInput.value = '';
-        descriptionInput.value = '';
-        tagsInput.value = '';
-        tagsList.innerHTML = '';
-        charCounter.textContent = '0/100';
-        
-        typeOptions.forEach(opt => opt.classList.remove('selected'));
-        priorityOptions.forEach(opt => opt.classList.remove('selected'));
+// Réinitialiser le formulaire
+function resetForm() {
+    selectedCategory = null;
+    selectedPriority = null;
+    currentTags = [];
+    
+    titleInput.value = '';
+    descriptionInput.value = '';
+    tagsInput.value = '';
+    tagsList.innerHTML = '';
+    charCounter.textContent = '0/100';
+    
+    typeOptions.forEach(opt => opt.classList.remove('selected'));
+    priorityOptions.forEach(opt => opt.classList.remove('selected'));
+    
+    // Supprimer l'overlay de succès s'il existe
+    const overlay = modal.querySelector('.success-overlay');
+    if (overlay) {
+        overlay.remove();
     }
+    
+    // Réinitialiser les classes d'animation de succès
+    const content = modal.querySelector('.creation-modal-content');
+    content.classList.remove('creation-success');
+    
+    // Réinitialiser les erreurs
+    modal.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+}
+
     
     // Animation de particules
     function createParticles() {
@@ -1657,7 +1771,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
 // Création d'un nouvel élément
-createBtn.addEventListener('click', () => {
+createBtn.addEventListener('click', async () => {
+  // À ajouter au début de la fonction du bouton createBtn
+console.log("Début création - Type:", selectedType);
+console.log("Catégorie:", selectedCategory);
+console.log("Titre:", titleInput.value);
+console.log("Priorité:", selectedPriority);
+
     console.log("Bouton créer cliqué");
     // Vérifier que les champs obligatoires sont remplis
     if (!selectedType || !selectedCategory || !titleInput.value || !selectedPriority) {
@@ -1684,6 +1804,19 @@ createBtn.addEventListener('click', () => {
         return;
     }
     
+    // Traiter les tags s'il y a du texte dans l'input mais pas encore ajouté à la liste
+    if (tagsInput.value.trim()) {
+        // Diviser l'entrée par les virgules et traiter chaque partie comme un tag séparé
+        const inputTags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+        
+        // Ajouter chaque tag non déjà inclus, jusqu'à la limite de 3 tags au total
+        inputTags.forEach(tagText => {
+            if (!currentTags.includes(tagText) && currentTags.length < 3) {
+                addTag(tagText);
+            }
+        });
+    }
+
     // Créer l'objet de données
     const newItem = {
         category: selectedCategory,
@@ -1698,39 +1831,62 @@ createBtn.addEventListener('click', () => {
     
     console.log("Nouvel élément créé:", newItem);
     
-    // Ajouter l'élément à sampleData
-    window.sampleData.push(newItem);
+    // Animation de création en cours
+    const content = modal.querySelector('.creation-modal-content');
+    content.classList.add('creating');
     
-    highlightNewElement(newItem.title);
+    // Enregistrer dans Supabase
+    const success = await saveElementToSupabase(newItem);
     
-    // Actualiser la grille
-    populateGrid();
-    
-    // Mettre à jour les compteurs
-    updateCategoryCounts();
-    
-    // Mettre à jour l'ordre des éléments de navigation
-    updateNavOrder();
-    
-    // Si la catégorie actuelle est celle qui vient d'être ajoutée, mettre à jour l'affichage
-    const activeNavItem = document.querySelector('.nav-item.active');
-    if (activeNavItem && activeNavItem.dataset.category === selectedCategory) {
-        filterContentByCategory(selectedCategory);
+    if (success) {
+        // Ajouter l'élément à sampleData
+        window.sampleData.push(newItem);
+        
+        highlightNewElement(newItem.title);
+        
+        // Actualiser la grille
+        populateGrid();
+        
+        // Mettre à jour les compteurs
+        updateCategoryCounts();
+        
+        // Mettre à jour l'ordre des éléments de navigation
+        updateNavOrder();
+        
+        // Si la catégorie actuelle est celle qui vient d'être ajoutée, mettre à jour l'affichage
+        const activeNavItem = document.querySelector('.nav-item.active');
+        if (activeNavItem && activeNavItem.dataset.category === selectedCategory) {
+            filterContentByCategory(selectedCategory);
+        } else {
+            // Sinon, filtrer pour afficher tous les éléments
+            filterContentByCategory('universe');
+        }
+        
+        // Animation de création réussie
+        createSuccessAnimation();
+        
+        // Fermer le modal
+        setTimeout(() => {
+            closeModal();
+            // Ré-afficher la grille après la fermeture
+            document.getElementById('contentGrid').style.display = 'grid';
+        }, 1500);
     } else {
-        // Sinon, filtrer pour afficher tous les éléments
-        filterContentByCategory('universe');
+        // En cas d'erreur
+        content.classList.remove('creating');
+        
+        // Afficher un message d'erreur
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message';
+        errorMessage.textContent = "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.";
+        content.appendChild(errorMessage);
+        
+        setTimeout(() => {
+            errorMessage.remove();
+        }, 3000);
     }
-    
-    // Animation de création réussie
-    createSuccessAnimation();
-    
-    // Fermer le modal
-    setTimeout(() => {
-        closeModal();
-        // Ré-afficher la grille après la fermeture
-        document.getElementById('contentGrid').style.display = 'grid';
-    }, 1500);
 });
+
 
 
     
@@ -2010,11 +2166,308 @@ function highlightNewElement(title) {
 }
 
 
+// Variables pour le modal d'édition
+let editCurrentTags = [];
+let editSelectedCategory = null;
+let editSelectedPriority = null;
+
+// Fonction pour ouvrir le modal d'édition
+function openEditModal(id, card) {
+    const editModal = document.getElementById('edit-modal');
+    const element = window.sampleData.find(item => item.id === id);
+    
+    if (!element) {
+        console.error('Élément non trouvé');
+        return;
+    }
+    
+    // Remplir le modal avec les données de l'élément
+    const editIdInput = document.getElementById('edit-id');
+    const editTitleInput = document.getElementById('edit-title-input');
+    const editDescInput = document.getElementById('edit-description-input');
+    const editTagsList = document.querySelector('.edit-tags-list');
+    
+    editIdInput.value = id;
+    editTitleInput.value = element.title;
+    editDescInput.value = element.description || '';
+    
+    // Réinitialiser les tags
+    editCurrentTags = [...element.tags];
+    editTagsList.innerHTML = '';
+    
+    editCurrentTags.forEach(tag => {
+        addEditTag(tag);
+    });
+    
+    // Sélectionner la catégorie
+    editSelectedCategory = element.category;
+    populateEditCategories();
+    
+    // Sélectionner la priorité
+    editSelectedPriority = element.priority;
+    document.querySelectorAll('.edit-priority-options .priority-option').forEach(option => {
+        if (option.dataset.priority === editSelectedPriority) {
+            option.classList.add('selected');
+        } else {
+            option.classList.remove('selected');
+        }
+    });
+    
+    // Mettre à jour le compteur de caractères
+    const charCounter = editModal.querySelector('.char-counter');
+    charCounter.textContent = `${editTitleInput.value.length}/100`;
+    
+    // Afficher le modal
+    editModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Empêcher le défilement
+    
+    // Focus sur le champ de titre
+    setTimeout(() => {
+        editTitleInput.focus();
+    }, 300);
+}
+
+// Fonction pour peupler les catégories dans le modal d'édition
+function populateEditCategories() {
+    const categoryGrid = document.querySelector('.edit-category-grid');
+    categoryGrid.innerHTML = '';
+    
+    // Utiliser les éléments de la navigation principale comme catégories
+    const navItems = document.querySelectorAll('.main-nav .nav-item');
+    
+    navItems.forEach(item => {
+        const category = item.dataset.category;
+        // Exclure "Mon univers" et "Identity"
+        if (category !== 'universe' && category !== 'Identity') {
+            const emoji = item.innerText.trim();
+            const tooltip = item.querySelector('.tooltip').innerText;
+            
+            const categoryItem = document.createElement('div');
+            categoryItem.className = 'category-item';
+            categoryItem.dataset.category = category;
+            
+            // Sélectionner la catégorie active
+            if (category === editSelectedCategory) {
+                categoryItem.classList.add('selected');
+            }
+            
+            categoryItem.innerHTML = `
+                <div class="category-icon">${emoji}</div>
+                <div class="category-name">${tooltip}</div>
+            `;
+            
+            categoryItem.addEventListener('click', () => {
+                document.querySelectorAll('.edit-category-grid .category-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                categoryItem.classList.add('selected');
+                editSelectedCategory = category;
+            });
+            
+            categoryGrid.appendChild(categoryItem);
+        }
+    });
+}
+
+// Fonction pour ajouter un tag dans le modal d'édition
+function addEditTag(text) {
+    const tag = document.createElement('div');
+    tag.className = 'tag';
+    tag.innerHTML = `
+        ${text}
+        <span class="tag-remove">&times;</span>
+    `;
+    
+    tag.querySelector('.tag-remove').addEventListener('click', () => {
+        tag.remove();
+        editCurrentTags = editCurrentTags.filter(t => t !== text);
+    });
+    
+    document.querySelector('.edit-tags-list').appendChild(tag);
+}
+
+// Gestionnaire d'événement pour le champ de tags du modal d'édition
+document.getElementById('edit-tags-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        const tagText = e.target.value.trim();
+        
+        if (tagText && editCurrentTags.length < 3) {
+            // Vérifier que le tag n'est pas déjà dans la liste
+            if (!editCurrentTags.includes(tagText)) {
+                editCurrentTags.push(tagText);
+                addEditTag(tagText);
+                e.target.value = '';
+            }
+        }
+    }
+});
+
+// Gestionnaire d'événement pour les options de priorité du modal d'édition
+document.querySelectorAll('.edit-priority-options .priority-option').forEach(option => {
+    option.addEventListener('click', () => {
+        document.querySelectorAll('.edit-priority-options .priority-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        option.classList.add('selected');
+        editSelectedPriority = option.dataset.priority;
+    });
+});
+
+// Gestionnaire d'événement pour le bouton de mise à jour
+document.querySelector('#edit-modal .update-btn')?.addEventListener('click', async () => {
+    const id = document.getElementById('edit-id').value;
+    const title = document.getElementById('edit-title-input').value;
+    const description = document.getElementById('edit-description-input').value;
+    
+    // Vérifier que les champs obligatoires sont remplis
+    if (!title || !editSelectedCategory || !editSelectedPriority) {
+        // Mettre en évidence les champs manquants
+        if (!title) {
+            document.getElementById('edit-title-input').classList.add('error');
+        }
+        if (!editSelectedCategory) {
+            document.querySelector('.edit-category-grid').parentElement.classList.add('error');
+        }
+        if (!editSelectedPriority) {
+            document.querySelector('.edit-priority-options').classList.add('error');
+        }
+        return;
+    }
+    
+    // Créer l'objet de mises à jour
+    const updates = {
+        title,
+        category: editSelectedCategory,
+        description: description || null,
+        tags: editCurrentTags,
+        priority: editSelectedPriority
+    };
+    
+    // Animation de mise à jour en cours
+    const content = document.querySelector('#edit-modal .creation-modal-content');
+    content.classList.add('updating');
+    
+    // Mettre à jour dans Supabase
+    const success = await updateElementInSupabase(id, updates);
+    
+    if (success) {
+        // Mettre à jour l'élément dans le tableau local
+        const index = window.sampleData.findIndex(item => item.id === id);
+        if (index !== -1) {
+            window.sampleData[index] = {
+                ...window.sampleData[index],
+                ...updates
+            };
+        }
+        
+        // Actualiser la grille
+        populateGrid();
+        
+        // Mettre à jour les compteurs
+        updateCategoryCounts();
+        
+        // Mettre à jour l'ordre des éléments de navigation
+        updateNavOrder();
+        
+        // Animation de mise à jour réussie
+        createEditSuccessAnimation();
+        
+        // Fermer le modal
+        setTimeout(() => {
+            closeEditModal();
+        }, 1500);
+    } else {
+        // En cas d'erreur
+        content.classList.remove('updating');
+        
+        // Afficher un message d'erreur
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message';
+        errorMessage.textContent = "Une erreur est survenue lors de la mise à jour. Veuillez réessayer.";
+        content.appendChild(errorMessage);
+        
+        setTimeout(() => {
+            errorMessage.remove();
+        }, 3000);
+    }
+});
+
+// Fonction pour fermer le modal d'édition
+function closeEditModal() {
+    const editModal = document.getElementById('edit-modal');
+    editModal.style.display = 'none';
+    document.body.style.overflow = ''; // Réactiver le défilement
+}
+
+// Gestionnaire d'événement pour le bouton de fermeture du modal d'édition
+document.querySelector('#edit-modal .close-modal')?.addEventListener('click', closeEditModal);
+
+// Gestionnaire d'événement pour le bouton d'annulation du modal d'édition
+document.querySelector('#edit-modal .cancel-btn')?.addEventListener('click', closeEditModal);
+
+// Fermer le modal en cliquant en dehors
+document.getElementById('edit-modal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('edit-modal')) {
+        closeEditModal();
+    }
+});
+
+// Animation de succès pour l'édition
+function createEditSuccessAnimation() {
+    const content = document.querySelector('#edit-modal .creation-modal-content');
+    content.classList.add('edit-success');
+    
+    // Ajouter une superposition d'animation
+    const overlay = document.createElement('div');
+    overlay.className = 'success-overlay';
+    overlay.innerHTML = `
+        <div class="success-icon">✓</div>
+        <div class="success-message">Élément mis à jour avec succès!</div>
+    `;
+    content.appendChild(overlay);
+}
+
+// Gestionnaire pour le compteur de caractères dans le modal d'édition
+document.getElementById('edit-title-input')?.addEventListener('input', (e) => {
+    const charCounter = document.querySelector('#edit-modal .char-counter');
+    const length = e.target.value.length;
+    
+    charCounter.textContent = `${length}/100`;
+    
+    // Mettre à jour la couleur en fonction de la longueur
+    if (length > 80) {
+        charCounter.style.color = '#ef4444';
+    } else if (length > 50) {
+        charCounter.style.color = '#f59e0b';
+    } else {
+        charCounter.style.color = '';
+    }
+});
+
 
 
 //══════════════════════════════╗
 // 🔴 JS PARTIE 5
 //══════════════════════════════╝
+
+// Vérifier l'authentification Supabase
+async function checkSupabaseSession() {
+    try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+            console.error('Erreur lors de la vérification de la session:', error);
+            return false;
+        }
+        
+        return data.session !== null;
+    } catch (error) {
+        console.error('Erreur lors de la vérification de la session:', error);
+        return false;
+    }
+}
+
 
 document.addEventListener('DOMContentLoaded', function() {
     // Système d'authentification
@@ -2058,14 +2511,22 @@ document.addEventListener('DOMContentLoaded', function() {
             : '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
     });
     
-    // Vérification du mot de passe principal
-    authButton.addEventListener('click', function() {
-        const password = passwordInput.value;
+// Vérification du mot de passe principal
+authButton.addEventListener('click', async function() {
+    const password = passwordInput.value;
+    
+    try {
+        // Vérifier le mot de passe avec Supabase
+        // Note: Dans une application réelle, utilisez une fonction RPC Supabase pour cette vérification
+        // Cette approche simplifiée n'est pas recommandée pour la production
         
-        // Mot de passe correct
+        // Mot de passe local pour le développement
         if (password === "01Jeanlik2003@") {
             authFeedback.textContent = "Authentification réussie";
             authFeedback.className = "auth-feedback visible success";
+            
+            // Authentification réussie, stockons une session dans localStorage
+            localStorage.setItem('isAuthenticated', 'true');
             
             // Afficher l'écran de chargement
             setTimeout(() => {
@@ -2099,7 +2560,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 authForm.classList.remove('shake');
             }, 500);
         }
-    });
+    } catch (error) {
+        console.error('Erreur lors de l\'authentification:', error);
+        authFeedback.textContent = "Erreur lors de l'authentification";
+        authFeedback.className = "auth-feedback visible error";
+    }
+});
+
     
     // Fonction pour créer des pulsations visuelles aléatoires
     function createPulseEffect() {
@@ -2335,6 +2802,108 @@ verifyIdentityBtn.addEventListener('click', function() {
 /*══════════════════════════════╗
   🟡 JS PARTIE 6
   ═════════════════════════════╝*/
+
+// Fonction pour charger les données depuis Supabase
+async function loadDataFromSupabase() {
+    try {
+        const { data, error } = await supabase
+            .from('elements')
+            .select('*');
+        
+        if (error) {
+            console.error('Erreur lors du chargement des données:', error);
+            return;
+        }
+        
+        if (data && data.length > 0) {
+            // Formater les données pour correspondre à votre structure
+            window.sampleData = data.map(item => ({
+                category: item.category,
+                type: item.type,
+                title: item.title,
+                date: item.date,
+                description: item.description,
+                images: item.images,
+                tags: item.tags,
+                priority: item.priority
+            }));
+            
+            // Actualiser l'interface
+            populateGrid();
+            updateCategoryCounts();
+            updateNavOrder();
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+    }
+}
+// Fonction pour enregistrer un nouvel élément dans Supabase
+async function saveElementToSupabase(element) {
+    try {
+        console.log('Tentative d\'enregistrement de l\'élément:', element);
+        const { data, error } = await supabase
+            .from('elements')
+            .insert([element])
+            .select();
+        
+        if (error) {
+            console.error('Erreur lors de l\'enregistrement de l\'élément:', error);
+            return false;
+        }
+        
+        console.log('Élément enregistré avec succès:', data);
+        // Si data contient l'ID généré, ajoutez-le à l'élément
+        if (data && data.length > 0 && data[0].id) {
+            element.id = data[0].id;
+        }
+        return true;
+    } catch (error) {
+        console.error('Erreur lors de l\'enregistrement de l\'élément:', error);
+        return false;
+    }
+}
+
+
+// Fonction pour mettre à jour un élément existant
+async function updateElementInSupabase(id, updates) {
+    try {
+        const { data, error } = await supabase
+            .from('elements')
+            .update(updates)
+            .eq('id', id);
+        
+        if (error) {
+            console.error('Erreur lors de la mise à jour de l\'élément:', error);
+            return false;
+        }
+        
+        console.log('Élément mis à jour avec succès:', data);
+        return true;
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour de l\'élément:', error);
+        return false;
+    }
+}
+// Fonction pour supprimer un élément
+async function deleteElementFromSupabase(id) {
+    try {
+        const { data, error } = await supabase
+            .from('elements')
+            .delete()
+            .eq('id', id);
+        
+        if (error) {
+            console.error('Erreur lors de la suppression de l\'élément:', error);
+            return false;
+        }
+        
+        console.log('Élément supprimé avec succès');
+        return true;
+    } catch (error) {
+        console.error('Erreur lors de la suppression de l\'élément:', error);
+        return false;
+    }
+}
 
 
 //══════════════════════════════╗
