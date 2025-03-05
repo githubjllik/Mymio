@@ -5012,6 +5012,296 @@ textarea {
 \*═══════════════════════════*/
 
 
+/* Style moderne pour les boutons d'action */
+.card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.05));
+}
+
+.card-actions button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    backdrop-filter: blur(5px);
+}
+
+.card-actions button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.card-actions button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px -10px rgba(0, 0, 0, 0.3);
+}
+
+.card-actions button:hover::before {
+    opacity: 1;
+}
+
+.card-actions button:active {
+    transform: translateY(0);
+}
+
+.card-edit-btn {
+    color: var(--accent-1);
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
+}
+
+.card-edit-btn:hover {
+    background: rgba(99, 102, 241, 0.2) !important;
+    border-color: var(--accent-1) !important;
+}
+
+.card-delete-btn {
+    color: var(--error);
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.card-delete-btn:hover {
+    background: rgba(239, 68, 68, 0.2) !important;
+    border-color: var(--error) !important;
+}
+
+/* Animation pour les icônes des boutons */
+.card-actions button:hover span,
+.card-actions button:hover {
+    animation: pulse-icon 0.5s ease;
+}
+
+@keyframes pulse-icon {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Responsive design pour les boutons */
+@media (max-width: 768px) {
+    .card-actions {
+        padding: 0.75rem 1rem;
+    }
+    
+    .card-actions button {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .card-actions {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .card-actions button {
+        width: 32px;
+        height: 32px;
+    }
+}
+.message-error {
+    font-size: 0.7rem;
+    color: #ef4444;
+    opacity: 0.8;
+    margin-top: 2px;
+    text-align: right;
+}
+
+.chat-message.error {
+    opacity: 0.8;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+/* Styles pour la prévisualisation de fichiers */
+.file-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.file-preview-content {
+    background: var(--bg-primary);
+    width: 90%;
+    max-width: 900px;
+    height: 80%;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.file-preview-header {
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.file-preview-header h3 {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.close-preview {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.file-preview-body {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.preview-pdf {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.preview-text {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    padding: 10px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+}
+
+.preview-text pre {
+    margin: 0;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+.preview-generic {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-icon.large {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.file-preview-footer {
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.download-btn, .delete-file-btn {
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.download-btn {
+    background: var(--accent-1);
+    color: white;
+    border: none;
+}
+
+.delete-file-btn {
+    background: var(--error);
+    color: white;
+    border: none;
+    margin-right: 10px;
+}
+
+/* Style amélioré pour les dossiers */
+.folder-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 5px;
+    height: 100px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    margin-bottom: 10px;
+}
+
+.preview-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    overflow: hidden;
+}
+
+.preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-item.empty {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.create-folder {
+    border: 2px dashed var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.import-icon {
+    font-size: 32px;
+}
+
+
+
 /*═══════════════════════════*\
   🟨 PARTIE 15  
 \*═══════════════════════════*/

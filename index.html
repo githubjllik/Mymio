@@ -30,91 +30,8 @@
 
     </script>
     <!-- Fin des ajouts -->
-<style>
-    /* Styles pour les boutons d'action des cartes */
-    .card-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 5px;
-        padding: 8px;
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-    
-    .content-card:hover .card-actions {
-        opacity: 1;
-    }
-    
-    .card-edit-btn, .card-delete-btn {
-        background: rgba(0, 0, 0, 0.6);
-        border: none;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        padding: 0;
-        font-size: 16px;
-        transition: transform 0.2s ease, background-color 0.2s ease;
-    }
-    
-    .card-edit-btn:hover, .card-delete-btn:hover {
-        transform: scale(1.1);
-    }
-    
-    .card-edit-btn:hover {
-        background-color: rgba(99, 102, 241, 0.8);
-    }
-    
-    .card-delete-btn:hover {
-        background-color: rgba(239, 68, 68, 0.8);
-    }
-    
-    /* Animation pour la mise à jour */
-    .updating {
-        position: relative;
-    }
-    
-    .updating::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10;
-    }
-    
-    .error-message {
-        position: absolute;
-        bottom: 70px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(239, 68, 68, 0.9);
-        color: white;
-        padding: 10px 15px;
-        border-radius: 8px;
-        font-weight: 500;
-        z-index: 100;
-        animation: fadeInOut 3s forwards;
-    }
-    
-    @keyframes fadeInOut {
-        0% { opacity: 0; transform: translate(-50%, 20px); }
-        10% { opacity: 1; transform: translate(-50%, 0); }
-        90% { opacity: 1; transform: translate(-50%, 0); }
-        100% { opacity: 0; transform: translate(-50%, -20px); }
-    }
-</style>
+
+ 
 
 </head>
 <body>
@@ -380,6 +297,15 @@
         </svg>
         Retour
     </button>
+    <button class="save-note-btn" onclick="saveNoteManually()">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+        <polyline points="7 3 7 8 15 8"></polyline>
+    </svg>
+    Sauvegarder
+</button>
+
 </div>
 <!-- Interface de Dossier (cachée par défaut) -->
 <div class="folder-container" id="folderContainer" style="display: none;">
@@ -691,7 +617,7 @@
             <div class="form-group">
                 <label for="edit-category-select">Catégorie</label>
                 <div class="category-selector">
-                    <div class="edit-category-grid"></div>
+                    <div class="category-grid edit-category-grid"></div>
                 </div>
             </div>
             
@@ -703,14 +629,14 @@
             <div class="form-group">
                 <label for="edit-tags-input">Tags <span class="hint">(max 3)</span></label>
                 <div class="tags-container">
-                    <div class="edit-tags-list"></div>
+                    <div class="tags-list edit-tags-list"></div>
                     <input type="text" id="edit-tags-input" placeholder="Ajouter un tag...">
                 </div>
             </div>
             
             <div class="form-group">
                 <label>Priorité</label>
-                <div class="edit-priority-options">
+                <div class="priority-options edit-priority-options">
                     <div class="priority-option" data-priority="low">
                         <div class="priority-icon">🔽</div>
                         <span>Basse</span>
@@ -730,10 +656,11 @@
         <div class="creation-modal-footer">
             <div class="quantum-particles"></div>
             <button class="cancel-btn">Annuler</button>
-            <button class="update-btn">Mettre à jour</button>
+            <button class="create-btn update-btn">Mettre à jour</button>
         </div>
     </div>
 </div>
+
 
 
 <div id="authContainer" class="auth-container">

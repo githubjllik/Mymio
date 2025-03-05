@@ -25,28 +25,30 @@ async function checkAuthentication() {
 
         // Données de démonstration
 window.sampleData = [
-
-            {
-                category: "Pensées",
-                type: "chat",
-                title: "L'importance de la gratitude quotidienne",
-                date: "2025-02-06",
-                description: null, // Permettre null pour la description
-                images: ["🗨️", "💭", "💬"], // Emojis comme placeholder pour les images
-                tags: ["développement personnel", "mindfulness", "gratitude"],
-                priority: "high"
-            },
-            {
-                category: "Objectifs",
-                type: "note",
-                title: "Apprendre la programmation quantique",
-                date: "2025-02-05",
-                description: "Exploration des concepts fondamentaux de l'informatique quantique et établissement d'un plan d'apprentissage structuré.",
-                images: ["📝", "📄", "📃"],
-                tags: ["apprentissage", "technologie", "science"],
-                priority: "medium"
-            },
-            {
+    {
+        id: 'demo-1',
+        category: "Pensées",
+        type: "chat",
+        title: "L'importance de la gratitude quotidienne",
+        date: "2025-02-06",
+        description: null,
+        images: ["🗨️", "💭", "💬"],
+        tags: ["développement personnel", "mindfulness", "gratitude"],
+        priority: "high"
+    },
+    {
+        id: 'demo-2',
+        category: "Objectifs",
+        type: "note",
+        title: "Apprendre la programmation quantique",
+        date: "2025-02-05",
+        description: "Exploration des concepts fondamentaux de l'informatique quantique et établissement d'un plan d'apprentissage structuré.",
+        images: ["📝", "📄", "📃"],
+        tags: ["apprentissage", "technologie", "science"],
+        priority: "medium"
+    },
+    {
+        id: 'demo-3',
         category: "Apprentissage",
         type: "dossier",
         title: "Documentation IA",
@@ -56,8 +58,8 @@ window.sampleData = [
         tags: ["organisation", "documentation", "apprentissage"],
         priority: "low"
     }
-            // Ajoutez d'autres éléments si nécessaire
-        ];
+];
+
 
         // Fonction pour gérer le filtrage par catégorie
         function filterContentByCategory(category) {
@@ -410,6 +412,10 @@ function updateNavOrder() {
 
 // Fonction pour créer une carte de contenu
 function createContentCard(data) {
+    // S'assurer que l'objet de données a un ID (pour les données de démonstration)
+    if (!data.id) {
+        data.id = 'demo-' + Math.random().toString(36).substr(2, 9);
+    }
     // Fonction pour générer l'affichage des images
     const generateImagesDisplay = (type, images) => {
         if (!data.description) {
@@ -470,8 +476,9 @@ function populateGrid() {
     });
     
     attachCardClickHandlers();
-    attachCardActionHandlers(); // Ajouter cette ligne
+    attachCardActionHandlers(); // Assurez-vous que cette ligne est présente
 }
+
 
 
         function updateCurrentAge() {
@@ -559,22 +566,48 @@ function initializeIdentityContent() {
             image: null
         };
 
-        function startChat(event) {
-            event.preventDefault();
-            contactInfo.name = document.getElementById('contactName').value;
-            const fileInput = document.getElementById('profilePic');
+
+async function startChat(event) {
+    event.preventDefault();
+    contactInfo.name = document.getElementById('contactName').value;
+    const fileInput = document.getElementById('profilePic');
+    
+    const elementId = getCurrentElementId();
+    if (!elementId) {
+        console.error("Impossible de déterminer l'élément actif");
+        return;
+    }
+    
+    let imageData = null;
+    
+    if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            imageData = e.target.result;
+            contactInfo.image = imageData;
             
-            if (fileInput.files && fileInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    contactInfo.image = e.target.result;
-                    initializeChat();
-                };
-                reader.readAsDataURL(fileInput.files[0]);
-            } else {
+            // Créer la conversation dans Supabase
+            const conversation = await createConversation(elementId, contactInfo.name, imageData);
+            if (conversation) {
+                currentConversationId = conversation.id;
                 initializeChat();
+            } else {
+                alert("Erreur lors de la création de la conversation. Veuillez réessayer.");
             }
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    } else {
+        // Pas d'image, créer directement
+        const conversation = await createConversation(elementId, contactInfo.name, null);
+        if (conversation) {
+            currentConversationId = conversation.id;
+            initializeChat();
+        } else {
+            alert("Erreur lors de la création de la conversation. Veuillez réessayer.");
         }
+    }
+}
+
 
         function initializeChat() {
             document.getElementById('setupForm').style.display = 'none';
@@ -603,14 +636,28 @@ function initializeIdentityContent() {
             document.getElementById('contextMenu').classList.remove('active');
         });
 
-        function sendMessage(type) {
+
+async function sendMessage(type) {
     const messageInput = document.getElementById('messageInput');
     const messageContainer = document.getElementById('messageContainer');
     
     if (messageInput.value.trim() === '' && selectedImages.length === 0) return;
+    
+    if (!currentConversationId) {
+        console.error("Aucune conversation active");
+        return;
+    }
 
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-message ${type === 'send' ? 'sent' : 'received'}`;
+    
+    // Préparer les données du message
+    const messageData = {
+        type: type === 'send' ? 'sent' : 'received',
+        text: messageInput.value.trim(),
+        images: [],
+        timestamp: new Date().toISOString()
+    };
     
     // Ajouter le texte s'il y en a
     if (messageInput.value.trim() !== '') {
@@ -624,6 +671,13 @@ function initializeIdentityContent() {
         const imagesContainer = document.createElement('div');
         imagesContainer.className = 'message-images';
         selectedImages.forEach((img) => {
+            // Ajouter l'image aux données du message
+            messageData.images.push({
+                data: img.data,
+                type: img.type,
+                name: img.name
+            });
+            
             const imgElement = document.createElement('img');
             imgElement.src = img.data;
             imgElement.className = 'message-image';
@@ -641,10 +695,23 @@ function initializeIdentityContent() {
         messageDiv.appendChild(imagesContainer);
     }
     
+    // Ajouter le message au DOM
     messageContainer.appendChild(messageDiv);
-    messageInput.value = '';
     
-    // Réinitialiser les images sélectionnées
+    // Enregistrer le message dans Supabase
+    const success = await saveMessage(currentConversationId, messageData);
+    
+    if (!success) {
+        // Si l'enregistrement échoue, ajouter une indication visuelle
+        messageDiv.classList.add('error');
+        const errorIndicator = document.createElement('div');
+        errorIndicator.className = 'message-error';
+        errorIndicator.innerHTML = '⚠️ Non enregistré';
+        messageDiv.appendChild(errorIndicator);
+    }
+    
+    // Réinitialiser les entrées
+    messageInput.value = '';
     selectedImages = [];
     const imageContainer = document.querySelector('.selected-images');
     if (imageContainer) {
@@ -652,10 +719,38 @@ function initializeIdentityContent() {
     }
     
     updateSelectedImagesDisplay();
-    
-
     scrollToBottom();
 }
+
+// Fonction pour mettre à jour le titre de l'élément avec le nom du contact
+async function updateElementTitleWithContact(elementId, contactName) {
+    try {
+        const { error } = await supabase
+            .from('elements')
+            .update({ 
+                title: `Chat avec ${contactName}`,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', elementId);
+        
+        if (error) {
+            console.error('Erreur de mise à jour du titre:', error);
+            return false;
+        }
+        
+        // Mettre à jour localement
+        const index = window.sampleData.findIndex(item => item.id === elementId);
+        if (index !== -1) {
+            window.sampleData[index].title = `Chat avec ${contactName}`;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Exception lors de la mise à jour du titre:', error);
+        return false;
+    }
+}
+
 
 function scrollToBottom() {
     const messageContainer = document.getElementById('messageContainer');
@@ -949,14 +1044,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         // Fonctions pour gérer les clics sur les cartes
-        function handleCardClick(event) {
+
+
+function handleCardClick(event) {
     const card = event.currentTarget;
     const type = card.dataset.type;
+    const elementId = card.dataset.id;
+    
+    // Marquer la carte comme active
+    document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    
+    // Stocker l'ID de l'élément actif
+    window.currentElementId = elementId;
 
     if (type === 'chat') {
-        openChat();
+        openChat(elementId);
     } else if (type === 'note') {
-        openNote();
+        openNote(elementId); // Passer l'ID à openNote()
     } else if (type === 'dossier') {
         openFolderInterface();
     }
@@ -964,32 +1069,132 @@ document.addEventListener('DOMContentLoaded', async () => {
 }
 
 
-        // Fonction pour ouvrir le chat
-        function openChat() {
-            document.getElementById('contentGrid').style.display = 'none';
-            document.getElementById('chatContainer').style.display = 'block';
-            document.getElementById('setupForm').style.display = 'block';
-            document.getElementById('chatInterface').style.display = 'none';
-            toggleCreationHubVisibility();
 
+
+        // Fonction pour ouvrir le chat
+
+async function openChat(elementId) {
+    document.getElementById('contentGrid').style.display = 'none';
+    document.getElementById('chatContainer').style.display = 'block';
+    
+    // Vérifier s'il existe déjà une conversation pour cet élément
+    const conversation = await loadConversation(elementId);
+    
+    if (conversation) {
+        // Conversation existante - charger directement
+        currentConversationId = conversation.id;
+        contactInfo.name = conversation.contact_name;
+        contactInfo.image = conversation.contact_image;
+        
+        // Initialiser l'interface du chat
+        document.getElementById('setupForm').style.display = 'none';
+        document.getElementById('chatInterface').style.display = 'block';
+        
+        // Afficher les informations de contact
+        const contactImg = document.getElementById('contactImg');
+        const quickContactImg = document.getElementById('quickContactImg');
+        if (contactInfo.image) {
+            contactImg.style.backgroundImage = `url(${contactInfo.image})`;
+            contactImg.textContent = '';
+            quickContactImg.style.backgroundImage = `url(${contactInfo.image})`;
+            quickContactImg.textContent = '';
+        } else {
+            contactImg.textContent = contactInfo.name[0].toUpperCase();
+            contactImg.style.backgroundImage = 'none';
+            quickContactImg.textContent = contactInfo.name[0].toUpperCase();
+            quickContactImg.style.backgroundImage = 'none';
         }
+        
+        document.getElementById('contactNameDisplay').textContent = contactInfo.name;
+        
+        // Charger et afficher les messages
+        const messageContainer = document.getElementById('messageContainer');
+        messageContainer.innerHTML = '';
+        
+        if (conversation.messages && conversation.messages.length > 0) {
+            conversation.messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message ${msg.type}`;
+                
+                // Ajouter le texte s'il y en a
+                if (msg.text) {
+                    const textDiv = document.createElement('div');
+                    textDiv.innerHTML = msg.text.replace(/\n/g, '<br>');
+                    messageDiv.appendChild(textDiv);
+                }
+                
+                // Ajouter les images s'il y en a
+                if (msg.images && msg.images.length > 0) {
+                    const imagesContainer = document.createElement('div');
+                    imagesContainer.className = 'message-images';
+                    msg.images.forEach((img) => {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = img.data;
+                        imgElement.className = 'message-image';
+                        imgElement.setAttribute('data-full-image', img.data);
+                        imgElement.setAttribute('data-type', img.type);
+                        imgElement.setAttribute('data-name', img.name);
+                        
+                        // Gestionnaire de clic pour ouvrir le modal
+                        imgElement.onclick = function(e) {
+                            e.stopPropagation();
+                            openImageModal(this);
+                        };
+                        imagesContainer.appendChild(imgElement);
+                    });
+                    messageDiv.appendChild(imagesContainer);
+                }
+                
+                messageContainer.appendChild(messageDiv);
+            });
+            
+            // Défiler vers le bas
+            scrollToBottom();
+        }
+    } else {
+        // Nouvelle conversation - afficher le formulaire de configuration
+        document.getElementById('setupForm').style.display = 'block';
+        document.getElementById('chatInterface').style.display = 'none';
+        
+        // Réinitialiser les champs
+        document.getElementById('contactName').value = '';
+        document.getElementById('profilePic').value = '';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('imagePreview').style.backgroundImage = '';
+    }
+    
+    toggleCreationHubVisibility();
+}
+
 
         // Fonction pour quitter le chat
-        function exitChat() {
-            document.getElementById('chatContainer').style.display = 'none';
-            document.getElementById('contentGrid').style.display = 'grid';
-            document.getElementById('setupForm').style.display = 'none';
-            document.getElementById('chatInterface').style.display = 'none';
-            toggleCreationHubVisibility();
 
-        }
+function exitChat() {
+    document.getElementById('chatContainer').style.display = 'none';
+    document.getElementById('contentGrid').style.display = 'grid';
+    document.getElementById('setupForm').style.display = 'none';
+    document.getElementById('chatInterface').style.display = 'none';
+    
+    // Réinitialiser les variables de conversation active
+    currentConversationId = null;
+    
+    // Actualiser la grille pour montrer les mises à jour
+    populateGrid();
+    
+    toggleCreationHubVisibility();
+}
+
         
         // Fonction pour ouvrir l'interface de Note
 // Modifier la fonction openNote()
-function openNote() {
+
+async function openNote(elementId) {
     document.getElementById('contentGrid').style.display = 'none';
     document.getElementById('chatContainer').style.display = 'none';
     document.getElementById('noteContainer').style.display = 'block';
+    
+    // Stocker l'ID de l'élément actif pour la sauvegarde ultérieure
+    window.currentElementId = elementId;
     
     toggleCreationHubVisibility();
 
@@ -998,8 +1203,8 @@ function openNote() {
         window.editorInstance = Jodit.make('#editor', {
             theme: 'dark',
             language: 'fr',
-            height: '100%', // Remplacez ici
-            minHeight: '600px', // Hauteur minimale
+            height: '100%',
+            minHeight: '600px',
             toolbarButtonSize: 'large',
             buttons: [
                 'source', '|',
@@ -1029,22 +1234,69 @@ function openNote() {
                 background: ['#6366f1', '#8b5cf6', '#ec4899'],
                 text: ['#ffffff', 'rgba(255, 255, 255, 0.7)']
             },
-            heightCSSExpression: '100%', // Assure que l'éditeur prend toute la hauteur disponible
+            heightCSSExpression: '100%',
+            events: {
+                // Ajouter un gestionnaire de sauvegarde automatique
+                change: debounce(async function() {
+                    if (window.currentElementId) {
+                        const content = this.value;
+                        await saveNoteContent(window.currentElementId, content);
+                    }
+                }, 1000) // Délai de 1 seconde
+            }
         });
         window.joditInitialized = true;
     } else {
         window.editorInstance.reload();
     }
+    
+    // Charger le contenu existant s'il y en a
+    try {
+        const noteContent = await loadNoteContent(elementId);
+        if (noteContent && noteContent.content) {
+            // Définir le contenu de l'éditeur
+            window.editorInstance.value = noteContent.content;
+        } else {
+            // Nouveau document vide
+            window.editorInstance.value = '';
+            // Créer une entrée vide pour cette note
+            await createNoteContent(elementId, '');
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement du contenu de la note:', error);
+        window.editorInstance.value = '';
+    }
 }
+
+// Fonction utilitaire pour debounce (éviter trop d'appels)
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+}
+
 
 
 // Fonction pour quitter l'interface de Note
-function exitNote() {
+
+async function exitNote() {
+    // Sauvegarder le contenu avant de quitter
+    if (window.editorInstance && window.currentElementId) {
+        const content = window.editorInstance.value;
+        await saveNoteContent(window.currentElementId, content);
+    }
+    
     document.getElementById('noteContainer').style.display = 'none';
     document.getElementById('contentGrid').style.display = 'grid';
     toggleCreationHubVisibility();
-
+    
+    // Réinitialiser l'ID de l'élément actif
+    window.currentElementId = null;
 }
+
 
 
         // Intégrer gestionnaire de clic après création des cartes
@@ -1058,25 +1310,27 @@ function exitNote() {
 function attachCardActionHandlers() {
     // Gestionnaires pour les boutons de modification
     document.querySelectorAll('.card-edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        btn.addEventListener('click', function(e) {
             e.stopPropagation(); // Empêcher le clic de la carte
-            const id = btn.dataset.id;
-            const card = btn.closest('.content-card');
+            const id = this.dataset.id;
+            const card = this.closest('.content-card');
+            console.log("Bouton d'édition cliqué pour l'ID:", id); // Debug
             openEditModal(id, card);
         });
     });
     
     // Gestionnaires pour les boutons de suppression
-    document.querySelectorAll('.card-delete-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.stopPropagation(); // Empêcher le clic de la carte
-            const id = btn.dataset.id;
-            
-            if (confirm('Êtes-vous sûr de vouloir supprimer cet élément?')) {
-                const success = await deleteElementFromSupabase(id);
-                
-                if (success) {
-                    // Supprimer l'élément du tableau local
+// Remplacez ce bloc dans votre fonction attachCardActionHandlers
+document.querySelectorAll('.card-delete-btn').forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+        e.stopPropagation(); // Empêcher le clic de la carte
+        const id = this.dataset.id;
+        
+        if (confirm('Êtes-vous sûr de vouloir supprimer cet élément?')) {
+            try {
+                // Vérifier si c'est un élément de démonstration
+                if (id.startsWith('demo-')) {
+                    // Élément de démonstration, suppression locale seulement
                     window.sampleData = window.sampleData.filter(item => item.id !== id);
                     
                     // Actualiser l'interface
@@ -1084,12 +1338,37 @@ function attachCardActionHandlers() {
                     updateCategoryCounts();
                     updateNavOrder();
                 } else {
-                    alert('Erreur lors de la suppression de l\'élément.');
+                    // Élément de Supabase
+                    const success = await deleteElementFromSupabase(id);
+                    
+                    if (success) {
+                        // Supprimer l'élément du tableau local
+                        window.sampleData = window.sampleData.filter(item => item.id !== id);
+                        
+                        // Actualiser l'interface
+                        populateGrid();
+                        updateCategoryCounts();
+                        updateNavOrder();
+                        console.log('Élément supprimé et interface mise à jour');
+                    } else {
+                        // Si la suppression échoue, resynchroniser avec Supabase
+                        alert('Erreur lors de la suppression. Actualisation des données...');
+                        await syncWithSupabase();
+                    }
                 }
+            } catch (error) {
+                console.error('Erreur lors de la suppression:', error);
+                alert('Une erreur est survenue lors de la suppression.');
+                // Resynchroniser en cas d'erreur
+                await syncWithSupabase();
             }
-        });
+        }
     });
+});
+
 }
+
+
 
         
         // Variables et Icônes pour Dossier
@@ -1115,7 +1394,7 @@ function hideFolderCreateModal() {
 }
 
 // Fonction pour créer un nouveau dossier
-function createFolder() {
+async function createFolder() {
     const name = document.getElementById('folderName').value.trim();
     if (name) {
         const folder = {
@@ -1134,6 +1413,12 @@ function createFolder() {
             current.push(folder);
         }
         
+        // Sauvegarder la structure mise à jour
+        const elementId = getCurrentElementId();
+        if (elementId) {
+            await saveFolderStructure(elementId);
+        }
+        
         renderFolders();
         hideFolderCreateModal();
         document.getElementById('folderName').value = '';
@@ -1143,31 +1428,76 @@ function createFolder() {
 // Fonction pour gérer la sélection de fichiers dans le dossier
 function handleFolderFileSelect(event) {
     const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const fileObj = {
-                type: 'file',
-                name: file.name,
-                content: e.target.result,
-                fileType: file.type
-            };
-            
-            let current = folders;
-            for (let i = 0; i < folderCurrentPath.length; i++) {
-                current = current.find(f => f.name === folderCurrentPath[i]).contents;
-            }
-            current.push(fileObj);
-            renderFolders();
+    if (!file) return;
+    
+    // Vérifier la taille du fichier (limite à 10 Mo)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 Mo en octets
+    if (file.size > MAX_FILE_SIZE) {
+        alert(`Le fichier est trop volumineux. La taille maximale est de ${formatFileSize(MAX_FILE_SIZE)}.`);
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        const fileObj = {
+            type: 'file',
+            name: file.name,
+            content: e.target.result,
+            fileType: file.type,
+            size: file.size,
+            lastModified: file.lastModified
         };
         
-        if (file.type.startsWith('image/')) {
-            reader.readAsDataURL(file);
-        } else {
-            reader.readAsText(file);
+        // Trouver le dossier actuel dans la structure
+        let current = folders;
+        for (let i = 0; i < folderCurrentPath.length; i++) {
+            current = current.find(f => f.name === folderCurrentPath[i]).contents;
         }
-    }
+        
+        // Vérifier si un fichier du même nom existe déjà
+        const existingFileIndex = current.findIndex(item => item.type === 'file' && item.name === file.name);
+        if (existingFileIndex !== -1) {
+            if (confirm(`Un fichier nommé "${file.name}" existe déjà. Voulez-vous le remplacer ?`)) {
+                current[existingFileIndex] = fileObj;
+            } else {
+                return; // Annuler l'importation
+            }
+        } else {
+            current.push(fileObj);
+        }
+        
+        // Sauvegarder la structure mise à jour
+        const elementId = getCurrentElementId();
+        if (elementId) {
+            const success = await saveFolderStructure(elementId);
+            if (success) {
+                // Notifier l'utilisateur
+                const notification = document.createElement('div');
+                notification.className = 'file-upload-notification';
+                notification.textContent = `"${file.name}" importé avec succès`;
+                document.getElementById('folderContainer').appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 2000);
+            }
+        }
+        
+        renderFolders();
+    };
+    
+    reader.onerror = function() {
+        alert("Erreur lors de la lecture du fichier.");
+    };
+    
+    // Utiliser readAsDataURL pour tous les types de fichiers pour une compatibilité maximale
+    reader.readAsDataURL(file);
+    
+    // Réinitialiser l'input pour permettre de sélectionner à nouveau le même fichier
+    event.target.value = '';
 }
+
+
 
 // Fonction pour ouvrir un dossier spécifique
 function openFolder(name) {
@@ -1177,7 +1507,7 @@ function openFolder(name) {
 }
 
 // Fonction pour naviguer vers un niveau spécifique dans le chemin actuel
-function navigateToFolder(index) {
+async function navigateToFolder(index) {
     if (index === -1) {
         // Naviguer vers la racine
         folderCurrentPath = [];
@@ -1187,6 +1517,7 @@ function navigateToFolder(index) {
     updateFolderBreadcrumb();
     renderFolders();
 }
+
 
 // Fonction pour mettre à jour la navigation breadcrumb
 function updateFolderBreadcrumb() {
@@ -1205,26 +1536,49 @@ function renderFolders() {
     let current = folders;
     
     for (let i = 0; i < folderCurrentPath.length; i++) {
-        current = current.find(f => f.name === folderCurrentPath[i]).contents;
+        const foundFolder = current.find(f => f.name === folderCurrentPath[i]);
+        if (!foundFolder) {
+            console.error("Dossier non trouvé dans le chemin:", folderCurrentPath[i]);
+            return;
+        }
+        current = foundFolder.contents;
     }
     
     grid.innerHTML = current.map(item => {
         if (item.type === 'folder') {
+            // Prévisualisation des éléments du dossier (jusqu'à 4)
+            const previewItems = item.contents.slice(0, 4).map(previewItem => {
+                if (previewItem.type === 'file') {
+                    if (previewItem.fileType && previewItem.fileType.startsWith('image/')) {
+                        return `<div class="preview-item"><img src="${previewItem.content}" alt="Aperçu"></div>`;
+                    } else {
+                        const extension = previewItem.name.split('.').pop();
+                        return `<div class="preview-item">${folderFileIcons[extension] || '📄'}</div>`;
+                    }
+                } else {
+                    return `<div class="preview-item">📁</div>`;
+                }
+            }).join('');
+            
+            // Si moins de 4 éléments, compléter avec des espaces vides
+            const emptyPreviewItems = Array(Math.max(0, 4 - item.contents.length))
+                .fill('<div class="preview-item empty"></div>')
+                .join('');
+            
             return `
                 <div class="folder" onclick="openFolder('${item.name}')">
                     <div class="folder-preview">
-                        ${item.contents.slice(0, 4).map(() => `
-                            <div class="preview-item">📄</div>
-                        `).join('')}
+                        ${previewItems}${emptyPreviewItems}
                     </div>
                     <div class="folder-name">${item.name}</div>
-                    <div class="folder-info">${item.contents.length} éléments</div>
+                    <div class="folder-info">${item.contents.length} élément${item.contents.length !== 1 ? 's' : ''}</div>
                 </div>
             `;
-        } else {
-            if (item.fileType.startsWith('image/')) {
+        } else if (item.type === 'file') {
+            // Traitement des fichiers
+            if (item.fileType && item.fileType.startsWith('image/')) {
                 return `
-                    <div class="file">
+                    <div class="file" onclick="previewFile('${item.name}')">
                         <div class="file-preview">
                             <img src="${item.content}" alt="${item.name}">
                         </div>
@@ -1234,7 +1588,7 @@ function renderFolders() {
             } else {
                 const extension = item.name.split('.').pop();
                 return `
-                    <div class="file">
+                    <div class="file" onclick="previewFile('${item.name}')">
                         <div class="file-preview">
                             <div class="file-icon">${folderFileIcons[extension] || '📄'}</div>
                         </div>
@@ -1245,14 +1599,128 @@ function renderFolders() {
         }
     }).join('') + `
         <input type="file" id="folderFileInput" style="display: none" onchange="handleFolderFileSelect(event)">
-        <div class="folder" onclick="document.getElementById('folderFileInput').click()">
+        <div class="folder create-folder" onclick="document.getElementById('folderFileInput').click()">
             <div class="folder-preview">
-                <div class="preview-item" style="grid-column: span 2">+</div>
+                <div class="preview-item" style="grid-column: span 2"><span class="import-icon">📥</span></div>
             </div>
             <div class="folder-name">Importer un fichier</div>
         </div>
     `;
 }
+
+// Fonction pour prévisualiser un fichier
+function previewFile(fileName) {
+    // Trouver le fichier dans la structure actuelle
+    let current = folders;
+    for (let i = 0; i < folderCurrentPath.length; i++) {
+        current = current.find(f => f.name === folderCurrentPath[i]).contents;
+    }
+    
+    const file = current.find(f => f.name === fileName);
+    if (!file) {
+        console.error("Fichier non trouvé:", fileName);
+        return;
+    }
+    
+    // Créer un modal pour la prévisualisation
+    const modal = document.createElement('div');
+    modal.className = 'file-preview-modal';
+    
+    let previewContent = '';
+    
+    if (file.fileType.startsWith('image/')) {
+        previewContent = `<img src="${file.content}" alt="${file.name}" class="preview-image">`;
+    } else if (file.fileType.includes('pdf')) {
+        previewContent = `<iframe src="${file.content}" class="preview-pdf"></iframe>`;
+    } else if (file.fileType.includes('text') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+        // Pour les fichiers texte, décoder la base64 si nécessaire
+        let textContent = file.content;
+        if (textContent.startsWith('data:')) {
+            const base64 = textContent.split(',')[1];
+            textContent = atob(base64);
+        }
+        previewContent = `<div class="preview-text"><pre>${textContent}</pre></div>`;
+    } else {
+        // Pour les autres types de fichiers, afficher un lien de téléchargement
+        previewContent = `
+            <div class="preview-generic">
+                <div class="file-icon large">${folderFileIcons[file.name.split('.').pop()] || '📄'}</div>
+                <p>Ce type de fichier ne peut pas être prévisualisé</p>
+                <a href="${file.content}" download="${file.name}" class="download-btn">Télécharger</a>
+            </div>
+        `;
+    }
+    
+    modal.innerHTML = `
+        <div class="file-preview-content">
+            <div class="file-preview-header">
+                <h3>${file.name}</h3>
+                <button class="close-preview">×</button>
+            </div>
+            <div class="file-preview-body">
+                ${previewContent}
+            </div>
+            <div class="file-preview-footer">
+                <p>Taille: ${formatFileSize(file.size || 0)}</p>
+                <button class="delete-file-btn" onclick="deleteFile('${file.name}')">Supprimer</button>
+                <a href="${file.content}" download="${file.name}" class="download-btn">Télécharger</a>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Gérer la fermeture du modal
+    modal.querySelector('.close-preview').addEventListener('click', () => {
+        modal.remove();
+    });
+    
+    // Fermer le modal si on clique en dehors du contenu
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+}
+
+// Fonction pour formater la taille du fichier
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Fonction pour supprimer un fichier
+async function deleteFile(fileName) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer "${fileName}" ?`)) {
+        // Trouver et supprimer le fichier
+        let current = folders;
+        for (let i = 0; i < folderCurrentPath.length; i++) {
+            current = current.find(f => f.name === folderCurrentPath[i]).contents;
+        }
+        
+        const fileIndex = current.findIndex(f => f.name === fileName);
+        if (fileIndex !== -1) {
+            current.splice(fileIndex, 1);
+            
+            // Sauvegarder la structure mise à jour
+            const elementId = getCurrentElementId();
+            if (elementId) {
+                await saveFolderStructure(elementId);
+            }
+            
+            // Fermer le modal de prévisualisation
+            document.querySelector('.file-preview-modal')?.remove();
+            
+            // Actualiser l'affichage
+            renderFolders();
+        }
+    }
+}
+
+
 
 // Fonction pour quitter l'interface dossier et revenir à la grille principale
 function exitFolder() {
@@ -1262,17 +1730,33 @@ function exitFolder() {
 
     // Réinitialiser le chemin actuel
     folderCurrentPath = [];
-    renderFolders();
 }
+
 
 // Fonction pour ouvrir l'interface dossier
-function openFolderInterface() {
+async function openFolderInterface() {
     document.getElementById('contentGrid').style.display = 'none';
     document.getElementById('folderContainer').style.display = 'block';
-    renderFolders(); // Initialiser la vue des dossiers
+    
+    // Obtenir l'ID de l'élément actif
+    const elementId = getCurrentElementId();
+    if (!elementId) {
+        console.error("Impossible de déterminer l'élément actif");
+        return;
+    }
+    
+    // Réinitialiser le chemin actuel
+    folderCurrentPath = [];
+    
+    // Charger la structure du dossier depuis Supabase
+    await loadFolderStructure(elementId);
+    
+    // Rendre les dossiers
+    renderFolders();
+    
     toggleCreationHubVisibility();
-
 }
+
 
 // Ajouter l'écouteur pour la sélection de fichiers dans le dossier
 document.getElementById('folderFileInput')?.addEventListener('change', handleFolderFileSelect);
@@ -2173,11 +2657,13 @@ let editSelectedPriority = null;
 
 // Fonction pour ouvrir le modal d'édition
 function openEditModal(id, card) {
+    console.log("Ouverture du modal d'édition pour ID:", id); // Debug
+    
     const editModal = document.getElementById('edit-modal');
     const element = window.sampleData.find(item => item.id === id);
     
     if (!element) {
-        console.error('Élément non trouvé');
+        console.error('Élément non trouvé avec ID:', id);
         return;
     }
     
@@ -2226,6 +2712,7 @@ function openEditModal(id, card) {
         editTitleInput.focus();
     }, 300);
 }
+
 
 // Fonction pour peupler les catégories dans le modal d'édition
 function populateEditCategories() {
@@ -2315,10 +2802,12 @@ document.querySelectorAll('.edit-priority-options .priority-option').forEach(opt
 });
 
 // Gestionnaire d'événement pour le bouton de mise à jour
-document.querySelector('#edit-modal .update-btn')?.addEventListener('click', async () => {
+document.querySelector('#edit-modal .update-btn')?.addEventListener('click', async function() {
     const id = document.getElementById('edit-id').value;
     const title = document.getElementById('edit-title-input').value;
     const description = document.getElementById('edit-description-input').value;
+    
+    console.log("Mise à jour de l'élément avec ID:", id);
     
     // Vérifier que les champs obligatoires sont remplis
     if (!title || !editSelectedCategory || !editSelectedPriority) {
@@ -2348,36 +2837,62 @@ document.querySelector('#edit-modal .update-btn')?.addEventListener('click', asy
     const content = document.querySelector('#edit-modal .creation-modal-content');
     content.classList.add('updating');
     
-    // Mettre à jour dans Supabase
-    const success = await updateElementInSupabase(id, updates);
-    
-    if (success) {
-        // Mettre à jour l'élément dans le tableau local
-        const index = window.sampleData.findIndex(item => item.id === id);
-        if (index !== -1) {
-            window.sampleData[index] = {
-                ...window.sampleData[index],
-                ...updates
-            };
+    try {
+        // Vérifier si c'est un élément de démonstration ou un élément de Supabase
+        if (id.startsWith('demo-')) {
+            // Élément de démonstration, mise à jour locale seulement
+            const index = window.sampleData.findIndex(item => item.id === id);
+            if (index !== -1) {
+                window.sampleData[index] = {
+                    ...window.sampleData[index],
+                    ...updates
+                };
+            }
+            
+            // Simuler un délai pour l'animation
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            // Considérer comme un succès
+            success = true;
+        } else {
+            // Élément de Supabase, appel à l'API
+            success = await updateElementInSupabase(id, updates);
         }
         
-        // Actualiser la grille
-        populateGrid();
+        if (success) {
+            // Si c'est un élément Supabase, mettre également à jour le tableau local
+            if (!id.startsWith('demo-')) {
+                const index = window.sampleData.findIndex(item => item.id === id);
+                if (index !== -1) {
+                    window.sampleData[index] = {
+                        ...window.sampleData[index],
+                        ...updates
+                    };
+                }
+            }
+            
+            // Actualiser la grille
+            populateGrid();
+            
+            // Mettre à jour les compteurs
+            updateCategoryCounts();
+            
+            // Mettre à jour l'ordre des éléments de navigation
+            updateNavOrder();
+            
+            // Animation de mise à jour réussie
+            createEditSuccessAnimation();
+            
+            // Fermer le modal
+            setTimeout(() => {
+                closeEditModal();
+            }, 1500);
+        } else {
+            throw new Error("Échec de la mise à jour");
+        }
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour:", error);
         
-        // Mettre à jour les compteurs
-        updateCategoryCounts();
-        
-        // Mettre à jour l'ordre des éléments de navigation
-        updateNavOrder();
-        
-        // Animation de mise à jour réussie
-        createEditSuccessAnimation();
-        
-        // Fermer le modal
-        setTimeout(() => {
-            closeEditModal();
-        }, 1500);
-    } else {
         // En cas d'erreur
         content.classList.remove('updating');
         
@@ -2392,6 +2907,7 @@ document.querySelector('#edit-modal .update-btn')?.addEventListener('click', asy
         }, 3000);
     }
 });
+
 
 // Fonction pour fermer le modal d'édition
 function closeEditModal() {
@@ -2808,57 +3324,93 @@ async function loadDataFromSupabase() {
     try {
         const { data, error } = await supabase
             .from('elements')
-            .select('*');
+            .select('*')
+            .order('created_at', { ascending: false });
         
         if (error) {
             console.error('Erreur lors du chargement des données:', error);
-            return;
+            return false;
         }
         
-        if (data && data.length > 0) {
-            // Formater les données pour correspondre à votre structure
-            window.sampleData = data.map(item => ({
-                category: item.category,
-                type: item.type,
-                title: item.title,
-                date: item.date,
-                description: item.description,
-                images: item.images,
-                tags: item.tags,
-                priority: item.priority
-            }));
+        if (data) {
+            window.sampleData = data;
             
             // Actualiser l'interface
             populateGrid();
             updateCategoryCounts();
             updateNavOrder();
+            console.log('Données chargées avec succès:', data.length, 'éléments');
+            return true;
         }
     } catch (error) {
-        console.error('Erreur lors du chargement des données:', error);
+        console.error('Exception lors du chargement des données:', error);
+        return false;
     }
 }
+
 // Fonction pour enregistrer un nouvel élément dans Supabase
 async function saveElementToSupabase(element) {
     try {
-        console.log('Tentative d\'enregistrement de l\'élément:', element);
+        console.log('Tentative d\'enregistrement:', element);
+        
+        // Assurez-vous que les champs sont correctement formatés
+        const formattedElement = {
+            ...element,
+            // Assurez-vous que tags et images sont des tableaux JSON valides
+            tags: Array.isArray(element.tags) ? element.tags : [],
+            images: Array.isArray(element.images) ? element.images : []
+        };
+        
         const { data, error } = await supabase
             .from('elements')
-            .insert([element])
+            .insert([formattedElement])
             .select();
         
         if (error) {
-            console.error('Erreur lors de l\'enregistrement de l\'élément:', error);
+            console.error('Erreur d\'enregistrement:', error);
             return false;
         }
         
-        console.log('Élément enregistré avec succès:', data);
-        // Si data contient l'ID généré, ajoutez-le à l'élément
-        if (data && data.length > 0 && data[0].id) {
+        if (data && data.length > 0) {
+            console.log('Élément enregistré avec ID:', data[0].id);
+            // Mise à jour de l'élément local avec l'ID généré
             element.id = data[0].id;
+            return true;
+        } else {
+            console.error('Pas de données retournées après insertion');
+            return false;
         }
-        return true;
     } catch (error) {
-        console.error('Erreur lors de l\'enregistrement de l\'élément:', error);
+        console.error('Exception lors de l\'enregistrement:', error);
+        return false;
+    }
+}
+
+async function syncWithSupabase() {
+    try {
+        const { data, error } = await supabase
+            .from('elements')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('Erreur de synchronisation:', error);
+            return false;
+        }
+        
+        if (data) {
+            // Mise à jour des données locales
+            window.sampleData = data;
+            
+            // Rafraîchir l'interface
+            populateGrid();
+            updateCategoryCounts();
+            updateNavOrder();
+            console.log('Synchronisation réussie:', data.length, 'éléments');
+            return true;
+        }
+    } catch (error) {
+        console.error('Exception lors de la synchronisation:', error);
         return false;
     }
 }
@@ -2867,50 +3419,483 @@ async function saveElementToSupabase(element) {
 // Fonction pour mettre à jour un élément existant
 async function updateElementInSupabase(id, updates) {
     try {
-        const { data, error } = await supabase
+        console.log("Mise à jour de l'élément avec ID:", id);
+        console.log("Mises à jour:", updates);
+        
+        // Assurez-vous que l'ID est au format UUID correct
+        if (typeof id !== 'string' || !id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+            console.error('Format d\'ID invalide:', id);
+            return false;
+        }
+        
+        const { error } = await supabase
             .from('elements')
             .update(updates)
             .eq('id', id);
         
         if (error) {
-            console.error('Erreur lors de la mise à jour de l\'élément:', error);
+            console.error('Erreur lors de la mise à jour:', error);
             return false;
         }
         
-        console.log('Élément mis à jour avec succès:', data);
+        console.log('Élément mis à jour avec succès');
         return true;
     } catch (error) {
-        console.error('Erreur lors de la mise à jour de l\'élément:', error);
+        console.error('Erreur lors de la mise à jour:', error);
         return false;
     }
 }
+
+
 // Fonction pour supprimer un élément
 async function deleteElementFromSupabase(id) {
     try {
-        const { data, error } = await supabase
+        console.log("Suppression de l'élément avec ID:", id);
+        
+        const { error } = await supabase
             .from('elements')
             .delete()
             .eq('id', id);
         
         if (error) {
-            console.error('Erreur lors de la suppression de l\'élément:', error);
+            console.error('Erreur lors de la suppression:', error);
             return false;
         }
         
         console.log('Élément supprimé avec succès');
         return true;
     } catch (error) {
-        console.error('Erreur lors de la suppression de l\'élément:', error);
+        console.error('Erreur lors de la suppression:', error);
         return false;
     }
 }
 
 
+// Fonction pour vérifier la connexion Supabase
+async function testSupabaseConnection() {
+    try {
+        const { data, error } = await supabase
+            .from('elements')
+            .select('count(*)');
+        
+        if (error) {
+            console.error('Erreur de connexion Supabase:', error);
+            return false;
+        }
+        
+        console.log('Connexion Supabase OK, nombre d\'éléments:', data[0].count);
+        return true;
+    } catch (error) {
+        console.error('Exception lors du test de connexion:', error);
+        return false;
+    }
+}
+
+// Appelez cette fonction au chargement de la page
+document.addEventListener('DOMContentLoaded', async () => {
+    // Tester la connexion Supabase
+    await testSupabaseConnection();
+    
+    // Le reste de votre code...
+});
+
+
+
 //══════════════════════════════╗
 // 🟤 JS PARTIE 7
 //══════════════════════════════╝
+// PARTIE 1: Fonctions pour gérer les conversations dans Supabase
+
+// Fonction pour charger la conversation existante
+async function loadConversation(elementId) {
+    try {
+        const { data, error } = await supabase
+            .from('conversations')
+            .select('*')
+            .eq('element_id', elementId)
+            .limit(1);
+        
+        if (error) {
+            console.error('Erreur de chargement de la conversation:', error);
+            return null;
+        }
+        
+        if (data && data.length > 0) {
+            return data[0];
+        } else {
+            console.log('Aucune conversation trouvée pour cet élément');
+            return null;
+        }
+    } catch (error) {
+        console.error('Exception lors du chargement de la conversation:', error);
+        return null;
+    }
+}
+
+// Fonction pour créer une nouvelle conversation
+async function createConversation(elementId, contactName, contactImage) {
+    try {
+        const newConversation = {
+            element_id: elementId,
+            contact_name: contactName,
+            contact_image: contactImage,
+            messages: []
+        };
+        
+        const { data, error } = await supabase
+            .from('conversations')
+            .insert([newConversation])
+            .select();
+        
+        if (error) {
+            console.error('Erreur de création de conversation:', error);
+            return null;
+        }
+        
+        if (data && data.length > 0) {
+            console.log('Conversation créée avec ID:', data[0].id);
+            return data[0];
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Exception lors de la création de la conversation:', error);
+        return null;
+    }
+}
+
+// Fonction pour sauvegarder un message
+async function saveMessage(conversationId, message) {
+    try {
+        // D'abord, récupérer les messages existants
+        const { data: currentData, error: fetchError } = await supabase
+            .from('conversations')
+            .select('messages')
+            .eq('id', conversationId)
+            .single();
+        
+        if (fetchError) {
+            console.error('Erreur de récupération des messages:', fetchError);
+            return false;
+        }
+        
+        // Ajouter le nouveau message
+        const currentMessages = currentData.messages || [];
+        const updatedMessages = [...currentMessages, {
+            id: crypto.randomUUID(),
+            type: message.type,
+            text: message.text,
+            images: message.images || [],
+            timestamp: new Date().toISOString()
+        }];
+        
+        // Mettre à jour dans la base de données
+        const { error: updateError } = await supabase
+            .from('conversations')
+            .update({ 
+                messages: updatedMessages,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', conversationId);
+        
+        if (updateError) {
+            console.error('Erreur de sauvegarde du message:', updateError);
+            return false;
+        }
+        
+        console.log('Message sauvegardé avec succès');
+        return true;
+    } catch (error) {
+        console.error('Exception lors de la sauvegarde du message:', error);
+        return false;
+    }
+}
+
+// Fonction pour récupérer l'ID de l'élément actuellement affiché
+function getCurrentElementId() {
+    // Obtenir l'élément actif depuis le DOM ou le stockage temporaire
+    const activeCard = document.querySelector('.content-card.active');
+    if (activeCard) {
+        return activeCard.dataset.id;
+    }
+    
+    // Si aucun élément n'est actif, utiliser une valeur stockée temporairement
+    return window.currentElementId || null;
+}
+
+// Variable pour stocker l'ID de la conversation actuelle
+let currentConversationId = null;
 
 
 /*══════════════════════════════╗
   ⚫ JS PARTIE 8
   ═════════════════════════════╝*/
+  
+  // Fonctions pour gérer les notes dans Supabase
+
+// Fonction pour charger le contenu d'une note existante
+async function loadNoteContent(elementId) {
+    try {
+        const { data, error } = await supabase
+            .from('notes_content')
+            .select('*')
+            .eq('element_id', elementId)
+            .limit(1);
+        
+        if (error) {
+            console.error('Erreur de chargement du contenu de la note:', error);
+            return null;
+        }
+        
+        if (data && data.length > 0) {
+            console.log('Contenu de note chargé avec succès');
+            return data[0];
+        } else {
+            console.log('Aucun contenu trouvé pour cette note');
+            return null;
+        }
+    } catch (error) {
+        console.error('Exception lors du chargement du contenu de la note:', error);
+        return null;
+    }
+}
+
+// Fonction pour créer un nouveau contenu de note
+async function createNoteContent(elementId, content = '') {
+    try {
+        const newNoteContent = {
+            element_id: elementId,
+            content: content
+        };
+        
+        const { data, error } = await supabase
+            .from('notes_content')
+            .insert([newNoteContent])
+            .select();
+        
+        if (error) {
+            console.error('Erreur de création du contenu de note:', error);
+            return null;
+        }
+        
+        if (data && data.length > 0) {
+            console.log('Contenu de note créé avec ID:', data[0].id);
+            return data[0];
+        }
+        
+        return null;
+    } catch (error) {
+        console.error('Exception lors de la création du contenu de note:', error);
+        return null;
+    }
+}
+
+// Fonction pour sauvegarder le contenu d'une note existante
+async function saveNoteContent(elementId, content) {
+    try {
+        // Vérifier si un contenu existe déjà pour cette note
+        const existingContent = await loadNoteContent(elementId);
+        
+        if (existingContent) {
+            // Mettre à jour le contenu existant
+            const { error } = await supabase
+                .from('notes_content')
+                .update({ 
+                    content: content,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('element_id', elementId);
+            
+            if (error) {
+                console.error('Erreur de mise à jour du contenu de note:', error);
+                return false;
+            }
+            
+            console.log('Contenu de note mis à jour avec succès');
+            return true;
+        } else {
+            // Créer un nouveau contenu
+            const result = await createNoteContent(elementId, content);
+            return result !== null;
+        }
+    } catch (error) {
+        console.error('Exception lors de la sauvegarde du contenu de note:', error);
+        return false;
+    }
+}
+
+// Fonction pour la sauvegarde manuelle
+async function saveNoteManually() {
+    if (window.editorInstance && window.currentElementId) {
+        const content = window.editorInstance.value;
+        const success = await saveNoteContent(window.currentElementId, content);
+        
+        if (success) {
+            // Afficher un message de confirmation
+            const notification = document.createElement('div');
+            notification.className = 'save-notification';
+            notification.textContent = 'Note sauvegardée avec succès';
+            document.querySelector('.editor-container').appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
+        }
+    }
+}
+
+//══════════════════════════════╗
+// 🟩 JS PARTIE 9
+//══════════════════════════════╝
+
+// Charger la structure du dossier depuis Supabase
+async function loadFolderStructure(elementId) {
+    try {
+        // Vérifier si nous avons un élément de démonstration
+        if (elementId.startsWith('demo-')) {
+            // Pour les éléments de démonstration, utiliser les données locales
+            folders = window.demoDossiers?.[elementId] || [];
+            return;
+        }
+        
+        console.log("Chargement de la structure de dossier pour l'élément:", elementId);
+        
+        // Récupérer les données depuis Supabase
+        const { data, error } = await supabase
+            .from('folders_content')
+            .select('folder_structure')
+            .eq('element_id', elementId)
+            .limit(1);
+        
+        if (error) {
+            console.error('Erreur lors du chargement de la structure du dossier:', error);
+            folders = [];
+            return;
+        }
+        
+        if (data && data.length > 0) {
+            // Structure existante trouvée
+            folders = data[0].folder_structure;
+            console.log("Structure de dossier chargée:", folders);
+        } else {
+            // Aucune structure trouvée, initialiser un tableau vide
+            folders = [];
+            console.log("Aucune structure de dossier trouvée, initialisation avec un tableau vide");
+            // Créer une entrée vide dans la base de données
+            await createFolderStructure(elementId);
+        }
+    } catch (error) {
+        console.error('Exception lors du chargement de la structure du dossier:', error);
+        folders = [];
+    }
+}
+
+// Créer une nouvelle structure de dossier
+async function createFolderStructure(elementId) {
+    try {
+        if (elementId.startsWith('demo-')) {
+            // Pour les éléments de démonstration, stocker localement
+            if (!window.demoDossiers) window.demoDossiers = {};
+            window.demoDossiers[elementId] = folders;
+            return true;
+        }
+        
+        const { data, error } = await supabase
+            .from('folders_content')
+            .insert([{
+                element_id: elementId,
+                folder_structure: folders
+            }])
+            .select();
+        
+        if (error) {
+            console.error("Erreur lors de la création de la structure de dossier:", error);
+            return false;
+        }
+        
+        console.log("Structure de dossier créée avec succès");
+        return true;
+    } catch (error) {
+        console.error("Exception lors de la création de la structure de dossier:", error);
+        return false;
+    }
+}
+
+// Sauvegarder la structure du dossier
+async function saveFolderStructure(elementId) {
+    try {
+        if (elementId.startsWith('demo-')) {
+            // Pour les éléments de démonstration, stocker localement
+            if (!window.demoDossiers) window.demoDossiers = {};
+            window.demoDossiers[elementId] = folders;
+            return true;
+        }
+        
+        // Vérifier si une entrée existe déjà
+        const { data, error: checkError } = await supabase
+            .from('folders_content')
+            .select('id')
+            .eq('element_id', elementId)
+            .limit(1);
+        
+        if (checkError) {
+            console.error("Erreur lors de la vérification de la structure existante:", checkError);
+            return false;
+        }
+        
+        if (data && data.length > 0) {
+            // Mettre à jour la structure existante
+            const { error: updateError } = await supabase
+                .from('folders_content')
+                .update({
+                    folder_structure: folders,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('element_id', elementId);
+            
+            if (updateError) {
+                console.error("Erreur lors de la mise à jour de la structure de dossier:", updateError);
+                return false;
+            }
+        } else {
+            // Créer une nouvelle entrée
+            return await createFolderStructure(elementId);
+        }
+        
+        console.log("Structure de dossier sauvegardée avec succès");
+        return true;
+    } catch (error) {
+        console.error("Exception lors de la sauvegarde de la structure de dossier:", error);
+        return false;
+    }
+}
+
+
+/*══════════════════════════════╗
+  🟦 JS PARTIE 10
+  ═════════════════════════════╝*/
+
+
+//══════════════════════════════╗
+// 🟪 JS PARTIE 11
+//══════════════════════════════╝
+
+
+/*══════════════════════════════╗
+  🟧 JS PARTIE 12
+  ═════════════════════════════╝*/
+
+
+//══════════════════════════════╗
+// 🟥 JS PARTIE 13
+//══════════════════════════════╝
+
+
+/*══════════════════════════════╗
+  🟨 JS PARTIE 14
+  ═════════════════════════════╝*/
+
+
+//══════════════════════════════╗
+// 🟩 JS PARTIE 15
+//══════════════════════════════╝
