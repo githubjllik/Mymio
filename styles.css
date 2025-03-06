@@ -5305,3 +5305,58 @@ textarea {
 /*═══════════════════════════*\
   🟨 PARTIE 15  
 \*═══════════════════════════*/
+
+/* Ajout du style pour permettre le défilement vertical de la grille de dossiers */
+.folder-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+    max-height: 80vh; /* Limite la hauteur à 80% de la hauteur de la fenêtre */
+    overflow-y: auto; /* Ajoute un défilement vertical si nécessaire */
+    overflow-x: hidden; /* Empêche le défilement horizontal */
+    scrollbar-width: thin; /* Style de la barre de défilement pour Firefox */
+    scrollbar-color: var(--accent-1) rgba(255, 255, 255, 0.1); /* Couleurs de la barre pour Firefox */
+}
+
+/* Style personnalisé de la barre de défilement pour Webkit (Chrome, Safari, etc.) */
+.folder-grid::-webkit-scrollbar {
+    width: 8px; /* Largeur de la barre de défilement */
+}
+
+.folder-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05); /* Couleur de fond de la piste */
+    border-radius: 4px;
+}
+
+.folder-grid::-webkit-scrollbar-thumb {
+    background: var(--accent-1); /* Couleur de la poignée */
+    border-radius: 4px;
+}
+
+.folder-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-2); /* Couleur au survol */
+}
+
+/* Assurer que les éléments à l'intérieur de la grille s'adaptent bien */
+.folder-grid > * {
+    width: 100%;
+    min-width: 0; /* Permet aux éléments de se rétrécir si nécessaire */
+}
+
+/* Ajustement pour les écrans mobiles */
+@media (max-width: 768px) {
+    .folder-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        padding: 1rem;
+        gap: 1rem;
+        max-height: 75vh; /* Un peu plus petit sur mobile */
+    }
+}
+
+@media (max-width: 480px) {
+    .folder-grid {
+        grid-template-columns: 1fr; /* Une seule colonne sur les très petits écrans */
+        max-height: 70vh;
+    }
+}

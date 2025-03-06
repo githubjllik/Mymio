@@ -1187,6 +1187,30 @@ function exitChat() {
         
         // Fonction pour ouvrir l'interface de Note
 // Modifier la fonction openNote()
+function adjustEditorHeight() {
+    const editorContainer = document.querySelector('.editor-container');
+    const noteContainer = document.getElementById('noteContainer');
+    const contentArea = document.querySelector('.content-area');
+
+    if (editorContainer && noteContainer && contentArea) {
+        // Calculer la hauteur disponible pour l'éditeur
+        const containerHeight = noteContainer.offsetHeight;
+        const toolbarHeight = editorContainer.querySelector('.jodit-toolbar')?.offsetHeight || 50; // Hauteur approximative de la barre d'outils
+        const padding = 16; // Ajustement pour les marges si nécessaire
+
+        // Définir une hauteur dynamique
+        const editorHeight = containerHeight - toolbarHeight - padding;
+
+        // Appliquer la hauteur calculée
+        editorContainer.style.height = `${containerHeight}px`;
+        document.getElementById('editor').style.height = `${editorHeight}px`;
+
+        // S'assurer que Jodit s'adapte à la nouvelle hauteur
+        if (window.editorInstance) {
+            window.editorInstance.events.fire('resize');
+        }
+    }
+}
 
 async function openNote(elementId) {
     document.getElementById('contentGrid').style.display = 'none';
@@ -1204,7 +1228,6 @@ async function openNote(elementId) {
             theme: 'dark',
             language: 'fr',
             height: '100%',
-            minHeight: '600px',
             toolbarButtonSize: 'large',
             buttons: [
                 'source', '|',
@@ -1234,7 +1257,6 @@ async function openNote(elementId) {
                 background: ['#6366f1', '#8b5cf6', '#ec4899'],
                 text: ['#ffffff', 'rgba(255, 255, 255, 0.7)']
             },
-            heightCSSExpression: '100%',
             events: {
                 // Ajouter un gestionnaire de sauvegarde automatique
                 change: debounce(async function() {
@@ -1249,24 +1271,26 @@ async function openNote(elementId) {
     } else {
         window.editorInstance.reload();
     }
-    
+
     // Charger le contenu existant s'il y en a
     try {
         const noteContent = await loadNoteContent(elementId);
         if (noteContent && noteContent.content) {
-            // Définir le contenu de l'éditeur
             window.editorInstance.value = noteContent.content;
         } else {
-            // Nouveau document vide
             window.editorInstance.value = '';
-            // Créer une entrée vide pour cette note
             await createNoteContent(elementId, '');
         }
     } catch (error) {
         console.error('Erreur lors du chargement du contenu de la note:', error);
         window.editorInstance.value = '';
     }
+
+    // Ajuster la hauteur de l'éditeur
+    adjustEditorHeight();
 }
+
+
 
 // Fonction utilitaire pour debounce (éviter trop d'appels)
 function debounce(func, wait) {
@@ -1544,7 +1568,19 @@ function renderFolders() {
         current = foundFolder.contents;
     }
     
-    grid.innerHTML = current.map(item => {
+    // Commencer par l'élément d'importation de fichiers
+    grid.innerHTML = `
+        <input type="file" id="folderFileInput" style="display: none" onchange="handleFolderFileSelect(event)">
+        <div class="folder create-folder" onclick="document.getElementById('folderFileInput').click()">
+            <div class="folder-preview">
+                <div class="preview-item" style="grid-column: span 2"><span class="import-icon">📥</span></div>
+            </div>
+            <div class="folder-name">Importer un fichier</div>
+        </div>
+    `;
+    
+    // Puis ajouter les dossiers et fichiers
+    grid.innerHTML += current.map(item => {
         if (item.type === 'folder') {
             // Prévisualisation des éléments du dossier (jusqu'à 4)
             const previewItems = item.contents.slice(0, 4).map(previewItem => {
@@ -1597,16 +1633,9 @@ function renderFolders() {
                 `;
             }
         }
-    }).join('') + `
-        <input type="file" id="folderFileInput" style="display: none" onchange="handleFolderFileSelect(event)">
-        <div class="folder create-folder" onclick="document.getElementById('folderFileInput').click()">
-            <div class="folder-preview">
-                <div class="preview-item" style="grid-column: span 2"><span class="import-icon">📥</span></div>
-            </div>
-            <div class="folder-name">Importer un fichier</div>
-        </div>
-    `;
+    }).join('');
 }
+
 
 // Fonction pour prévisualiser un fichier
 function previewFile(fileName) {
