@@ -1,6 +1,6 @@
 {
   "name": "Mymio",
-  "short_name": "Mio",
+  "short_name": "Mymio",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -16,6 +16,6 @@
     }
   ],
   "theme_color": "#ffffff",
-  "background_color": "#ffffff",
+  "background_color": "#0c0d21",
   "display": "standalone"
 }
