@@ -565,6 +565,12 @@ function initializeIdentityContent() {
             name: '',
             image: null
         };
+        let cachedConversations = new Map();
+
+function cacheConversation(elementId, conversation) {
+    cachedConversations.set(elementId, conversation);
+}
+
 
 
 async function startChat(event) {
@@ -651,7 +657,6 @@ async function sendMessage(type) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-message ${type === 'send' ? 'sent' : 'received'}`;
     
-    // Préparer les données du message
     const messageData = {
         type: type === 'send' ? 'sent' : 'received',
         text: messageInput.value.trim(),
@@ -659,19 +664,16 @@ async function sendMessage(type) {
         timestamp: new Date().toISOString()
     };
     
-    // Ajouter le texte s'il y en a
     if (messageInput.value.trim() !== '') {
         const textDiv = document.createElement('div');
         textDiv.innerHTML = messageInput.value.replace(/\n/g, '<br>');
         messageDiv.appendChild(textDiv);
     }
     
-    // Ajouter les images s'il y en a
     if (selectedImages.length > 0) {
         const imagesContainer = document.createElement('div');
         imagesContainer.className = 'message-images';
         selectedImages.forEach((img) => {
-            // Ajouter l'image aux données du message
             messageData.images.push({
                 data: img.data,
                 type: img.type,
@@ -685,7 +687,6 @@ async function sendMessage(type) {
             imgElement.setAttribute('data-type', img.type);
             imgElement.setAttribute('data-name', img.name);
             
-            // Gestionnaire de clic pour ouvrir le modal
             imgElement.onclick = function(e) {
                 e.stopPropagation();
                 openImageModal(this);
@@ -695,14 +696,12 @@ async function sendMessage(type) {
         messageDiv.appendChild(imagesContainer);
     }
     
-    // Ajouter le message au DOM
     messageContainer.appendChild(messageDiv);
+    scrollToBottom(); // Déplacé ici, après l'ajout du message
     
-    // Enregistrer le message dans Supabase
     const success = await saveMessage(currentConversationId, messageData);
     
     if (!success) {
-        // Si l'enregistrement échoue, ajouter une indication visuelle
         messageDiv.classList.add('error');
         const errorIndicator = document.createElement('div');
         errorIndicator.className = 'message-error';
@@ -710,7 +709,6 @@ async function sendMessage(type) {
         messageDiv.appendChild(errorIndicator);
     }
     
-    // Réinitialiser les entrées
     messageInput.value = '';
     selectedImages = [];
     const imageContainer = document.querySelector('.selected-images');
@@ -719,8 +717,8 @@ async function sendMessage(type) {
     }
     
     updateSelectedImagesDisplay();
-    scrollToBottom();
 }
+
 
 // Fonction pour mettre à jour le titre de l'élément avec le nom du contact
 async function updateElementTitleWithContact(elementId, contactName) {
@@ -1046,27 +1044,47 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Fonctions pour gérer les clics sur les cartes
 
 
-function handleCardClick(event) {
+async function handleCardClick(event) {
     const card = event.currentTarget;
     const type = card.dataset.type;
     const elementId = card.dataset.id;
     
-    // Marquer la carte comme active
     document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
     card.classList.add('active');
-    
-    // Stocker l'ID de l'élément actif
     window.currentElementId = elementId;
 
     if (type === 'chat') {
+        // Masquer la grille immédiatement
+        document.getElementById('contentGrid').style.display = 'none';
+        document.getElementById('chatContainer').style.display = 'block';
+        
+        // Masquer les deux interfaces par défaut
+        document.getElementById('setupForm').style.display = 'none';
+        document.getElementById('chatInterface').style.display = 'none';
+        
+        // Vérifier rapidement le cache
+        if (cachedConversations.has(elementId)) {
+            document.getElementById('chatInterface').style.display = 'block';
+        } else {
+            // Vérification rapide de l'existence d'une conversation
+            const hasConversation = await checkConversationStatus(elementId);
+            if (hasConversation) {
+                document.getElementById('chatInterface').style.display = 'block';
+            } else {
+                document.getElementById('setupForm').style.display = 'block';
+            }
+        }
+        
+        // Lancer l'ouverture complète du chat en arrière-plan
         openChat(elementId);
     } else if (type === 'note') {
-        openNote(elementId); // Passer l'ID à openNote()
+        openNote(elementId);
     } else if (type === 'dossier') {
         openFolderInterface();
     }
-    // Ajouter d'autres types ici si nécessaire
 }
+
+
 
 
 
@@ -1147,10 +1165,22 @@ async function openChat(elementId) {
                 
                 messageContainer.appendChild(messageDiv);
             });
-            
-            // Défiler vers le bas
-            scrollToBottom();
         }
+
+        // Force le recalcul de la hauteur du conteneur de messages
+        requestAnimationFrame(() => {
+    const chatInterface = document.getElementById('chatInterface');
+    const header = chatInterface.querySelector('.chat-header');
+    const inputWrapper = chatInterface.querySelector('.chat-input-wrapper');
+    const containerHeight = chatInterface.clientHeight;
+    const headerHeight = header.clientHeight;
+    const inputHeight = inputWrapper.clientHeight;
+    
+    const safetyMargin = 25;
+    messageContainer.style.height = `${containerHeight - headerHeight - inputHeight - safetyMargin}px`;
+    messageContainer.style.paddingBottom = `${safetyMargin}px`;
+});
+
     } else {
         // Nouvelle conversation - afficher le formulaire de configuration
         document.getElementById('setupForm').style.display = 'block';
@@ -1164,6 +1194,43 @@ async function openChat(elementId) {
     }
     
     toggleCreationHubVisibility();
+}
+
+
+function adjustMessageContainerHeight() {
+    const chatInterface = document.getElementById('chatInterface');
+    if (!chatInterface || chatInterface.style.display === 'none') return;
+
+    const messageContainer = document.getElementById('messageContainer');
+    const header = chatInterface.querySelector('.chat-header');
+    const inputWrapper = chatInterface.querySelector('.chat-input-wrapper');
+    
+    if (!messageContainer || !header || !inputWrapper) return;
+
+    const containerHeight = chatInterface.clientHeight;
+    const headerHeight = header.clientHeight;
+    const inputHeight = inputWrapper.clientHeight;
+    
+    // Ajout d'une marge de sécurité de 16px pour le dernier message
+    const safetyMargin = 25;
+    messageContainer.style.height = `${containerHeight - headerHeight - inputHeight - safetyMargin}px`;
+    messageContainer.style.paddingBottom = `${safetyMargin}px`;
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+}
+
+
+// Écouteurs d'événements pour le redimensionnement
+window.addEventListener('resize', adjustMessageContainerHeight);
+window.addEventListener('orientationchange', adjustMessageContainerHeight);
+
+// Pour gérer le clavier virtuel sur mobile
+if ('virtualKeyboard' in navigator) {
+    navigator.virtualKeyboard.overlaysContent = true;
+    navigator.virtualKeyboard.addEventListener('geometrychange', adjustMessageContainerHeight);
+} else {
+    // Fallback pour les navigateurs qui ne supportent pas l'API virtualKeyboard
+    window.visualViewport.addEventListener('resize', adjustMessageContainerHeight);
+    window.visualViewport.addEventListener('scroll', adjustMessageContainerHeight);
 }
 
 
@@ -1258,37 +1325,37 @@ async function openNote(elementId) {
                 text: ['#ffffff', 'rgba(255, 255, 255, 0.7)']
             },
             events: {
-                // Ajouter un gestionnaire de sauvegarde automatique
                 change: debounce(async function() {
                     if (window.currentElementId) {
                         const content = this.value;
                         await saveNoteContent(window.currentElementId, content);
                     }
-                }, 1000) // Délai de 1 seconde
+                }, 1000)
             }
         });
         window.joditInitialized = true;
-    } else {
-        window.editorInstance.reload();
     }
 
-    // Charger le contenu existant s'il y en a
+    // Important: Vider l'éditeur avant de charger le nouveau contenu
+    window.editorInstance.value = '';
+    
+    // Charger le contenu spécifique à cet élément
     try {
         const noteContent = await loadNoteContent(elementId);
         if (noteContent && noteContent.content) {
             window.editorInstance.value = noteContent.content;
         } else {
-            window.editorInstance.value = '';
+            // Si pas de contenu, laisser l'éditeur vide et créer une entrée vide
             await createNoteContent(elementId, '');
         }
     } catch (error) {
         console.error('Erreur lors du chargement du contenu de la note:', error);
-        window.editorInstance.value = '';
     }
 
     // Ajuster la hauteur de l'éditeur
     adjustEditorHeight();
 }
+
 
 
 
@@ -1865,18 +1932,7 @@ if (messageInput) {
             messageContainer.scrollTop = messageContainer.scrollHeight;
         }
 
-        // Exemple : Simuler un nouveau message
-        document.getElementById("messageInput").addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                const newMessage = document.createElement("div");
-                newMessage.className = "chat-message sent";
-                newMessage.textContent = e.target.value;
-                messageContainer.appendChild(newMessage);
-                e.target.value = "";
-                scrollToBottom(); // Défilement vers le bas
-            }
-        });
+   
     });
     document.addEventListener('DOMContentLoaded', () => {
     const backButtons = document.querySelectorAll('.chat-back-btn, .note-container .chat-back-btn');
@@ -3535,8 +3591,36 @@ document.addEventListener('DOMContentLoaded', async () => {
 //══════════════════════════════╝
 // PARTIE 1: Fonctions pour gérer les conversations dans Supabase
 
+async function checkConversationStatus(elementId) {
+    if (cachedConversations.has(elementId)) {
+        return true;
+    }
+    try {
+        const { data, error } = await supabase
+            .from('conversations')
+            .select('*')
+            .eq('element_id', elementId)
+            .single();
+
+        if (error) return false;
+        if (data) {
+            cacheConversation(elementId, data);
+            return true;
+        }
+        return false;
+    } catch (error) {
+        return false;
+    }
+}
+
+
 // Fonction pour charger la conversation existante
 async function loadConversation(elementId) {
+    // Vérifier d'abord le cache
+    if (cachedConversations.has(elementId)) {
+        return cachedConversations.get(elementId);
+    }
+
     try {
         const { data, error } = await supabase
             .from('conversations')
@@ -3550,20 +3634,32 @@ async function loadConversation(elementId) {
         }
         
         if (data && data.length > 0) {
+            cacheConversation(elementId, data[0]);
             return data[0];
-        } else {
-            console.log('Aucune conversation trouvée pour cet élément');
-            return null;
         }
+        
+        return null;
     } catch (error) {
         console.error('Exception lors du chargement de la conversation:', error);
         return null;
     }
 }
 
+
 // Fonction pour créer une nouvelle conversation
 async function createConversation(elementId, contactName, contactImage) {
     try {
+        // Vérifier d'abord si une conversation existe déjà
+        const { data: existingConversation } = await supabase
+            .from('conversations')
+            .select('*')
+            .eq('element_id', elementId)
+            .single();
+
+        if (existingConversation) {
+            return existingConversation;
+        }
+
         const newConversation = {
             element_id: elementId,
             contact_name: contactName,
@@ -3582,7 +3678,8 @@ async function createConversation(elementId, contactName, contactImage) {
         }
         
         if (data && data.length > 0) {
-            console.log('Conversation créée avec ID:', data[0].id);
+            // Mettre à jour le titre de l'élément
+            await updateElementTitleWithContact(elementId, contactName);
             return data[0];
         }
         
@@ -3633,6 +3730,13 @@ async function saveMessage(conversationId, message) {
         }
         
         console.log('Message sauvegardé avec succès');
+        // Mettre à jour le cache
+if (cachedConversations.has(currentConversationId)) {
+    const cachedConversation = cachedConversations.get(currentConversationId);
+    cachedConversation.messages = updatedMessages;
+    cacheConversation(currentConversationId, cachedConversation);
+}
+
         return true;
     } catch (error) {
         console.error('Exception lors de la sauvegarde du message:', error);
@@ -3903,6 +4007,388 @@ async function saveFolderStructure(elementId) {
 /*══════════════════════════════╗
   🟦 JS PARTIE 10
   ═════════════════════════════╝*/
+// Code JavaScript pour gérer le téléchargement de la base de données et du code source
+document.addEventListener('DOMContentLoaded', function() {
+  // Éléments du DOM
+  const downloadBtn = document.getElementById('downloaddb_cosmos_btn');
+  const downloadModal = document.getElementById('downloaddb_quantum_modal');
+  const downloadBtn2 = document.getElementById('downloaddb_pulsar_next');
+  const closeModal = document.querySelector('.downloaddb_eclipse_close');
+  const optionDatabase = document.getElementById('downloaddb_option_database');
+  const optionSource = document.getElementById('downloaddb_option_source');
+  
+  // Initialisation des variables
+  let selectedOption = 'database'; // Valeur par défaut
+  
+  // Ouvrir la modal quand on clique sur le bouton de téléchargement
+  downloadBtn.addEventListener('click', function(e) {
+    e.stopPropagation(); // Empêche la propagation de l'événement au conteneur parent
+    resetModal();
+    downloadModal.style.display = 'flex';
+    setTimeout(() => {
+      downloadModal.classList.add('active');
+    }, 10);
+  });
+  
+  // Gestion des options de téléchargement
+  optionDatabase.addEventListener('click', function() {
+    optionDatabase.classList.add('active');
+    optionSource.classList.remove('active');
+    selectedOption = 'database';
+  });
+  
+  optionSource.addEventListener('click', function() {
+    optionSource.classList.add('active');
+    optionDatabase.classList.remove('active');
+    selectedOption = 'source';
+  });
+  
+  // Déclencher le téléchargement
+  downloadBtn2.addEventListener('click', function() {
+    closeModalFunction();
+    
+    if (selectedOption === 'database') {
+      exportSupabaseDirectly();
+    } else {
+      downloadSourceCode();
+    }
+  });
+  
+  // Fermer la modal avec le X
+  closeModal.addEventListener('click', function() {
+    closeModalFunction();
+  });
+  
+  // Fermer la modal si on clique en dehors
+  window.addEventListener('click', function(event) {
+    if (event.target === downloadModal) {
+      closeModalFunction();
+    }
+  });
+  
+  function resetModal() {
+    optionDatabase.classList.add('active');
+    optionSource.classList.remove('active');
+    selectedOption = 'database';
+  }
+  
+  function closeModalFunction() {
+    downloadModal.classList.remove('active');
+    setTimeout(() => {
+      downloadModal.style.display = 'none';
+      resetModal();
+    }, 300);
+  }
+  
+  function downloadSourceCode() {
+    try {
+      // Créer l'animation de chargement
+      const loadingOverlay = createLoadingOverlay("Téléchargement du code source...");
+      document.body.appendChild(loadingOverlay);
+      
+      // Lien de téléchargement du code source
+      const downloadLink = document.createElement('a');
+      downloadLink.href = 'https://github.com/githubjllik/Mymio/archive/refs/heads/main.zip';
+      downloadLink.download = 'mymio-source-code.zip';
+      
+      // Simuler un délai de téléchargement pour montrer le loader
+      setTimeout(() => {
+        // Déclencher le téléchargement
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        // Nettoyer et afficher notification de succès
+        setTimeout(() => {
+          document.body.removeChild(loadingOverlay);
+          showNotification('success', 'Code source téléchargé avec succès !');
+        }, 1500);
+      }, 2000);
+    } catch (error) {
+      console.error('Erreur lors du téléchargement du code source:', error);
+      removeLoadingOverlay();
+      showNotification('error', 'Erreur lors du téléchargement: ' + error.message);
+    }
+  }
+  
+  async function exportSupabaseDirectly() {
+    try {
+      // Créer l'animation de chargement
+      const loadingOverlay = createLoadingOverlay("Préparation de l'exportation...");
+      document.body.appendChild(loadingOverlay);
+      
+      // Identifiants Supabase
+      const supabaseUrl = 'https://hnomubsievlxongoducr.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhub211YnNpZXZseG9uZ29kdWNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA5ODUyMjAsImV4cCI6MjA1NjU2MTIyMH0.Bplv54BJ18n9jO4XLU-U76gkw_9u_imCbM0xVCLLl0M';
+      
+      // Liste des tables à exporter
+      const tables = ['conversations', 'elements', 'folders_content', 'notes_content', 'Users'];
+      
+      // Date pour le nom de fichier
+      const date = new Date().toISOString().slice(0, 10);
+      const timestamp = Date.now();
+      
+      updateLoadingText(loadingOverlay, "Préparation des fichiers CSV...");
+      
+      // Générer un fichier CSV pour chaque table en parallèle
+      let completedTables = 0;
+      const csvPromises = tables.map(async (tableName, index) => {
+        try {
+          updateLoadingText(loadingOverlay, `Exportation de la table ${tableName}...`);
+          
+          // Utiliser l'API REST de Supabase pour exporter directement au format CSV
+          const response = await fetch(`${supabaseUrl}/rest/v1/${tableName}?select=*`, {
+            headers: {
+              'apikey': supabaseKey,
+              'Authorization': `Bearer ${supabaseKey}`,
+              'Accept': 'text/csv'  // Demander directement le format CSV à Supabase
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Erreur d'exportation de la table ${tableName}: ${response.statusText}`);
+          }
+          
+          // Récupérer le contenu CSV
+          const csvContent = await response.text();
+          
+          // Mettre à jour la progression
+          completedTables++;
+          const progress = Math.round((completedTables / tables.length) * 100);
+          updateLoadingProgress(loadingOverlay, progress);
+          
+          return {
+            name: tableName,
+            content: csvContent
+          };
+        } catch (error) {
+          console.error(`Erreur avec la table ${tableName}:`, error);
+          completedTables++;
+          return {
+            name: tableName,
+            content: `Erreur: ${error.message}`,
+            error: true
+          };
+        }
+      });
+      
+      // Attendre que toutes les exportations soient terminées
+      const csvFiles = await Promise.all(csvPromises);
+      
+      updateLoadingText(loadingOverlay, "Création de l'archive...");
+      
+      // Créer un fichier README pour expliquer le contenu
+      const readmeContent = `# Export Mymio Database ${date}
+
+Ce dossier contient l'exportation des tables suivantes de la base de données Mymio:
+${tables.map(table => `- ${table}`).join('\n')}
+
+Exporté le: ${new Date().toLocaleString()}
+`;
+
+      // Charger dynamiquement JSZip si nécessaire
+      if (typeof JSZip === 'undefined') {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+      
+      // Créer une archive ZIP avec tous les fichiers CSV
+      const zip = new JSZip();
+      
+      // Ajouter le README
+      zip.file("README.md", readmeContent);
+      
+      // Ajouter chaque fichier CSV
+      csvFiles.forEach(file => {
+        zip.file(`${file.name}.csv`, file.content);
+      });
+      
+      // Générer l'archive ZIP
+      updateLoadingText(loadingOverlay, "Finalisation de l'archive...");
+      const zipContent = await zip.generateAsync({
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 9 }
+      });
+      
+      // Télécharger l'archive ZIP
+      const zipUrl = URL.createObjectURL(zipContent);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = zipUrl;
+      downloadLink.download = `mymio-database-${date}.zip`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      
+      // Nettoyer et afficher notification de succès
+      setTimeout(() => {
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(zipUrl);
+        document.body.removeChild(loadingOverlay);
+        showNotification('success', 'Base de données exportée avec succès !');
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Erreur lors de l\'exportation de la base de données:', error);
+      removeLoadingOverlay();
+      showNotification('error', 'Erreur lors de l\'exportation: ' + error.message);
+    }
+  }
+  
+  function createLoadingOverlay(text) {
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'downloaddb_loading_overlay';
+    
+    const loadingContainer = document.createElement('div');
+    loadingContainer.className = 'downloaddb_loading_container';
+    
+    const loadingSpinner = document.createElement('div');
+    loadingSpinner.className = 'downloaddb_loading_spinner';
+    
+    const loadingIcon = document.createElement('div');
+    loadingIcon.className = 'downloaddb_loading_icon';
+    loadingIcon.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+    `;
+    
+    loadingSpinner.appendChild(loadingIcon);
+    
+    const loadingText = document.createElement('div');
+    loadingText.className = 'downloaddb_loading_text';
+    loadingText.textContent = text;
+    
+    const loadingProgress = document.createElement('div');
+    loadingProgress.className = 'downloaddb_loading_progress';
+    
+    loadingContainer.appendChild(loadingSpinner);
+    loadingContainer.appendChild(loadingText);
+    loadingContainer.appendChild(loadingProgress);
+    loadingOverlay.appendChild(loadingContainer);
+    
+    return loadingOverlay;
+  }
+  
+  function updateLoadingText(overlay, text) {
+    const loadingText = overlay.querySelector('.downloaddb_loading_text');
+    if (loadingText) {
+      loadingText.textContent = text;
+    }
+  }
+  
+  function updateLoadingProgress(overlay, percent) {
+    const progressBar = overlay.querySelector('.downloaddb_loading_progress');
+    if (progressBar) {
+      progressBar.style.setProperty('--progress', `${percent}%`);
+    }
+  }
+  
+  function removeLoadingOverlay() {
+    const loadingOverlay = document.querySelector('.downloaddb_loading_overlay');
+    if (loadingOverlay) {
+      document.body.removeChild(loadingOverlay);
+    }
+  }
+  
+  function showNotification(type, message) {
+    // Supprimer les notifications existantes
+    const existingNotifications = document.querySelectorAll('.downloaddb_notification');
+    existingNotifications.forEach(notification => {
+      document.body.removeChild(notification);
+    });
+    
+    // Créer une nouvelle notification
+    const notification = document.createElement('div');
+    notification.className = `downloaddb_notification ${type}`;
+    
+    const iconSVG = type === 'success' 
+      ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
+      : '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+    
+    const notificationIcon = document.createElement('div');
+    notificationIcon.className = 'downloaddb_notification_icon';
+    notificationIcon.innerHTML = iconSVG;
+    
+    const notificationText = document.createElement('div');
+    notificationText.className = 'downloaddb_notification_text';
+    notificationText.textContent = message;
+    
+    notification.appendChild(notificationIcon);
+    notification.appendChild(notificationText);
+    document.body.appendChild(notification);
+    
+    // Animation d'entrée
+    setTimeout(() => {
+      notification.classList.add('show');
+    }, 10);
+    
+    // Disparition automatique
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+        }
+      }, 300);
+    }, 5000);
+  }
+  
+  // Empêcher le bouton de téléchargement de déclencher l'événement de création
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
+  }
+  
+  // Fonction pour convertir les CSV en XLSX au besoin
+  async function convertCSVsToExcel(csvFiles) {
+    updateLoadingText(loadingOverlay, "Conversion des fichiers en Excel...");
+    
+    // Charger dynamiquement SheetJS si nécessaire
+    if (typeof XLSX === 'undefined') {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+    
+    // Créer un nouveau classeur Excel
+    const workbook = XLSX.utils.book_new();
+    
+    // Parcourir tous les fichiers CSV
+    for (const file of csvFiles) {
+      if (!file.error) {
+        // Convertir le contenu CSV en objet worksheet
+        const worksheet = XLSX.utils.csv_to_sheet(file.content);
+        
+        // Ajouter la feuille au classeur
+        XLSX.utils.book_append_sheet(workbook, worksheet, file.name);
+      } else {
+        // Ajouter une feuille d'erreur
+        const worksheet = XLSX.utils.aoa_to_sheet([['Erreur lors du chargement des données'], [file.content]]);
+        XLSX.utils.book_append_sheet(workbook, worksheet, `${file.name} (erreur)`);
+      }
+    }
+    
+    // Écrire le classeur au format binaire
+    const excelData = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    
+    // Retourner le contenu Excel sous forme de Blob
+    return new Blob([excelData], { 
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+    });
+  }
+});
 
 
 //══════════════════════════════╗

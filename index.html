@@ -484,7 +484,22 @@
     
     <!-- Menu pop-up de création -->
    <!-- Menu pop-up de création -->
+<!-- Menu pop-up de création -->
 <div class="creation-menu">
+    <!-- Nouveau bouton de téléchargement -->
+    <div class="download-hub">
+        <div class="download-item" id="downloaddb_cosmos_btn">
+            <div class="download-icon-container">
+                <svg class="download-icon" viewBox="0 0 24 24">
+                    <path d="M12,2C6.49,2 2,6.49 2,12C2,17.51 6.49,22 12,22C17.51,22 22,17.51 22,12C22,6.49 17.51,2 12,2ZM12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20ZM14.59,8.59L16,10L12,14L8,10L9.41,8.59L11,10.17V6H13V10.17L14.59,8.59ZM16,14H18V18H6V14H8V16H16V14Z" />
+                </svg>
+                <span class="download-pulse"></span>
+            </div>
+            <span>Exporter</span>
+        </div>
+    </div>
+    
+    <!-- Éléments de création existants -->
     <div class="creation-item" data-type="dossier">
         <div class="icon-container">
             <svg class="creation-icon" viewBox="0 0 24 24">
@@ -511,6 +526,39 @@
     </div>
 </div>
 
+
+
+
+</div>
+
+<!-- Modal de téléchargement -->
+<div id="downloaddb_quantum_modal" class="downloaddb_quantum_modal">
+    <div class="downloaddb_nebula_content">
+        <span class="downloaddb_eclipse_close">&times;</span>
+        <h3>Exportation de données</h3>
+        <p>Que souhaitez-vous exporter?</p>
+        
+        <div class="downloaddb_options_container">
+            <button id="downloaddb_option_database" class="downloaddb_option_btn active">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                </svg>
+                <span>Base de données</span>
+            </button>
+            <button id="downloaddb_option_source" class="downloaddb_option_btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                    <path d="M7 7l10 10"></path>
+                    <path d="M17 7l-10 10"></path>
+                </svg>
+                <span>Code source</span>
+            </button>
+        </div>
+        
+        <button id="downloaddb_pulsar_next" class="download_action_btn">Télécharger</button>
+    </div>
 </div>
  
 <!-- Ajoutez ce code à la fin de votre document HTML, juste avant la fermeture de la balise </body> -->
