@@ -646,9 +646,9 @@ async function startChat(event) {
 async function sendMessage(type) {
     const messageInput = document.getElementById('messageInput');
     const messageContainer = document.getElementById('messageContainer');
-    
+
     if (messageInput.value.trim() === '' && selectedImages.length === 0) return;
-    
+
     if (!currentConversationId) {
         console.error("Aucune conversation active");
         return;
@@ -656,20 +656,24 @@ async function sendMessage(type) {
 
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-message ${type === 'send' ? 'sent' : 'received'}`;
-    
+    messageDiv.setAttribute('contenteditable', 'true');
+    messageDiv.setAttribute('data-disable-editing', 'true');
+    messageDiv.setAttribute('spellcheck', 'false');
+
     const messageData = {
         type: type === 'send' ? 'sent' : 'received',
         text: messageInput.value.trim(),
         images: [],
         timestamp: new Date().toISOString()
     };
-    
+
     if (messageInput.value.trim() !== '') {
         const textDiv = document.createElement('div');
-        textDiv.innerHTML = messageInput.value.replace(/\n/g, '<br>');
+        const processedText = processMessageContent(messageInput.value);
+        textDiv.innerHTML = processedText;
         messageDiv.appendChild(textDiv);
     }
-    
+
     if (selectedImages.length > 0) {
         const imagesContainer = document.createElement('div');
         imagesContainer.className = 'message-images';
@@ -679,14 +683,14 @@ async function sendMessage(type) {
                 type: img.type,
                 name: img.name
             });
-            
+
             const imgElement = document.createElement('img');
             imgElement.src = img.data;
             imgElement.className = 'message-image';
             imgElement.setAttribute('data-full-image', img.data);
             imgElement.setAttribute('data-type', img.type);
             imgElement.setAttribute('data-name', img.name);
-            
+
             imgElement.onclick = function(e) {
                 e.stopPropagation();
                 openImageModal(this);
@@ -695,12 +699,35 @@ async function sendMessage(type) {
         });
         messageDiv.appendChild(imagesContainer);
     }
-    
+
+    // Empêcher toute interaction d'édition
+    messageDiv.addEventListener('mousedown', function (e) {
+        e.preventDefault();
+    });
+
+    messageDiv.addEventListener('keydown', function (e) {
+        e.preventDefault(); // Bloque toutes les frappes de clavier
+    });
+
+    messageDiv.addEventListener('input', function (e) {
+        e.preventDefault(); // Bloque toute tentative de modification
+    });
+
+    // Empêche l'appel du clavier virtuel ou d'autres menus contextuels
+    messageDiv.addEventListener('focus', function (e) {
+        e.target.blur(); // Retire immédiatement le focus de l'élément
+    });
+
     messageContainer.appendChild(messageDiv);
-    scrollToBottom(); // Déplacé ici, après l'ajout du message
     
+    // Initialiser Prism.js pour le nouveau contenu
+    Prism.highlightAllUnder(messageDiv);
+    initializeInlineCodeCopy(messageDiv);
+    
+    scrollToBottom();
+
     const success = await saveMessage(currentConversationId, messageData);
-    
+
     if (!success) {
         messageDiv.classList.add('error');
         const errorIndicator = document.createElement('div');
@@ -708,16 +735,97 @@ async function sendMessage(type) {
         errorIndicator.innerHTML = '⚠️ Non enregistré';
         messageDiv.appendChild(errorIndicator);
     }
-    
+
     messageInput.value = '';
     selectedImages = [];
     const imageContainer = document.querySelector('.selected-images');
     if (imageContainer) {
         imageContainer.remove();
     }
-    
+
     updateSelectedImagesDisplay();
 }
+
+
+// Fonction pour détecter et traiter le code dans un message
+function processMessageContent(text) {
+    // Remplacer d'abord les sauts de ligne pour préserver le HTML
+    let processedText = text.replace(/\n/g, '<br>');
+    
+    // Rechercher des blocs de code (texte indenté de 4 espaces ou avec ```language...```)
+    processedText = processCodeBlocks(processedText);
+    
+    // Rechercher des commandes inline (texte entre accent grave simple)
+    processedText = processInlineCode(processedText);
+    
+    return processedText;
+}
+
+// Fonction pour détecter et traiter les blocs de code
+function processCodeBlocks(text) {
+    // Motif pour détecter les blocs de code délimités par ```
+    const codeBlockRegex = /```(?:([\w-]+)?\n)?([\s\S]*?)```/g;
+    
+    // Remplacer les blocs de code par des balises <pre><code> avec mise en forme
+    return text.replace(codeBlockRegex, function(match, language, code) {
+        language = language || 'javascript'; // Langue par défaut si non spécifiée
+        
+        // Nettoyer le code (enlever les <br> qui ont été ajoutés)
+        code = code.replace(/<br>/g, '\n').trim();
+        
+        // Créer un bloc de code avec Prism.js
+        return `<div class="code-block-wrapper">
+                    <div class="code-language-label">${language}</div>
+                    <pre><code class="language-${language}">${escapeHtml(code)}</code></pre>
+                </div>`;
+    });
+}
+
+// Fonction pour détecter et traiter le code inline (commandes)
+function processInlineCode(text) {
+    // Motif pour détecter le code inline (entre accents graves)
+    const inlineCodeRegex = /`([^`]+)`/g;
+    
+    // Remplacer le code inline par des balises <code> avec mise en forme
+    return text.replace(inlineCodeRegex, function(match, code) {
+        return `<code class="inline-code" data-clipboard-text="${escapeHtml(code)}">${escapeHtml(code)}</code>`;
+    });
+}
+
+// Fonction pour échapper les caractères HTML
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+// Initialiser la copie des codes inline
+function initializeInlineCodeCopy(container) {
+    const inlineCodes = container.querySelectorAll('code.inline-code');
+    inlineCodes.forEach(code => {
+        code.addEventListener('click', function() {
+            const text = this.getAttribute('data-clipboard-text');
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    // Effet visuel pour indiquer que le code a été copié
+                    const originalBackground = this.style.background;
+                    this.style.background = 'rgba(0, 200, 0, 0.2)';
+                    setTimeout(() => {
+                        this.style.background = originalBackground;
+                    }, 500);
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+        });
+    });
+}
+
 
 
 // Fonction pour mettre à jour le titre de l'élément avec le nom du contact
@@ -799,6 +907,9 @@ function scrollToBottom() {
                 // Restaure la position de défilement
                 messageInput.scrollTop = scrollPos;
             });
+             
+    // Initialiser Prism.js
+    initializePrism();
         });
         let selectedImages = [];
 
@@ -1094,21 +1205,17 @@ async function handleCardClick(event) {
 async function openChat(elementId) {
     document.getElementById('contentGrid').style.display = 'none';
     document.getElementById('chatContainer').style.display = 'block';
-    
-    // Vérifier s'il existe déjà une conversation pour cet élément
+
     const conversation = await loadConversation(elementId);
-    
+
     if (conversation) {
-        // Conversation existante - charger directement
         currentConversationId = conversation.id;
         contactInfo.name = conversation.contact_name;
         contactInfo.image = conversation.contact_image;
-        
-        // Initialiser l'interface du chat
+
         document.getElementById('setupForm').style.display = 'none';
         document.getElementById('chatInterface').style.display = 'block';
-        
-        // Afficher les informations de contact
+
         const contactImg = document.getElementById('contactImg');
         const quickContactImg = document.getElementById('quickContactImg');
         if (contactInfo.image) {
@@ -1122,65 +1229,86 @@ async function openChat(elementId) {
             quickContactImg.textContent = contactInfo.name[0].toUpperCase();
             quickContactImg.style.backgroundImage = 'none';
         }
-        
+
         document.getElementById('contactNameDisplay').textContent = contactInfo.name;
-        
-        // Charger et afficher les messages
+
         const messageContainer = document.getElementById('messageContainer');
         messageContainer.innerHTML = '';
-        
+
         if (conversation.messages && conversation.messages.length > 0) {
-            conversation.messages.forEach(msg => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `chat-message ${msg.type}`;
-                
-                // Ajouter le texte s'il y en a
-                if (msg.text) {
-                    const textDiv = document.createElement('div');
-                    textDiv.innerHTML = msg.text.replace(/\n/g, '<br>');
-                    messageDiv.appendChild(textDiv);
-                }
-                
-                // Ajouter les images s'il y en a
-                if (msg.images && msg.images.length > 0) {
-                    const imagesContainer = document.createElement('div');
-                    imagesContainer.className = 'message-images';
-                    msg.images.forEach((img) => {
-                        const imgElement = document.createElement('img');
-                        imgElement.src = img.data;
-                        imgElement.className = 'message-image';
-                        imgElement.setAttribute('data-full-image', img.data);
-                        imgElement.setAttribute('data-type', img.type);
-                        imgElement.setAttribute('data-name', img.name);
-                        
-                        // Gestionnaire de clic pour ouvrir le modal
-                        imgElement.onclick = function(e) {
-                            e.stopPropagation();
-                            openImageModal(this);
-                        };
-                        imagesContainer.appendChild(imgElement);
-                    });
-                    messageDiv.appendChild(imagesContainer);
-                }
-                
-                messageContainer.appendChild(messageDiv);
-            });
+    conversation.messages.forEach(msg => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${msg.type}`;
+        messageDiv.setAttribute('contenteditable', 'true');
+        messageDiv.setAttribute('data-disable-editing', 'true');
+        messageDiv.setAttribute('spellcheck', 'false');
+
+        if (msg.text) {
+            const textDiv = document.createElement('div');
+            const processedText = processMessageContent(msg.text);
+            textDiv.innerHTML = processedText;
+            messageDiv.appendChild(textDiv);
         }
 
-        // Force le recalcul de la hauteur du conteneur de messages
-        requestAnimationFrame(() => {
-    const chatInterface = document.getElementById('chatInterface');
-    const header = chatInterface.querySelector('.chat-header');
-    const inputWrapper = chatInterface.querySelector('.chat-input-wrapper');
-    const containerHeight = chatInterface.clientHeight;
-    const headerHeight = header.clientHeight;
-    const inputHeight = inputWrapper.clientHeight;
-    
-    const safetyMargin = 25;
-    messageContainer.style.height = `${containerHeight - headerHeight - inputHeight - safetyMargin}px`;
-    messageContainer.style.paddingBottom = `${safetyMargin}px`;
-});
+        if (msg.images && msg.images.length > 0) {
+            const imagesContainer = document.createElement('div');
+            imagesContainer.className = 'message-images';
+            msg.images.forEach((img) => {
+                const imgElement = document.createElement('img');
+                imgElement.src = img.data;
+                imgElement.className = 'message-image';
+                imgElement.setAttribute('data-full-image', img.data);
+                imgElement.setAttribute('data-type', img.type);
+                imgElement.setAttribute('data-name', img.name);
 
+                imgElement.onclick = function (e) {
+                    e.stopPropagation();
+                    openImageModal(this);
+                };
+                imagesContainer.appendChild(imgElement);
+            });
+            messageDiv.appendChild(imagesContainer);
+        }
+
+        // Empêcher toute interaction d'édition
+        messageDiv.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+        });
+
+        messageDiv.addEventListener('keydown', function (e) {
+            e.preventDefault();
+        });
+
+        messageDiv.addEventListener('input', function (e) {
+            e.preventDefault();
+        });
+
+        messageDiv.addEventListener('focus', function (e) {
+            e.target.blur();
+        });
+
+        messageContainer.appendChild(messageDiv);
+    });
+    
+    // Initialiser Prism.js pour tout le contenu chargé
+    Prism.highlightAllUnder(messageContainer);
+    initializeInlineCodeCopy(messageContainer);
+}
+
+
+        // Ajout du code pour gérer la hauteur du conteneur de messages
+        requestAnimationFrame(() => {
+            const chatInterface = document.getElementById('chatInterface');
+            const header = chatInterface.querySelector('.chat-header');
+            const inputWrapper = chatInterface.querySelector('.chat-input-wrapper');
+            const containerHeight = chatInterface.clientHeight;
+            const headerHeight = header.clientHeight;
+            const inputHeight = inputWrapper.clientHeight;
+            
+            const safetyMargin = 25;
+            messageContainer.style.height = `${containerHeight - headerHeight - inputHeight - safetyMargin}px`;
+            messageContainer.style.paddingBottom = `${safetyMargin}px`;
+        });
     } else {
         // Nouvelle conversation - afficher le formulaire de configuration
         document.getElementById('setupForm').style.display = 'block';
@@ -1192,9 +1320,12 @@ async function openChat(elementId) {
         document.getElementById('imagePreview').style.display = 'none';
         document.getElementById('imagePreview').style.backgroundImage = '';
     }
-    
+
     toggleCreationHubVisibility();
 }
+
+
+
 
 
 function adjustMessageContainerHeight() {
@@ -1250,6 +1381,37 @@ function exitChat() {
     
     toggleCreationHubVisibility();
 }
+
+// Initialisation des fonctionnalités Prism.js
+function initializePrism() {
+    // Configurer les outils Prism
+    Prism.plugins.toolbar.registerButton('copy-to-clipboard', {
+        text: 'Copier',
+        onClick: function(env) {
+            navigator.clipboard.writeText(env.element.textContent)
+                .then(() => {
+                    // Animation de confirmation
+                    const button = env.element.closest('pre').querySelector('.toolbar-item button');
+                    const originalText = button.textContent;
+                    button.textContent = 'Copié!';
+                    button.style.background = 'rgba(0, 200, 0, 0.5)';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = '';
+                    }, 1000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+        }
+    });
+    
+    // Configurer l'autoloader des langages
+    Prism.plugins.autoloader.languages_path = 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/';
+}
+
+
+
 
         
         // Fonction pour ouvrir l'interface de Note
