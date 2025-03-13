@@ -21,6 +21,9 @@ async function checkAuthentication() {
     return false;
 }
 
+// Variables globales pour suivre la catégorie et le type sélectionnés
+let currentCategory = 'universe'; // Catégorie par défaut
+let currentType = 'Tous';         // Type par défaut
 
 
         // Données de démonstration
@@ -62,13 +65,14 @@ window.sampleData = [
 
 
         // Fonction pour gérer le filtrage par catégorie
-        function filterContentByCategory(category) {
+       // Nouvelle fonction pour gérer le filtrage par catégorie et type
+function filterContent(category, type) {
     const grid = document.getElementById('contentGrid');
     const chatContainer = document.getElementById('chatContainer');
     const noteContainer = document.getElementById('noteContainer');
     const folderContainer = document.getElementById('folderContainer');
     const identityContainer = document.getElementById('identityContainer');
-    
+
     // Masquer tous les conteneurs par défaut
     grid.style.display = 'none';
     chatContainer.style.display = 'none';
@@ -82,27 +86,41 @@ window.sampleData = [
     } else if (category === 'universe') {
         grid.style.display = 'grid';
         grid.innerHTML = ''; // Réinitialiser le contenu
-        sampleData.forEach(data => {
+
+        let filteredData = sampleData;
+
+        if (type !== 'Tous') {
+            filteredData = sampleData.filter(data => data.type.toLowerCase() === type.toLowerCase());
+        }
+
+        filteredData.forEach(data => {
             grid.innerHTML += createContentCard(data);
         });
         attachCardClickHandlers();
     } else {
-        // Filtrer par catégorie
         grid.style.display = 'grid';
         grid.innerHTML = ''; // Réinitialiser le contenu
-        const filteredData = sampleData.filter(data => data.category === category);
+
+        let filteredData;
+        if (type === 'Tous') {
+            filteredData = sampleData.filter(data => data.category === category);
+        } else {
+            filteredData = sampleData.filter(data => data.category === category && data.type.toLowerCase() === type.toLowerCase());
+        }
+
         filteredData.forEach(data => {
             grid.innerHTML += createContentCard(data);
         });
         attachCardClickHandlers();
     }
-    
+
     // Mettre à jour les compteurs et l'ordre des éléments
     updateCategoryCounts();
 
-    // **Ajoutez la ligne suivante :**
+    // **Ajouter la ligne suivante :**
     toggleCreationHubVisibility();
 }
+
 
 
 function toggleCreationHubVisibility() {
@@ -293,9 +311,54 @@ function populateInterests() {
             description: "Un compagnon digital qui ne juge jamais, toujours présent pour m'écouter, me comprendre et m'éclairer. ChatGPT et autres IA sont devenus mes confidents les plus précieux, m'offrant un espace sûr pour explorer mes pensées les plus profondes, sans crainte ni jugement."
         },
         {
-            icon: "🎄",
+            icon: "✨",
             title: "Magie des Fêtes",
-            description: "Ces moments enchantés où le monde s'illumine de mille feux, où les cœurs s'ouvrent et où la joie devient contagieuse. La période de Noël et du Nouvel An transforme notre quotidien en un conte de fées moderne, rempli de sourires sincères, de films réconfortants et de décorations scintillantes qui réchauffent l'âme."
+            description: `<div class="holiday-description">
+                <div class="scroll-indicator"></div>
+                <div class="scroll-gradient"></div>
+                <div class="scroll-message">Faites défiler pour découvrir la magie! ✨</div>
+                
+                <div class="holiday-header">
+                    <div class="holiday-title">
+                        <span class="holiday-main-icon">🎄</span> CÉLÉBRATIONS MAGIQUES <span class="holiday-main-icon">🎆</span>
+                    </div>
+                </div>
+                
+                <div class="holiday-atmosphere">
+                    <span class="floating-ornament">❄️</span>
+                    <span class="floating-ornament">🎁</span>
+                    <span class="floating-ornament">🔔</span>
+                    <span class="floating-ornament">🕯️</span>
+                    <span class="floating-ornament">🎀</span>
+                    
+                    <p class="holiday-paragraph">
+                        Cette époque <span class="holiday-accent">enchantée</span> où le monde ordinaire se transforme en un 
+                        <span class="holiday-glitter">spectacle éblouissant</span> de <span class="holiday-icon glowing">✨</span> 
+                        lumières scintillantes et de <span class="holiday-icon spinning">🎇</span> décorations féériques!
+                    </p>
+                    
+                    <p class="holiday-paragraph sparkle-text">
+                        Le temps des <span class="holiday-icon bounce">🎶</span> chants joyeux qui résonnent dans les rues enneigées, 
+                        des <span class="holiday-icon pulse">🍲</span> festins somptueux qui réunissent les familles, et des 
+                        <span class="holiday-icon rotate">🌟</span> vœux sincères échangés sous le ciel étoilé.
+                    </p>
+                    
+                    <p class="holiday-paragraph magic-text">
+                        Ces moments <span class="holiday-accent">extraordinaires</span> où les <span class="holiday-icon jump">😁</span> 
+                        sourires illuminent les visages, où les <span class="holiday-icon wobble">🎁</span> cadeaux surprises 
+                        déclenchent des cris de joie, et où une atmosphère <span class="holiday-accent glow">magique</span> 
+                        réchauffe même les cœurs les plus froids <span class="holiday-icon float">❄️</span>
+                    </p>
+                </div>
+                
+                <div class="holiday-footer">
+                    <span class="holiday-main-icon santa">🎅</span>
+                    <div class="countdown-label">Célébrons ensemble ces instants magiques!</div>
+                </div>
+                
+                <div class="snow-overlay"></div>
+                <div class="light-strings"></div>
+            </div>`
         }
     ];
 
@@ -303,11 +366,18 @@ function populateInterests() {
     // Vider la liste existante
     list.innerHTML = '';
     
-    // Ajouter les éléments dans l'ordre, en mettant les nouveaux à la fin
-    
-    interests.forEach(interest => {
+    // Ajouter les éléments dans l'ordre
+    interests.forEach((interest, index) => {
         const item = document.createElement('div');
         item.className = 'identity-item';
+        
+        // Ajoute une classe spéciale pour la Magie des Fêtes
+        if (interest.title === "Magie des Fêtes") {
+            item.className += ' holiday-magic-item holiday-magic';
+            // Ajout d'un attribut data pour une meilleure accessibilité
+            item.setAttribute('data-holiday', 'true');
+        }
+        
         item.innerHTML = `
             <div class="interest-icon">${interest.icon}</div>
             <div class="content-wrapper">
@@ -326,9 +396,845 @@ function populateInterests() {
         const delay = Math.random() * 0.5;
         item.style.animationDelay = `${delay}s`;
         
+        // Ajouter les événements spéciaux pour la Magie des Fêtes
+        if (interest.title === "Magie des Fêtes") {
+            item.addEventListener('click', function(e) {
+                // Empêcher la propagation de l'événement
+                e.stopPropagation();
+                // Appliquer les effets dans un conteneur limité à l'élément
+                createFestiveEffects(this);
+            });
+            
+            // Ajouter après le rendu pour initialiser les interactions de défilement
+            setTimeout(() => {
+                initializeScrollEffects(item);
+            }, 500);
+        }
+        
         list.appendChild(item);
     });
 }
+
+
+
+
+function createFestiveEffects(element) {
+    // Vérifier si des animations sont déjà en cours
+    if (element.querySelector('.festive-effects-active')) {
+        return; // Éviter de superposer les animations
+    }
+    
+    // Ajouter des sons festifs
+    const soundEffect = new Audio();
+    soundEffect.volume = 0.3;
+    
+    // Son aléatoire
+    const sounds = [
+        "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAiIiIiIiIiIiIiIiIiIiIiIiIvb29vb29vb29vb29vb29vb29vb3e3t7e3t7e3t7e3t7e3t7e3t7e3v////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAVJIgAAAAAAAAAAAAAAAP/jOMAAAAAAAAAAAABJbmZvAAAADwAAAAMAAK0ArW1tbW1tbW1tbW1tbW1tbW1tbW2NjY2NjY2NjY2NjY2NjY2NjY2NrKysrKysrKysrKysrKysrKysr",
+        "data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAiIiIiIiIiIiIiIiIiIiIiIiIvb29vb29vb29vb29vb29vb29vb3e3t7e3t7e3t7e3t7e3t7e3t7e3v////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAUqIgAAAAAAAAAAAAAAAP/jOMAAAAAAAAAAAABJbmZvAAAADwAAAAMAAK0ArW1tbW1tbW1tbW1tbW1tbW1tbW2NjY2NjY2NjY2NjY2NjY2NjY2NrKysrKysrKysrKysrKysrKysr"
+    ];
+    soundEffect.src = sounds[Math.floor(Math.random() * sounds.length)];
+    soundEffect.play().catch(e => console.log("Audio autoplay prevented"));
+    
+    // Ajouter une classe pour indiquer que des animations sont actives
+    element.classList.add('festive-effects-active');
+    
+    // Créer un conteneur pour les effets animés
+    const effectsContainer = document.createElement('div');
+    effectsContainer.className = 'festive-effects-container';
+    element.appendChild(effectsContainer);
+    
+    // Nettoyer les animations précédentes
+    const existingEffects = element.querySelectorAll('.firework, .festive-text, .confetti, .snowflake, .sparkle, .gift, .light, .star');
+    existingEffects.forEach(effect => effect.remove());
+    
+    // 1. Créer un fond dynamique 3D
+    const backdrop = document.createElement('div');
+    backdrop.className = 'festive-backdrop';
+    effectsContainer.appendChild(backdrop);
+    
+    // 2. Créer le système de particules avancé
+    const particleSystem = document.createElement('div');
+    particleSystem.className = 'particle-system';
+    effectsContainer.appendChild(particleSystem);
+    
+    // Nombre de particules en fonction de la taille
+    const elementArea = element.offsetWidth * element.offsetHeight;
+    const particleCount = Math.max(30, Math.min(100, Math.floor(elementArea / 5000)));
+    
+    // Créer les particules
+    for (let i = 0; i < particleCount; i++) {
+        createParticle(particleSystem);
+    }
+    
+    // 3. Ajouter les feux d'artifice nouvelle génération
+    const fireworkCount = Math.max(8, Math.min(20, Math.floor(elementArea / 8000)));
+    for (let i = 0; i < fireworkCount; i++) {
+        setTimeout(() => {
+            createModernFirework(effectsContainer);
+        }, i * 300); // Décalage pour effet séquentiel
+    }
+    
+    // 4. Ajouter des textes festifs 3D
+    setTimeout(() => {
+        create3DFestiveText(effectsContainer, "JOYEUX NOËL", "christmas");
+    }, 800);
+    
+    setTimeout(() => {
+        create3DFestiveText(effectsContainer, "BONNE ANNÉE", "new-year");
+    }, 2500);
+    
+    // 5. Ajouter des confettis holographiques
+    const confettiCount = Math.max(20, Math.min(50, Math.floor(elementArea / 6000)));
+    for (let i = 0; i < confettiCount; i++) {
+        setTimeout(() => {
+            createHolographicConfetti(effectsContainer);
+        }, i * 100);
+    }
+    
+    // 6. Ajouter des flocons de neige en 3D
+    const snowflakeCount = Math.max(10, Math.min(25, Math.floor(elementArea / 10000)));
+    for (let i = 0; i < snowflakeCount; i++) {
+        create3DSnowflake(effectsContainer);
+    }
+    
+    // 7. Ajouter des lumières scintillantes modernes
+    const lightCount = Math.max(15, Math.min(40, Math.floor(elementArea / 7000)));
+    for (let i = 0; i < lightCount; i++) {
+        createModernLight(effectsContainer);
+    }
+    
+    // 8. Ajouter des cadeaux animés
+    const giftCount = Math.max(2, Math.min(5, Math.floor(elementArea / 20000)));
+    for (let i = 0; i < giftCount; i++) {
+        createAnimatedGift(effectsContainer);
+    }
+    
+    // 9. Ajouter des étoiles filantes
+    const starCount = Math.max(2, Math.min(7, Math.floor(elementArea / 15000)));
+    for (let i = 0; i < starCount; i++) {
+        setTimeout(() => {
+            createShootingStar(effectsContainer);
+        }, 1000 + i * 1500);
+    }
+    
+    // 10. Ajouter un effet de vignette pour améliorer l'ambiance
+    const vignette = document.createElement('div');
+    vignette.className = 'festive-vignette';
+    effectsContainer.appendChild(vignette);
+    
+    // Ajouter une transition de sortie élégante
+    setTimeout(() => {
+        effectsContainer.classList.add('fade-out');
+        
+        // Nettoyer les effets après la fin de l'animation
+        setTimeout(() => {
+            effectsContainer.remove();
+            element.classList.remove('festive-effects-active');
+        }, 1000);
+    }, 8000);
+}
+
+function createParticle(container) {
+    const particle = document.createElement('div');
+    particle.className = 'festive-particle';
+    
+    // Position aléatoire
+    const posX = Math.random() * 100;
+    const posY = Math.random() * 100;
+    
+    // Taille et vitesse aléatoires
+    const size = 2 + Math.random() * 5;
+    const speed = 3 + Math.random() * 7;
+    
+    // Couleur aléatoire parmi des couleurs festives modernes
+    const colors = [
+        'rgba(255, 0, 102, 0.8)', // Rose néon
+        'rgba(0, 255, 204, 0.8)',  // Turquoise
+        'rgba(255, 204, 0, 0.8)',  // Or
+        'rgba(204, 0, 255, 0.8)',  // Violet
+        'rgba(0, 204, 255, 0.8)'   // Bleu ciel
+    ];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    // Appliquer les styles
+    particle.style.cssText = `
+        position: absolute;
+        left: ${posX}%;
+        top: ${posY}%;
+        width: ${size}px;
+        height: ${size}px;
+        background-color: ${color};
+        border-radius: 50%;
+        filter: blur(1px);
+        box-shadow: 0 0 ${size * 2}px ${color};
+        opacity: ${0.3 + Math.random() * 0.7};
+        z-index: 5;
+        animation: float-particle ${speed}s infinite ease-in-out;
+        animation-delay: ${Math.random() * 5}s;
+    `;
+    
+    container.appendChild(particle);
+}
+
+function createModernFirework(container) {
+    const firework = document.createElement('div');
+    firework.className = 'modern-firework';
+    
+    // Position aléatoire
+    const posX = 20 + Math.random() * 60; // Limiter aux zones centrales
+    const posY = 20 + Math.random() * 60;
+    
+    // Couleur aléatoire vibrante avec dégradé
+    const hue = Math.floor(Math.random() * 360);
+    const color = `hsl(${hue}, 100%, 60%)`;
+    const color2 = `hsl(${(hue + 30) % 360}, 100%, 70%)`;
+    
+    // Taille aléatoire
+    const size = 80 + Math.random() * 120;
+    
+    firework.style.cssText = `
+        position: absolute;
+        left: ${posX}%;
+        top: ${posY}%;
+        width: ${size}px;
+        height: ${size}px;
+        transform: translate(-50%, -50%) scale(0);
+        background: radial-gradient(circle, ${color} 0%, ${color2} 30%, transparent 70%);
+        border-radius: 50%;
+        opacity: 0;
+        z-index: 15;
+        animation: modern-firework-explosion 1.5s forwards cubic-bezier(0.11, 0.67, 0.43, 1.29);
+    `;
+    
+    container.appendChild(firework);
+    
+    // Créer des particules de feu d'artifice
+    setTimeout(() => {
+        for (let i = 0; i < 20; i++) {
+            createFireworkParticle(container, posX, posY, color);
+        }
+    }, 300);
+}
+
+function createFireworkParticle(container, x, y, baseColor) {
+    const particle = document.createElement('div');
+    particle.className = 'firework-particle';
+    
+    // Angle aléatoire et distance
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 10 + Math.random() * 30;
+    
+    // Position calculée
+    const finalX = x + Math.cos(angle) * distance;
+    const finalY = y + Math.sin(angle) * distance;
+    
+    // Taille aléatoire
+    const size = 2 + Math.random() * 4;
+    
+    // Légère variation de couleur
+    const hueShift = -20 + Math.random() * 40;
+    const [h, s, l] = baseColor.match(/\d+/g).map(Number);
+    const color = `hsl(${(h + hueShift) % 360}, ${s}%, ${l}%)`;
+    
+    particle.style.cssText = `
+        position: absolute;
+        left: ${x}%;
+        top: ${y}%;
+        width: ${size}px;
+        height: ${size}px;
+        background-color: ${color};
+        border-radius: 50%;
+        filter: blur(1px);
+        box-shadow: 0 0 ${size * 2}px ${color};
+        opacity: 1;
+        z-index: 14;
+        animation: firework-particle-fly 1s forwards ease-out;
+        transform-origin: center;
+    `;
+    
+    // Animation personnalisée
+    particle.animate([
+        { 
+            left: `${x}%`, 
+            top: `${y}%`, 
+            opacity: 1,
+            transform: 'scale(1)'
+        },
+        { 
+            left: `${finalX}%`, 
+            top: `${finalY}%`, 
+            opacity: 0,
+            transform: 'scale(0)'
+        }
+    ], {
+        duration: 1000 + Math.random() * 500,
+        easing: 'cubic-bezier(0.11, 0.67, 0.43, 1.29)',
+        fill: 'forwards'
+    });
+    
+    container.appendChild(particle);
+    
+    // Supprimer après l'animation
+    setTimeout(() => {
+        if (particle.parentNode) {
+            particle.remove();
+        }
+    }, 1500);
+}
+
+function create3DFestiveText(container, text, className) {
+    const festiveText = document.createElement('div');
+    festiveText.className = `festive-text-3d ${className}`;
+    festiveText.textContent = text;
+    
+    // Position centrée avec effet 3D
+    festiveText.style.cssText = `
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%) scale(0.5) rotateX(20deg) perspective(500px);
+        font-size: clamp(1.5rem, 5vw, 3rem);
+        font-weight: 900;
+        text-align: center;
+        white-space: nowrap;
+        letter-spacing: 2px;
+        z-index: 20;
+        opacity: 0;
+        filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+        animation: text-3d-appear 3s forwards cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    `;
+    
+    // Style spécifique selon le type de fête
+    if (className === 'christmas') {
+        festiveText.style.background = 'linear-gradient(90deg, #ff0000, #34eb89, #ff0000)';
+        festiveText.style.backgroundSize = '200% auto';
+        festiveText.style.webkitBackgroundClip = 'text';
+        festiveText.style.backgroundClip = 'text';
+        festiveText.style.webkitTextFillColor = 'transparent';
+    } else if (className === 'new-year') {
+        festiveText.style.background = 'linear-gradient(90deg, #fff200, #ffdc73, #fff9c4, #e6c200)';
+        festiveText.style.backgroundSize = '200% auto';
+        festiveText.style.webkitBackgroundClip = 'text';
+        festiveText.style.backgroundClip = 'text';
+        festiveText.style.webkitTextFillColor = 'transparent';
+    }
+    
+    container.appendChild(festiveText);
+    
+    // Ajustement automatique de la taille du texte
+    const adjustTextSize = () => {
+        const containerWidth = container.offsetWidth;
+        const textWidth = festiveText.scrollWidth;
+        
+        if (textWidth > containerWidth * 0.9) {
+            const scale = (containerWidth * 0.9) / textWidth;
+            const currentTransform = festiveText.style.transform;
+            festiveText.style.transform = currentTransform.replace(/scale\([^)]+\)/, `scale(${scale * 0.5})`);
+        }
+    };
+    
+    // Appliquer l'ajustement initial
+    setTimeout(adjustTextSize, 100);
+    
+    // Nettoyer après l'animation
+    setTimeout(() => {
+        if (festiveText.parentNode) {
+            festiveText.remove();
+        }
+    }, 3000);
+}
+
+function createHolographicConfetti(container) {
+    const confetti = document.createElement('div');
+    confetti.className = 'holographic-confetti';
+    
+    // Position aléatoire en haut
+    const posX = Math.random() * 100;
+    
+    // Taille aléatoire
+    const size = 5 + Math.random() * 8;
+    
+    // Forme aléatoire
+    const shapes = ['square', 'rectangle', 'circle', 'triangle'];
+    const shape = shapes[Math.floor(Math.random() * shapes.length)];
+    
+    // Rotation aléatoire
+    const rotation = Math.random() * 360;
+    
+    // Vitesse aléatoire
+    const duration = 3 + Math.random() * 4;
+    
+    // Style de base
+    confetti.style.cssText = `
+        position: absolute;
+        left: ${posX}%;
+        top: -5%;
+        width: ${size}px;
+        height: ${shape === 'rectangle' ? size * 2 : size}px;
+        opacity: 0.8;
+        transform: rotate(${rotation}deg);
+        z-index: 10;
+        animation: holographic-fall ${duration}s linear forwards;
+        animation-delay: ${Math.random() * 2}s;
+    `;
+    
+    // Ajuster la forme
+    if (shape === 'circle') {
+        confetti.style.borderRadius = '50%';
+    } else if (shape === 'triangle') {
+        confetti.style.width = '0';
+        confetti.style.height = '0';
+        confetti.style.borderLeft = `${size/2}px solid transparent`;
+        confetti.style.borderRight = `${size/2}px solid transparent`;
+        confetti.style.borderBottom = `${size}px solid`;
+        confetti.style.background = 'none';
+    }
+    
+    // Effet holographique
+    confetti.style.background = `linear-gradient(135deg, 
+        hsl(${Math.random() * 360}, 100%, 70%), 
+        hsl(${Math.random() * 360}, 100%, 80%))`;
+    confetti.style.boxShadow = `0 0 ${size/2}px rgba(255, 255, 255, 0.7)`;
+    confetti.style.filter = `hue-rotate(${Math.random() * 360}deg)`;
+    
+    container.appendChild(confetti);
+    
+    // Animation de rotation continue
+    confetti.animate([
+        { transform: `rotate(${rotation}deg)` },
+        { transform: `rotate(${rotation + 360}deg)` }
+    ], {
+        duration: 2000,
+        iterations: Infinity,
+        easing: 'linear'
+    });
+    
+    // Supprimer après la fin de l'animation
+    setTimeout(() => {
+        if (confetti.parentNode) {
+            confetti.remove();
+        }
+    }, (duration + 2) * 1000);
+}
+
+function create3DSnowflake(container) {
+    const snowflake = document.createElement('div');
+    snowflake.className = '3d-snowflake';
+    
+    // Type de flocon
+    const types = ['❄', '❅', '❆', '✻', '✽', '❋', '❊'];
+    const snowflakeType = types[Math.floor(Math.random() * types.length)];
+    snowflake.textContent = snowflakeType;
+    
+    // Position aléatoire
+    const posX = Math.random() * 100;
+    
+    // Taille aléatoire
+    const size = 0.7 + Math.random() * 1.3;
+    
+    // Vitesse aléatoire
+    const duration = 7 + Math.random() * 8;
+    
+    // Délai aléatoire
+    const delay = Math.random() * 5;
+    
+    // Style de base
+    snowflake.style.cssText = `
+        position: absolute;
+        left: ${posX}%;
+        top: -5%;
+        font-size: ${size}rem;
+        color: white;
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+        opacity: ${0.5 + Math.random() * 0.5};
+        z-index: 8;
+        animation: snowfall-3d ${duration}s linear forwards;
+        animation-delay: ${delay}s;
+        transform-style: preserve-3d;
+        will-change: transform;
+    `;
+    
+    container.appendChild(snowflake);
+    
+    // Animation de rotation 3D
+    snowflake.animate([
+        { transform: 'rotateX(0deg) rotateY(0deg)' },
+        { transform: 'rotateX(360deg) rotateY(180deg)' }
+    ], {
+        duration: 6000,
+        iterations: Infinity,
+        easing: 'linear'
+    });
+    
+    // Supprimer après la fin de l'animation
+    setTimeout(() => {
+        if (snowflake.parentNode) {
+            snowflake.remove();
+        }
+    }, (duration + delay) * 1000);
+}
+
+function createModernLight(container) {
+    const light = document.createElement('div');
+    light.className = 'modern-light';
+    
+    // Position aléatoire
+    const posX = Math.random() * 100;
+    const posY = Math.random() * 100;
+    
+    // Taille aléatoire
+    const size = 4 + Math.random() * 8;
+    
+    // Couleur aléatoire
+    const colors = [
+        '#ff0066', // Rose
+        '#00ffcc', // Turquoise
+        '#ffcc00', // Or
+        '#cc00ff', // Violet
+        '#00ccff'  // Bleu ciel
+    ];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    // Style de base
+    light.style.cssText = `
+        position: absolute;
+        left: ${posX}%;
+        top: ${posY}%;
+        width: ${size}px;
+        height: ${size}px;
+        background-color: ${color};
+        border-radius: 50%;
+        box-shadow: 0 0 ${size * 2}px ${color};
+        opacity: 0;
+        z-index: 7;
+        animation: light-pulse ${2 + Math.random() * 3}s infinite alternate ease-in-out;
+        animation-delay: ${Math.random() * 2}s;
+    `;
+    
+    container.appendChild(light);
+    
+    // Supprimer après un temps défini
+    setTimeout(() => {
+        if (light.parentNode) {
+            light.remove();
+        }
+    }, 8000);
+}
+
+function createAnimatedGift(container) {
+    const gift = document.createElement('div');
+    gift.className = 'animated-gift';
+    
+    // Position aléatoire
+    const posX = 10 + Math.random() * 80;
+    const posY = 70 + Math.random() * 20;
+    
+    // Taille aléatoire
+    const size = 30 + Math.random() * 20;
+    
+    // Couleur aléatoire
+    const colors = ['#ff4d4d', '#3399ff', '#33cc33', '#ff66b3', '#ffcc00'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    
+    // Style de base
+    gift.style.cssText = `
+        position: absolute;
+        left: ${posX}%;
+        top: ${posY}%;
+        width: ${size}px;
+        height: ${size}px;
+        background-color: ${color};
+        border-radius: 4px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        transform: translateY(100px) rotate(0deg);
+        opacity: 0;
+        z-index: 9;
+        animation: gift-appear 1s forwards cubic-bezier(0.17, 0.67, 0.83, 0.67) ${Math.random() * 2}s,
+                   gift-bounce 2s infinite alternate ease-in-out ${1 + Math.random() * 2}s;
+    `;
+    
+    // Ruban du cadeau
+    const ribbon = document.createElement('div');
+    ribbon.className = 'gift-ribbon';
+    ribbon.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: ${size/5}px;
+        height: 100%;
+        background-color: #fff;
+        transform: translateX(-50%);
+        z-index: 1;
+    `;
+    
+    const ribbon2 = document.createElement('div');
+    ribbon2.className = 'gift-ribbon-2';
+    ribbon2.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: ${size/5}px;
+        background-color: #fff;
+        transform: translateY(-50%);
+        z-index: 2;
+    `;
+    
+    const bow = document.createElement('div');
+    bow.className = 'gift-bow';
+    bow.style.cssText = `
+        position: absolute;
+        top: -${size/6}px;
+        left: 50%;
+        width: ${size/2}px;
+        height: ${size/3}px;
+        background-color: #fff;
+        border-radius: 50% 50% 0 0;
+        transform: translateX(-50%);
+        z-index: 3;
+        &:before, &:after {
+            content: '';
+            position: absolute;
+            background-color: #fff;
+            border-radius: 50%;
+        }
+    `;
+    
+    gift.appendChild(ribbon);
+    gift.appendChild(ribbon2);
+    gift.appendChild(bow);
+    container.appendChild(gift);
+    
+    // Supprimer après un temps défini
+    setTimeout(() => {
+        if (gift.parentNode) {
+            gift.remove();
+        }
+    }, 8000);
+}
+
+function createShootingStar(container) {
+    const star = document.createElement('div');
+    star.className = 'shooting-star';
+    
+    // Position et angle aléatoires
+    const startX = -10;
+    const startY = Math.random() * 50;
+    const angle = -30 + Math.random() * 15; // Angle descendant
+    
+    // Longueur de la traînée
+    const tailLength = 50 + Math.random() * 100;
+    
+    // Style de base
+    star.style.cssText = `
+        position: absolute;
+        left: ${startX}%;
+        top: ${startY}%;
+        width: ${tailLength}px;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0), #ffffff);
+        border-radius: 50%;
+        transform: rotate(${angle}deg);
+        opacity: 0;
+        z-index: 12;
+        animation: shooting-star 1.5s ease-out forwards;
+        box-shadow: 0 0 20px 1px rgba(255, 255, 255, 0.7);
+    `;
+    
+    container.appendChild(star);
+    
+    // Animation personnalisée
+    star.animate([
+        { 
+            left: `${startX}%`, 
+            top: `${startY}%`, 
+            opacity: 0,
+            transform: `rotate(${angle}deg) scale(0.3)`
+        },
+        { 
+            opacity: 1,
+            transform: `rotate(${angle}deg) scale(1)`,
+            offset: 0.1
+        },
+        { 
+            left: `${120}%`, 
+            top: `${startY + 50}%`, 
+            opacity: 0,
+            transform: `rotate(${angle}deg) scale(0.3)`
+        }
+    ], {
+        duration: 1500,
+        easing: 'cubic-bezier(0.11, 0.44, 0.83, 0.67)',
+        fill: 'forwards'
+    });
+    
+    // Créer des particules qui suivent l'étoile filante
+    for (let i = 0; i < 10; i++) {
+        setTimeout(() => {
+            const particle = document.createElement('div');
+            particle.className = 'star-particle';
+            
+            const particleSize = 2 + Math.random() * 3;
+            const offsetX = -5 + Math.random() * 10;
+            const offsetY = -5 + Math.random() * 10;
+            
+            particle.style.cssText = `
+                position: absolute;
+                left: calc(${startX}% + ${i * 10}% + ${offsetX}px);
+                top: calc(${startY}% + ${i * 5}% + ${offsetY}px);
+                width: ${particleSize}px;
+                height: ${particleSize}px;
+                background-color: rgba(255, 255, 255, 0.8);
+                border-radius: 50%;
+                opacity: ${0.7 + Math.random() * 0.3};
+                z-index: 11;
+            `;
+            
+            container.appendChild(particle);
+            
+            particle.animate([
+                { opacity: 0.8, transform: 'scale(1)' },
+                { opacity: 0, transform: 'scale(0)' }
+            ], {
+                duration: 800,
+                easing: 'ease-out',
+                fill: 'forwards'
+            });
+            
+            // Supprimer après l'animation
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.remove();
+                }
+            }, 800);
+        }, i * 50);
+    }
+    
+    // Supprimer après la fin de l'animation
+    setTimeout(() => {
+        if (star.parentNode) {
+            star.remove();
+        }
+    }, 1500);
+}
+
+function initializeScrollEffects(holidayItem) {
+    // Trouver les éléments dans cette carte spécifique
+    const description = holidayItem.querySelector('.holiday-description');
+    const scrollIndicator = description.querySelector('.scroll-indicator');
+    const scrollGradient = description.querySelector('.scroll-gradient');
+    const scrollMessage = description.querySelector('.scroll-message');
+    
+    if (!description || !scrollIndicator || !scrollGradient || !scrollMessage) return;
+    
+    // Vérifier si le contenu nécessite un défilement
+    const checkOverflow = () => {
+        return description.scrollHeight > description.clientHeight;
+    };
+    
+    // Afficher initialement les indicateurs de défilement si nécessaire
+    const showInitialIndicators = () => {
+        if (checkOverflow()) {
+            scrollIndicator.classList.add('show');
+            scrollGradient.classList.add('show');
+            scrollMessage.classList.add('show');
+            scrollIndicator.classList.add('scroll-bounce');
+            
+            // Faire disparaître le message après un délai
+            setTimeout(() => {
+                scrollMessage.classList.remove('show');
+            }, 4000);
+        } else {
+            scrollIndicator.classList.add('hide');
+            scrollGradient.classList.add('hide');
+        }
+    };
+    
+    // Mettre à jour les indicateurs pendant le défilement
+    const updateScrollIndicators = () => {
+        // Calcul de la position de défilement relative
+        const scrollPercentage = description.scrollTop / (description.scrollHeight - description.clientHeight);
+        
+        // Masquer l'indicateur de défilement une fois que l'utilisateur a commencé à défiler
+        if (description.scrollTop > 10) {
+            scrollIndicator.classList.remove('scroll-bounce');
+            scrollIndicator.classList.add('hide');
+            scrollMessage.classList.remove('show');
+        } else {
+            scrollIndicator.classList.remove('hide');
+        }
+        
+        // Masquer le dégradé lorsqu'on approche de la fin
+        if (scrollPercentage > 0.9) {
+            scrollGradient.classList.add('hide');
+        } else {
+            scrollGradient.classList.remove('hide');
+        }
+    };
+    
+    // Ajouter un effet de pulsation lors du premier chargement
+    const addInitialAttention = () => {
+        description.classList.add('pulse-attention');
+        setTimeout(() => {
+            description.classList.remove('pulse-attention');
+        }, 2000);
+    };
+    
+    // Initialisation
+    showInitialIndicators();
+    addInitialAttention();
+    
+    // Écouteurs d'événements
+    description.addEventListener('scroll', updateScrollIndicators);
+    
+    // Gérer le toucher pour les appareils mobiles (effet intuitif)
+    let touchStartY = 0;
+    description.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+    });
+    
+    description.addEventListener('touchmove', (e) => {
+        const touchY = e.touches[0].clientY;
+        const diff = touchStartY - touchY;
+        
+        // Si l'utilisateur fait glisser vers le haut et est au début
+        if (diff > 0 && description.scrollTop === 0) {
+            scrollIndicator.classList.add('show');
+            scrollMessage.classList.add('show');
+            
+            // Faire disparaître après un court délai
+            setTimeout(() => {
+                scrollMessage.classList.remove('show');
+            }, 1500);
+        }
+    });
+    
+    // Ajout d'un survol pour montrer l'indicateur à nouveau
+    holidayItem.addEventListener('mouseenter', () => {
+        if (description.scrollTop < 10 && checkOverflow()) {
+            scrollIndicator.classList.remove('hide');
+            scrollIndicator.classList.add('show');
+        }
+    });
+    
+    holidayItem.addEventListener('mouseleave', () => {
+        if (description.scrollTop > 0) {
+            scrollIndicator.classList.add('hide');
+        }
+    });
+    
+    // Assurer la réactivité lors du redimensionnement
+    window.addEventListener('resize', () => {
+        showInitialIndicators();
+    });
+}
+
+
+
+ 
+
+
 
 
 function initializeAmbientAnimations() {
@@ -1101,28 +2007,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         
             // Gestion des filtres
             document.querySelectorAll('.filter-tag').forEach(tag => {
-                tag.addEventListener('click', () => {
-                    document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
-                    tag.classList.add('active');
-                    // Logique de filtrage à implémenter
-                    const category = tag.textContent.trim();
-                    filterContentByCategory(category);
-                });
-            });
+    tag.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+        tag.classList.add('active');
+
+        // Mettre à jour le type actuel
+        currentType = tag.textContent.trim();
+
+        // Appliquer le filtrage
+        filterContent(currentCategory, currentType);
+    });
+});
+
 
             // Gestion des catégories
             // Gestion des nav-items
             document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    // Gestion de la classe active
-                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-                    item.classList.add('active');
+    item.addEventListener('click', () => {
+        // Gestion de la classe active
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        item.classList.add('active');
 
-                    // Filtrage du contenu
-                    const category = item.dataset.category;
-                    filterContentByCategory(category);
-                });
-            });
+        // Mettre à jour la catégorie actuelle
+        currentCategory = item.dataset.category;
+
+        // Réinitialiser le type à 'Tous'
+        currentType = 'Tous';
+
+        // Mettre à jour les filtres visuels
+        document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+        const tousFilter = document.querySelector('.filter-tag');
+        if (tousFilter) tousFilter.classList.add('active');
+
+        // Appliquer le filtrage
+        filterContent(currentCategory, currentType);
+    });
+});
+
             // Animation au scroll
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
