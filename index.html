@@ -456,6 +456,301 @@
                 <!-- Généré par JavaScript -->
             </div>
         </div>
+    
+    <div class="identity-section Social_md_social-identity-section">
+    <h2 class="identity-section-title">
+        <span>🌐</span> Mes Identités Numériques
+    </h2>
+    <div class="Social_md_social-intro">
+        <p>Mes présences virtuelles à travers le web, portes d'entrée vers mes différentes facettes.</p>
+        <div class="Social_md_social-controls">
+            <button class="Social_md_social-category-btn active" data-category="all">Tous</button>
+            <button class="Social_md_social-category-btn" data-category="email">Email</button>
+            <button class="Social_md_social-category-btn" data-category="facebook">Facebook</button>
+            <button class="Social_md_social-category-btn" data-category="tiktok">TikTok</button>
+            <button class="Social_md_social-category-btn" data-category="twitter">X (Twitter)</button>
+            <button class="Social_md_social-category-btn" data-category="instagram">Instagram</button>
+            <button class="Social_md_social-category-btn" data-category="whatsapp">WhatsApp</button>
+            <button class="Social_md_social-category-btn" data-category="telegram">Telegram</button>
+            <button class="Social_md_social-category-btn" data-category="youtube">YouTube</button>
+            <button class="Social_md_social-category-btn" data-category="github">GitHub</button>
+                <button class="Social_md_add-account-btn" id="Social_md_addAccountBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="16"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+        </svg>
+        <span>Ajouter</span>
+    </button>
+
+        </div>
+    </div>
+    <div class="Social_md_social-accounts-container">
+        <div class="Social_md_social-accounts-grid" id="Social_md_socialAccountsGrid">
+            <!-- Généré dynamiquement par JavaScript -->
+        </div>
+    </div>
+    <div class="Social_md_social-detail-modal" id="Social_md_socialDetailModal">
+        <div class="Social_md_modal-content">
+            <div class="Social_md_modal-header">
+                <div class="Social_md_modal-icon-container">
+                    <div class="Social_md_modal-icon"></div>
+                </div>
+                <h3 class="Social_md_modal-title"></h3>
+                <button class="Social_md_modal-close">&times;</button>
+            </div>
+            <div class="Social_md_modal-body">
+                <div class="Social_md_account-details">
+                    <div class="Social_md_detail-item">
+                        <div class="Social_md_detail-label">Identifiant</div>
+                        <div class="Social_md_detail-value Social_md_email-value"></div>
+                    </div>
+                    <div class="Social_md_detail-item">
+                        <div class="Social_md_detail-label">Mot de passe</div>
+                        <div class="Social_md_detail-value Social_md_password-container">
+                            <span class="Social_md_password-value">••••••••</span>
+                            <button class="Social_md_toggle-password">
+                                <span class="Social_md_eye-icon">👁️</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="Social_md_account-actions">
+                    <a href="#" class="Social_md_action-button Social_md_login-btn" target="_blank">
+                        <span class="Social_md_action-icon">🔑</span>
+                        <span class="Social_md_action-text">Se connecter</span>
+                    </a>
+                    <button class="Social_md_action-button Social_md_copy-btn">
+                        <span class="Social_md_action-icon">📋</span>
+                        <span class="Social_md_action-text">Copier les infos</span>
+                    </button>
+                </div>
+                <div class="Social_md_telegram-channels" style="display: none;">
+                    <h4 class="Social_md_channels-title">Canaux & Groupes</h4>
+                    <div class="Social_md_channels-list">
+                        <!-- Généré dynamiquement -->
+                    </div>
+                </div>
+            </div>
+            <div class="Social_md_modal-footer">
+                <div class="Social_md_account-created">Créé le <span class="Social_md_created-date"></span></div>
+                <div class="Social_md_account-status active">Actif</div>
+            </div>
+        </div>
+    </div>
+    <div class="Social_md_social-detail-modal" id="Social_md_addAccountModal">
+    <div class="Social_md_modal-content">
+        <div class="Social_md_modal-header">
+            <div class="Social_md_modal-icon-container">
+                <div class="Social_md_modal-icon Social_md_add-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                        <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+            <h3 class="Social_md_modal-title">Ajouter un compte</h3>
+            <button class="Social_md_modal-close">&times;</button>
+        </div>
+        <div class="Social_md_modal-body">
+            <form id="Social_md_addAccountForm">
+                <div class="Social_md_form-step active" data-step="1">
+                    <div class="Social_md_form-header">
+                        <h4>Choisissez une plateforme</h4>
+                        <p>Sélectionnez le type de compte que vous souhaitez ajouter</p>
+                    </div>
+                    <div class="Social_md_platform-grid">
+                        <div class="Social_md_platform-option" data-platform="email">
+                            <div class="Social_md_platform-icon email-platform">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#EA4335"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/></svg>
+                            </div>
+                            <span>Email</span>
+                        </div>
+                        <div class="Social_md_platform-option" data-platform="facebook">
+                            <div class="Social_md_platform-icon facebook-platform">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                            </div>
+                            <span>Facebook</span>
+                        </div>
+                        <div class="Social_md_platform-option" data-platform="tiktok">
+                            <div class="Social_md_platform-icon tiktok-platform">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+                            </div>
+                            <span>TikTok</span>
+                        </div>
+                        <div class="Social_md_platform-option" data-platform="twitter">
+                            <div class="Social_md_platform-icon twitter-platform">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-8.5 13.5c-4.142 0-7.5-3.358-7.5-7.5 0-.748.117-1.47.349-2.146l5.104 5.104L13.5 8.7v1.8c0 1.988-1.611 3.6-3.6 3.6a3.58 3.58 0 01-1.904-.546l-.948.948c.81.487 1.756.762 2.752.762 2.983 0 5.4-2.417 5.4-5.4V4.456l-5.223 5.223L5.25 4.956A7.49 7.49 0 0110.5 3c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z"/></svg>
+                            </div>
+                            <span>X (Twitter)</span>
+                        </div>
+                        <div class="Social_md_platform-option" data-platform="instagram">
+                            <div class="Social_md_platform-icon instagram-platform">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="url(#instagram-gradient)"><defs><linearGradient id="instagram-gradient" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#FFDC80"/><stop offset="10%" stop-color="#FCAF45"/><stop offset="50%" stop-color="#E1306C"/><stop offset="100%" stop-color="#833AB4"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                            </div>
+                            <span>Instagram</span>
+                        </div>
+                        <div class="Social_md_platform-option" data-platform="whatsapp">
+                            <div class="Social_md_platform-icon whatsapp-platform">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                            </div>
+                            <span>WhatsApp</span>
+                        </div>
+                        <div class="Social_md_platform-option" data-platform="telegram">
+                            <div class="Social_md_platform-icon telegram-platform">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0088cc"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                            </div>
+                            <span>Telegram</span>
+                        </div>
+                        <div class="Social_md_platform-option" data-platform="youtube">
+                            <div class="Social_md_platform-icon youtube-platform">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                            </div>
+                            <span>YouTube</span>
+                        </div>
+                        <div class="Social_md_platform-option" data-platform="github">
+                            <div class="Social_md_platform-icon github-platform">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#181717"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+                            </div>
+                            <span>GitHub</span>
+                        </div>
+                    </div>
+                    <div class="Social_md_form-actions">
+                        <button type="button" class="Social_md_btn-next" disabled>Continuer</button>
+                    </div>
+                </div>
+                
+                <div class="Social_md_form-step" data-step="2">
+                    <div class="Social_md_form-header">
+                        <h4>Détails du compte <span class="Social_md_selected-platform-name"></span></h4>
+                        <p>Entrez les informations de connexion du compte</p>
+                    </div>
+                    <div class="Social_md_form-fields">
+                        <div class="Social_md_form-group">
+                            <label for="Social_md_accountName">Nom du compte</label>
+                            <div class="Social_md_input-wrapper">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="Social_md_input-icon">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                <input type="text" id="Social_md_accountName" name="name" placeholder="Ex: Jean-Louis Principal" required>
+                            </div>
+                        </div>
+                        
+                        <div class="Social_md_form-group Social_md_email-field">
+                            <label for="Social_md_accountEmail">Email</label>
+                            <div class="Social_md_input-wrapper">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="Social_md_input-icon">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                                <input type="email" id="Social_md_accountEmail" name="email" placeholder="Ex: exemple@domaine.com">
+                            </div>
+                        </div>
+                        
+                        <div class="Social_md_form-group Social_md_phone-field" style="display: none;">
+                            <label for="Social_md_accountPhone">Numéro de téléphone</label>
+                            <div class="Social_md_input-wrapper">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="Social_md_input-icon">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                </svg>
+                                <input type="tel" id="Social_md_accountPhone" name="phoneNumber" placeholder="Ex: +243XXXXXXXXX">
+                            </div>
+                        </div>
+                        
+                        <div class="Social_md_form-group">
+                            <label for="Social_md_accountPassword">Mot de passe</label>
+                            <div class="Social_md_input-wrapper">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="Social_md_input-icon">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                                <input type="password" id="Social_md_accountPassword" name="password" placeholder="Mot de passe sécurisé" required>
+                                <button type="button" class="Social_md_toggle-password-input">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="Social_md_eye-icon">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="Social_md_form-group">
+                            <label for="Social_md_accountLoginUrl">URL de connexion</label>
+                            <div class="Social_md_input-wrapper">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="Social_md_input-icon">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
+                                <input type="url" id="Social_md_accountLoginUrl" name="loginUrl" placeholder="Ex: https://example.com/login" required>
+                            </div>
+                        </div>
+                        
+                        <div class="Social_md_form-group">
+                            <label for="Social_md_accountDescription">Description</label>
+                            <div class="Social_md_input-wrapper Social_md_textarea-wrapper">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="Social_md_input-icon">
+                                    <line x1="21" y1="10" x2="3" y2="10"></line>
+                                    <line x1="21" y1="6" x2="3" y2="6"></line>
+                                    <line x1="21" y1="14" x2="3" y2="14"></line>
+                                    <line x1="21" y1="18" x2="3" y2="18"></line>
+                                </svg>
+                                <textarea id="Social_md_accountDescription" name="description" placeholder="Description du compte et de son utilisation" rows="3"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="Social_md_form-group Social_md_badges-field">
+                            <label>Tags (facultatif)</label>
+                            <div class="Social_md_badges-container">
+                                <div class="Social_md_badge-options">
+                                    <span class="Social_md_badge-option" data-badge="Professionnel">Professionnel</span>
+                                    <span class="Social_md_badge-option" data-badge="Personnel">Personnel</span>
+                                    <span class="Social_md_badge-option" data-badge="Créatif">Créatif</span>
+                                    <span class="Social_md_badge-option" data-badge="Tech">Tech</span>
+                                    <span class="Social_md_badge-option" data-badge="Photo">Photo</span>
+                                    <span class="Social_md_badge-option" data-badge="Divertissement">Divertissement</span>
+                                    <span class="Social_md_badge-option" data-badge="Code">Code</span>
+                                    <span class="Social_md_badge-option" data-badge="Open Source">Open Source</span>
+                                </div>
+                                <div class="Social_md_selected-badges"></div>
+                                <input type="hidden" id="Social_md_accountBadges" name="badges">
+                            </div>
+                        </div>
+                        
+                        <div class="Social_md_form-group Social_md_telegram-channels-field" style="display: none;">
+                            <label>Canaux & Groupes Telegram</label>
+                            <div class="Social_md_telegram-channels-container">
+                                <div id="Social_md_telegramChannelsList">
+                                    <!-- Les canaux seront ajoutés ici dynamiquement -->
+                                </div>
+                                <button type="button" class="Social_md_add-channel-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                                    </svg>
+                                    Ajouter un canal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="Social_md_form-actions">
+                        <button type="button" class="Social_md_btn-prev">Retour</button>
+                        <button type="submit" class="Social_md_btn-submit">Ajouter le compte</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="Social_md_modal-footer">
+            <div class="Social_md_progress-indicator">
+                <div class="Social_md_progress-dot active" data-step="1"></div>
+                <div class="Social_md_progress-line"></div>
+                <div class="Social_md_progress-dot" data-step="2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
     </div>
 </div>
 

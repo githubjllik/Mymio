@@ -1455,7 +1455,1282 @@ function initializeDreams() {
     }
 }
 
-// Modifier la fonction initializeIdentityContent pour inclure les nouvelles initialisations
+
+  // Configuration des réseaux sociaux
+const Social_md_socialAccounts = [
+    // COMPTES EMAIL
+    {
+        id: 'email1',
+        category: 'email',
+        platform: 'Gmail',
+        name: 'Jean-Louis Principal',
+        email: 'jeanlouis.likula@gmail.com',
+        password: 'P@ssw0rd123!',
+        loginUrl: 'https://mail.google.com',
+        icon: 'gmail',
+        created: '2019-05-12',
+        description: 'Compte principal pour les communications professionnelles et personnelles importantes.'
+    },
+    {
+        id: 'email2',
+        category: 'email',
+        platform: 'Outlook',
+        name: 'Jean-Louis Professionnel',
+        email: 'jl.likula@outlook.com',
+        password: 'Secure@2023',
+        loginUrl: 'https://outlook.live.com',
+        icon: 'outlook',
+        created: '2020-01-15',
+        description: 'Utilisé principalement pour les communications professionnelles et les inscriptions aux services en ligne.'
+    },
+    // COMPTES FACEBOOK
+    {
+        id: 'fb1',
+        category: 'facebook',
+        platform: 'Facebook',
+        name: 'Jean-Louis Likula',
+        email: 'jeanlouis.fb@gmail.com',
+        password: 'FbSecure2023!',
+        loginUrl: 'https://facebook.com',
+        icon: 'facebook',
+        created: '2018-03-22',
+        description: 'Compte principal pour rester en contact avec la famille et les amis proches.'
+    },
+    {
+        id: 'fb2',
+        category: 'facebook',
+        platform: 'Facebook',
+        name: 'JL Entertainment',
+        email: 'jl.entertainment@gmail.com',
+        password: 'Ent3rt@inFB!',
+        loginUrl: 'https://facebook.com',
+        icon: 'facebook',
+        created: '2021-07-11',
+        badges: ['Divertissement', 'Créatif'],
+        description: 'Compte secondaire dédié au divertissement et aux intérêts personnels.'
+    },
+    // COMPTES TIKTOK
+    {
+        id: 'tt1',
+        category: 'tiktok',
+        platform: 'TikTok',
+        name: '@jl_creative',
+        email: 'jl.tiktok@gmail.com',
+        password: 'TikT0k2023!',
+        loginUrl: 'https://www.tiktok.com',
+        icon: 'tiktok',
+        created: '2020-11-05',
+        badges: ['Créatif'],
+        description: 'Partage de courts clips créatifs et découverte de tendances.'
+    },
+    // COMPTES X (TWITTER)
+    {
+        id: 'tw1',
+        category: 'twitter',
+        platform: 'X (Twitter)',
+        name: '@jeanlouis_tech',
+        email: 'jl.twitter@gmail.com',
+        password: 'Xplat4orm!',
+        loginUrl: 'https://twitter.com',
+        icon: 'twitter',
+        created: '2019-08-17',
+        badges: ['Tech'],
+        description: 'Suivre l\'actualité technologique et partager des réflexions sur les innovations.'
+    },
+    // COMPTES INSTAGRAM
+    {
+        id: 'ig1',
+        category: 'instagram',
+        platform: 'Instagram',
+        name: '@jl_visuals',
+        email: 'jl.instagram@gmail.com',
+        password: 'Inst@2023!',
+        loginUrl: 'https://instagram.com',
+        icon: 'instagram',
+        created: '2018-06-09',
+        badges: ['Photo', 'Créatif'],
+        description: 'Partage de photographies et d\'inspirations visuelles quotidiennes.'
+    },
+    // COMPTES WHATSAPP
+    {
+        id: 'wa1',
+        category: 'whatsapp',
+        platform: 'WhatsApp',
+        name: 'Jean-Louis',
+        phoneNumber: '+243XXXXXXXXX',
+        password: 'Wh@tsApp!',
+        loginUrl: 'https://web.whatsapp.com',
+        icon: 'whatsapp',
+        created: '2017-10-23',
+        description: 'Communication principale avec la famille et les amis proches à l\'étranger.'
+    },
+    // COMPTES TELEGRAM
+    {
+        id: 'tg1',
+        category: 'telegram',
+        platform: 'Telegram',
+        name: '@jl_connect',
+        phoneNumber: '+243XXXXXXXXX',
+        password: 'Telegr@m2023!',
+        loginUrl: 'https://web.telegram.org',
+        icon: 'telegram',
+        created: '2019-11-01',
+        description: 'Communication sécurisée et accès à des canaux d\'information spécialisés.',
+        channels: [
+            {
+                name: 'Tech Insights',
+                type: 'Canal',
+                link: 'https://t.me/techinsights',
+                icon: '📱'
+            },
+            {
+                name: 'Développeurs Web',
+                type: 'Groupe',
+                link: 'https://t.me/webdevgroup',
+                icon: '💻'
+            },
+            {
+                name: 'Actualités Crypto',
+                type: 'Canal',
+                link: 'https://t.me/cryptonews',
+                icon: '💰'
+            }
+        ]
+    },
+    // COMPTES YOUTUBE
+    {
+        id: 'yt1',
+        category: 'youtube',
+        platform: 'YouTube',
+        name: 'Jean-Louis Découvertes',
+        email: 'jl.youtube@gmail.com',
+        password: 'Y0uTube2023!',
+        loginUrl: 'https://youtube.com',
+        icon: 'youtube',
+        created: '2018-02-14',
+        badges: ['Créateur'],
+        description: 'Chaîne dédiée aux découvertes technologiques et aux tutoriels innovants.'
+    },
+    // COMPTES GITHUB
+{
+    id: 'gh1',
+    category: 'github',
+    platform: 'GitHub',
+    name: 'Jean-Louis Dev',
+    email: 'jl.github@gmail.com',
+    password: 'G1tHub2023!',
+    loginUrl: 'https://github.com/login',
+    icon: 'github',
+    created: '2020-04-15',
+    badges: ['Code', 'Open Source'],
+    description: 'Dépôt de projets de développement et contributions à des projets open source.'
+}
+
+];
+
+// Initialiser les comptes de réseaux sociaux
+async function Social_md_initializeSocialAccounts() {
+    try {
+        // Récupérer les comptes depuis Supabase
+        const accounts = await fetchSocialAccounts();
+        
+        // Sélectionner la grille des comptes
+        const grid = document.getElementById('Social_md_socialAccountsGrid');
+        if (!grid) return;
+        
+        // Vider la grille existante
+        grid.innerHTML = '';
+        
+        // Ajouter chaque compte à la grille
+        accounts.forEach((account, index) => {
+            const accountElement = Social_md_createAccountCard(account);
+            
+            // Ajouter un délai pour l'animation d'entrée
+            accountElement.style.animationDelay = `${index * 0.05}s`;
+            
+            grid.appendChild(accountElement);
+        });
+        
+        // Initialiser les filtres
+        Social_md_initializeSocialFilters();
+        
+        // Initialiser le modal
+        Social_md_initializeSocialModal();
+    } catch (error) {
+        Social_md_showToast('Erreur lors du chargement des comptes', 'error');
+    }
+}
+
+
+// Créer une carte pour un compte
+function Social_md_createAccountCard(account) {
+    const card = document.createElement('div');
+    card.className = `Social_md_social-account-card ${account.category}-platform`;
+    card.setAttribute('data-id', account.id);
+    card.setAttribute('data-category', account.category);
+    
+    const mainIdentifier = account.email || account.phoneNumber || '';
+    const badgesHtml = account.badges ? 
+        account.badges.map(badge => `<div class="Social_md_account-badge">${badge}</div>`).join('') : '';
+    
+    card.innerHTML = `
+        <div class="Social_md_card-actions">
+            <button class="Social_md_edit-btn" title="Modifier">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                </svg>
+            </button>
+            <button class="Social_md_delete-btn" title="Supprimer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="Social_md_card-header">
+            <div class="Social_md_social-icon">
+                <img src="data:image/svg+xml,${encodeURIComponent(Social_md_getSocialIconSVG(account.icon))}" alt="${account.platform}">
+            </div>
+            <div class="Social_md_card-title">
+                <div class="Social_md_platform-name">${account.platform}</div>
+                <div class="Social_md_account-name">${account.name}</div>
+                ${badgesHtml ? `<div class="Social_md_card-badges">${badgesHtml}</div>` : ''}
+            </div>
+        </div>
+        <div class="Social_md_card-body">
+            <div class="Social_md_account-preview">${account.description || 'Compte ' + account.platform}</div>
+        </div>
+        <div class="Social_md_card-footer">
+            <div class="Social_md_account-meta">Créé le ${Social_md_formatDate(account.created_at)}</div>
+            <div class="Social_md_card-action">Voir détails <span>→</span></div>
+        </div>
+        <div class="Social_md_card-shine"></div>
+    `;
+    
+    // Événements pour les boutons
+    const editBtn = card.querySelector('.Social_md_edit-btn');
+    const deleteBtn = card.querySelector('.Social_md_delete-btn');
+    
+    editBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Empêche l'ouverture du modal de détails
+        Social_md_editAccount(account);
+    });
+    
+    deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Empêche l'ouverture du modal de détails
+        Social_md_deleteAccount(account);
+    });
+    
+    // Modal de détails
+    card.addEventListener('click', () => {
+        Social_md_openSocialModal(account);
+    });
+    
+    return card;
+}
+
+async function Social_md_deleteAccount(account) {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le compte ${account.name} ?`)) return;
+
+    try {
+        const { error } = await supabase
+            .from('social_accounts')
+            .delete()
+            .eq('id', account.id);
+
+        if (error) throw error;
+
+        await Social_md_initializeSocialAccounts();
+        Social_md_showToast('Compte supprimé avec succès', 'success');
+    } catch (error) {
+        Social_md_showToast('Erreur lors de la suppression', 'error');
+    }
+}
+
+function Social_md_editAccount(account) {
+    // Ouvrir le modal d'ajout en mode édition
+    const modal = document.getElementById('Social_md_addAccountModal');
+    if (!modal) return;
+
+    // Réinitialiser et préparer le formulaire
+    Social_md_resetAddAccountForm();
+    
+    // Ajouter l'ID du compte au formulaire pour identifier qu'il s'agit d'une édition
+    const form = document.getElementById('Social_md_addAccountForm');
+    if (form) {
+        form.setAttribute('data-edit-id', account.id);
+    }
+    
+    // Sélectionner la plateforme
+    const platformOption = modal.querySelector(`.Social_md_platform-option[data-platform="${account.category}"]`);
+    if (platformOption) {
+        platformOption.click();
+    }
+
+    // Passer à l'étape 2
+    const nextBtn = modal.querySelector('.Social_md_btn-next');
+    if (nextBtn) {
+        nextBtn.click();
+    }
+
+    // Remplir les champs avec les données existantes
+    if (form) {
+        form.querySelector('#Social_md_accountName').value = account.name;
+        form.querySelector('#Social_md_accountEmail').value = account.email || '';
+        form.querySelector('#Social_md_accountPhone').value = account.phone_number || '';
+        form.querySelector('#Social_md_accountPassword').value = account.password;
+        form.querySelector('#Social_md_accountLoginUrl').value = account.login_url;
+        form.querySelector('#Social_md_accountDescription').value = account.description;
+
+        // Restaurer les badges
+        if (account.badges) {
+            account.badges.forEach(badge => {
+                const badgeOption = form.querySelector(`.Social_md_badge-option[data-badge="${badge}"]`);
+                if (badgeOption) {
+                    badgeOption.click();
+                }
+            });
+        }
+
+        // Restaurer les canaux Telegram si nécessaire
+        if (account.channels) {
+            account.channels.forEach(channel => {
+                Social_md_addTelegramChannel();
+                const lastChannel = form.querySelector('.Social_md_channel-input:last-child');
+                if (lastChannel) {
+                    const channelId = lastChannel.getAttribute('data-id');
+                    lastChannel.querySelector(`[name="channelName_${channelId}"]`).value = channel.name;
+                    lastChannel.querySelector(`[name="channelType_${channelId}"]`).value = channel.type;
+                    lastChannel.querySelector(`[name="channelLink_${channelId}"]`).value = channel.link;
+                    lastChannel.querySelector(`[name="channelIcon_${channelId}"]`).value = channel.icon;
+                }
+            });
+        }
+    }
+
+    // Afficher le modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Empêcher le scroll de la zone principale
+    const contentArea = document.querySelector('.content-area');
+    if (contentArea) {
+        contentArea.classList.add('no-scroll');
+    }
+
+    // S'assurer que le modal est visible au centre de l'écran
+    modal.querySelector('.Social_md_modal-content').scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+    });
+}
+
+
+
+// Initialiser les filtres de catégorie
+function Social_md_initializeSocialFilters() {
+    const filterButtons = document.querySelectorAll('.Social_md_social-category-btn');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Retirer la classe active de tous les boutons
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Ajouter la classe active au bouton cliqué
+            button.classList.add('active');
+            
+            // Filtrer les comptes
+            const category = button.getAttribute('data-category');
+            Social_md_filterSocialAccounts(category);
+        });
+    });
+}
+
+// Filtrer les comptes par catégorie
+function Social_md_filterSocialAccounts(category) {
+    const cards = document.querySelectorAll('.Social_md_social-account-card');
+    
+    cards.forEach(card => {
+        if (category === 'all' || card.getAttribute('data-category') === category) {
+            card.style.display = 'block';
+            
+            // Réinitialiser l'animation
+            card.style.animation = 'none';
+            card.offsetHeight; // Force reflow
+            card.style.animation = 'fadeIn 0.5s ease forwards';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Initialiser le modal
+function Social_md_initializeSocialModal() {
+    const modal = document.getElementById('Social_md_socialDetailModal');
+    if (!modal) return;
+    
+    // Fermer le modal quand on clique sur le bouton de fermeture
+    const closeButton = modal.querySelector('.Social_md_modal-close');
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            Social_md_closeModal();
+        });
+    }
+    
+    // Fermer le modal quand on clique en dehors du contenu
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            Social_md_closeModal();
+        }
+    });
+    
+    // Initialiser le bouton de copie
+    const copyButton = modal.querySelector('.Social_md_copy-btn');
+    if (copyButton) {
+        copyButton.addEventListener('click', () => {
+            const email = modal.querySelector('.Social_md_email-value').textContent;
+            const password = Social_md_currentAccount.password;
+            
+            // Copier les informations
+            const textToCopy = `Identifiant: ${email}\nMot de passe: ${password}`;
+            Social_md_copyToClipboard(textToCopy);
+            
+            // Afficher une notification
+            Social_md_showCopyNotification();
+        });
+    }
+    
+    // Initialiser le bouton pour afficher/masquer le mot de passe
+    const togglePasswordButton = modal.querySelector('.Social_md_toggle-password');
+    if (togglePasswordButton) {
+        togglePasswordButton.addEventListener('click', () => {
+            const passwordValue = modal.querySelector('.Social_md_password-value');
+            
+            if (passwordValue.textContent === '••••••••') {
+                passwordValue.textContent = Social_md_currentAccount.password;
+                togglePasswordButton.querySelector('.Social_md_eye-icon').textContent = '🔒';
+            } else {
+                passwordValue.textContent = '••••••••';
+                togglePasswordButton.querySelector('.Social_md_eye-icon').textContent = '👁️';
+            }
+        });
+    }
+}
+
+// Variable pour stocker le compte actuellement affiché
+let Social_md_currentAccount = null;
+
+// Ouvrir le modal avec les détails du compte
+function Social_md_openSocialModal(account) {
+      const modal = document.getElementById('Social_md_socialDetailModal');
+      if (!modal) return;
+
+      // Stocker le compte courant
+      Social_md_currentAccount = account;
+
+      // Mettre à jour les détails du compte dans le modal
+      modal.querySelector('.Social_md_modal-icon').style.backgroundImage = `url("data:image/svg+xml,${encodeURIComponent(Social_md_getSocialIconSVG(account.icon))}")`;
+      modal.querySelector('.Social_md_modal-title').textContent = account.name;
+
+      // Définir les couleurs de la plateforme
+      modal.querySelector('.Social_md_modal-content').setAttribute('class', 'Social_md_modal-content ' + account.category + '-platform');
+
+      // Mettre à jour l'email ou le numéro de téléphone
+      const emailValue = modal.querySelector('.Social_md_email-value');
+      if (emailValue) {
+          emailValue.textContent = account.email || account.phoneNumber || '';
+      }
+
+      // Réinitialiser le mot de passe à masqué
+      const passwordValue = modal.querySelector('.Social_md_password-value');
+      if (passwordValue) {
+          passwordValue.textContent = '••••••••';
+      }
+
+      // Mettre à jour le bouton de connexion
+      const loginButton = modal.querySelector('.Social_md_login-btn');
+      if (loginButton) {
+          loginButton.href = account.loginUrl;
+      }
+
+      // Mettre à jour la date de création
+      const createdDate = modal.querySelector('.Social_md_created-date');
+      if (createdDate) {
+          createdDate.textContent = Social_md_formatDate(account.created_at);
+      }
+
+      // Gérer les canaux Telegram
+      const telegramChannels = modal.querySelector('.Social_md_telegram-channels');
+      if (telegramChannels) {
+          if (account.category === 'telegram' && account.channels && account.channels.length > 0) {
+              telegramChannels.style.display = 'block';
+
+              const channelsList = telegramChannels.querySelector('.Social_md_channels-list');
+              channelsList.innerHTML = '';
+
+              account.channels.forEach(channel => {
+                  const channelItem = document.createElement('div');
+                  channelItem.className = 'Social_md_channel-item';
+                  channelItem.innerHTML = `
+                      <div class="Social_md_channel-icon">${channel.icon}</div>
+                      <div class="Social_md_channel-info">
+                          <div class="Social_md_channel-name">${channel.name}</div>
+                          <div class="Social_md_channel-type">${channel.type}</div>
+                      </div>
+                      <a href="${channel.link}" class="Social_md_channel-link" target="_blank">Ouvrir</a>
+                  `;
+                  channelsList.appendChild(channelItem);
+              });
+          } else {
+              telegramChannels.style.display = 'none';
+          }
+      }
+
+      // Afficher le modal
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      // **Ajout : Empêcher le scroll du content-area**
+      const contentArea = document.querySelector('.content-area');
+      if (contentArea) {
+          contentArea.classList.add('no-scroll');
+      }
+
+      // Faire en sorte que le modal soit visible au centre
+      modal.querySelector('.Social_md_modal-content').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function Social_md_closeModal() {
+      const modal = document.getElementById('Social_md_socialDetailModal');
+      if (modal) {
+          modal.classList.remove('active');
+          document.body.style.overflow = '';
+
+          // **Retirer la classe no-scroll du content-area**
+          const contentArea = document.querySelector('.content-area');
+          if (contentArea) {
+              contentArea.classList.remove('no-scroll');
+          }
+      }
+  }
+
+// Copier le texte dans le presse-papier
+function Social_md_copyToClipboard(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+}
+
+// Afficher une notification de copie
+function Social_md_showCopyNotification() {
+    // Vérifier si une notification existe déjà
+    let notification = document.querySelector('.Social_md_copy-notification');
+    
+    // Si non, créer une nouvelle notification
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.className = 'Social_md_copy-notification';
+        notification.innerHTML = `
+            <span>✓</span> Informations copiées dans le presse-papier
+        `;
+        document.body.appendChild(notification);
+    }
+    
+    // Afficher la notification
+    setTimeout(() => {
+        notification.classList.add('show');
+        
+        // Masquer la notification après 3 secondes
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }, 100);
+}
+
+// Formater une date
+function Social_md_formatDate(dateString) {
+    const date = new Date(dateString);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('fr-FR', options);
+}
+
+// Obtenir l'icône SVG pour une plateforme
+function Social_md_getSocialIconSVG(platform) {
+    const icons = {
+        email: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#EA4335" d="M24 4.5v15c0 .85-.65 1.5-1.5 1.5H21V7.387l-9 6.463-9-6.463V21H1.5C.649 21 0 20.35 0 19.5v-15c0-.425.162-.8.431-1.068C.7 3.16 1.076 3 1.5 3H2l10 7.25L22 3h.5c.425 0 .8.162 1.069.432.27.268.431.643.431 1.068z"/></svg>`,
+        outlook: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0078D4"><path d="M24 8.77v10.46c0 1.54-1.26 2.78-2.8 2.78h-5.2v-8.1L24 8.77zm-11 5.38L0 8v12.23c0 1.54 1.26 2.78 2.8 2.78h10.4V14.15h-.2zm.2-2.83L24 5.38V5c0-1.54-1.26-2.76-2.8-2.76H2.8C1.26 2.23 0 3.47 0 5v2.8l13.2 6.32z"/></svg>`,
+        facebook: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`,
+        tiktok: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000"><path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>`,
+        twitter: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-8.5 13.5c-4.142 0-7.5-3.358-7.5-7.5 0-.748.117-1.47.349-2.146l5.104 5.104L13.5 8.7v1.8c0 1.988-1.611 3.6-3.6 3.6a3.58 3.58 0 01-1.904-.546l-.948.948c.81.487 1.756.762 2.752.762 2.983 0 5.4-2.417 5.4-5.4V4.456l-5.223 5.223L5.25 4.956A7.49 7.49 0 0110.5 3c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z"/></svg>`,
+        instagram: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="url(#instagram-gradient)"><defs><linearGradient id="instagram-gradient" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#FFDC80"/><stop offset="10%" stop-color="#FCAF45"/><stop offset="50%" stop-color="#E1306C"/><stop offset="100%" stop-color="#833AB4"/></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>`,
+        whatsapp: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>`,
+        telegram: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#0088cc"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>`,
+        youtube: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
+        github: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#181717"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>`,
+
+    };
+    
+    return icons[platform] || '';
+}
+
+
+  // Fonctions pour le modal d'ajout de compte
+let Social_md_selectedPlatform = null;
+let Social_md_selectedBadges = [];
+let Social_md_telegramChannels = [];
+let Social_md_currentStep = 1;
+
+// Initialisation du bouton et du modal d'ajout
+function Social_md_initializeAddAccountButton() {
+    const addButton = document.getElementById('Social_md_addAccountBtn');
+    const addModal = document.getElementById('Social_md_addAccountModal');
+    
+    if (!addButton || !addModal) return;
+    
+    // Ouvrir le modal quand on clique sur le bouton d'ajout
+    addButton.addEventListener('click', () => {
+        Social_md_openAddAccountModal();
+    });
+    
+    // Fermer le modal quand on clique sur le bouton de fermeture
+    const closeButton = addModal.querySelector('.Social_md_modal-close');
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            Social_md_closeAddAccountModal();
+        });
+    }
+    
+    // Fermer le modal quand on clique en dehors du contenu
+    addModal.addEventListener('click', (e) => {
+        if (e.target === addModal) {
+            Social_md_closeAddAccountModal();
+        }
+    });
+    
+    // Initialiser les interactions du modal
+    Social_md_initializePlatformSelection();
+    Social_md_initializeFormNavigation();
+    Social_md_initializeFormFields();
+}
+
+
+// Ouvrir le modal d'ajout de compte
+function Social_md_openAddAccountModal() {
+    const modal = document.getElementById('Social_md_addAccountModal');
+    if (!modal) return;
+
+    // Réinitialiser le formulaire pour le modal
+    Social_md_resetAddAccountForm();
+
+    // Afficher le modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Empêche le scroll sur l'ensemble de la page
+
+    // Empêcher le scroll de la zone principale
+    const contentArea = document.querySelector('.content-area');
+    if (contentArea) {
+        contentArea.classList.add('no-scroll');
+    }
+
+    // S'assurer que le modal est visible au centre de l'écran
+    modal.querySelector('.Social_md_modal-content').scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+    });
+}
+
+
+// Fermer le modal d'ajout de compte
+function Social_md_closeAddAccountModal() {
+    const modal = document.getElementById('Social_md_addAccountModal');
+    if (!modal) return;
+
+    // Masquer le modal
+    modal.classList.remove('active');
+    document.body.style.overflow = ''; // Réactiver le scroll sur l'ensemble de la page
+
+    // Réactiver le scroll de la zone principale
+    const contentArea = document.querySelector('.content-area');
+    if (contentArea) {
+        contentArea.classList.remove('no-scroll');
+    }
+}
+
+
+// Réinitialiser le formulaire d'ajout
+function Social_md_resetAddAccountForm() {
+    // Réinitialiser les variables
+    Social_md_selectedPlatform = null;
+    Social_md_selectedBadges = [];
+    Social_md_telegramChannels = [];
+    Social_md_currentStep = 1;
+    
+    // Réinitialiser la sélection de plateforme
+    const platformOptions = document.querySelectorAll('.Social_md_platform-option');
+    platformOptions.forEach(option => {
+        option.classList.remove('selected');
+    });
+    
+    // Réinitialiser les étapes
+    const formSteps = document.querySelectorAll('.Social_md_form-step');
+    formSteps.forEach(step => {
+        step.classList.remove('active');
+        step.classList.remove('Social_md_slide-in-next');
+        step.classList.remove('Social_md_slide-in-prev');
+    });
+    
+    // Activer la première étape
+    const firstStep = document.querySelector('.Social_md_form-step[data-step="1"]');
+    if (firstStep) {
+        firstStep.classList.add('active');
+    }
+    
+    // Réinitialiser l'indicateur de progression
+    const progressDots = document.querySelectorAll('.Social_md_progress-dot');
+    progressDots.forEach((dot, index) => {
+        if (index === 0) {
+            dot.classList.add('active');
+            dot.classList.remove('complete');
+        } else {
+            dot.classList.remove('active');
+            dot.classList.remove('complete');
+        }
+    });
+    
+    // Désactiver le bouton "Continuer"
+    const nextButton = document.querySelector('.Social_md_btn-next');
+    if (nextButton) {
+        nextButton.disabled = true;
+    }
+    
+    // Réinitialiser les champs du formulaire
+    const form = document.getElementById('Social_md_addAccountForm');
+    if (form) {
+        form.reset();
+    }
+    
+    // Réinitialiser les badges sélectionnés
+    const selectedBadgesContainer = document.querySelector('.Social_md_selected-badges');
+    if (selectedBadgesContainer) {
+        selectedBadgesContainer.innerHTML = '';
+    }
+    
+    // Réinitialiser les badges
+    const badgeOptions = document.querySelectorAll('.Social_md_badge-option');
+    badgeOptions.forEach(badge => {
+        badge.classList.remove('selected');
+    });
+    
+    // Réinitialiser les canaux Telegram
+    const telegramChannelsList = document.getElementById('Social_md_telegramChannelsList');
+    if (telegramChannelsList) {
+        telegramChannelsList.innerHTML = '';
+    }
+    
+    // Masquer les champs spécifiques
+    document.querySelector('.Social_md_phone-field').style.display = 'none';
+    document.querySelector('.Social_md_email-field').style.display = 'block';
+    document.querySelector('.Social_md_telegram-channels-field').style.display = 'none';
+}
+
+// Initialiser la sélection de plateforme
+function Social_md_initializePlatformSelection() {
+    const platformOptions = document.querySelectorAll('.Social_md_platform-option');
+    const nextButton = document.querySelector('.Social_md_btn-next');
+    
+    platformOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            // Retirer la sélection actuelle
+            platformOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Sélectionner la nouvelle plateforme
+            option.classList.add('selected');
+            Social_md_selectedPlatform = option.getAttribute('data-platform');
+            
+            // Activer le bouton "Continuer"
+            if (nextButton) {
+                nextButton.disabled = false;
+            }
+        });
+    });
+}
+
+// Initialiser la navigation entre les étapes du formulaire
+function Social_md_initializeFormNavigation() {
+    const nextButton = document.querySelector('.Social_md_btn-next');
+    const prevButton = document.querySelector('.Social_md_btn-prev');
+    const form = document.getElementById('Social_md_addAccountForm');
+    
+    if (nextButton) {
+        nextButton.addEventListener('click', () => {
+            Social_md_goToNextStep();
+        });
+    }
+    
+    if (prevButton) {
+        prevButton.addEventListener('click', () => {
+            Social_md_goToPrevStep();
+        });
+    }
+    
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            Social_md_submitNewAccount();
+        });
+    }
+}
+
+// Aller à l'étape suivante
+function Social_md_goToNextStep() {
+    if (Social_md_currentStep >= 2) return;
+    
+    // Masquer l'étape actuelle
+    const currentStepEl = document.querySelector(`.Social_md_form-step[data-step="${Social_md_currentStep}"]`);
+    currentStepEl.classList.remove('active');
+    
+    // Incrémenter l'étape
+    Social_md_currentStep++;
+    
+    // Afficher la nouvelle étape
+    const nextStepEl = document.querySelector(`.Social_md_form-step[data-step="${Social_md_currentStep}"]`);
+    nextStepEl.classList.add('active');
+    nextStepEl.classList.add('Social_md_slide-in-next');
+    
+    // Mettre à jour l'indicateur de progression
+    const progressDots = document.querySelectorAll('.Social_md_progress-dot');
+    progressDots.forEach((dot, index) => {
+        const step = index + 1;
+        
+        if (step < Social_md_currentStep) {
+            dot.classList.add('complete');
+            dot.classList.remove('active');
+        } else if (step === Social_md_currentStep) {
+            dot.classList.add('active');
+            dot.classList.remove('complete');
+        } else {
+            dot.classList.remove('active');
+            dot.classList.remove('complete');
+        }
+    });
+    
+    // Configurer les champs en fonction de la plateforme sélectionnée
+    Social_md_configurePlatformFields();
+}
+
+// Aller à l'étape précédente
+function Social_md_goToPrevStep() {
+    if (Social_md_currentStep <= 1) return;
+    
+    // Masquer l'étape actuelle
+    const currentStepEl = document.querySelector(`.Social_md_form-step[data-step="${Social_md_currentStep}"]`);
+    currentStepEl.classList.remove('active');
+    currentStepEl.classList.remove('Social_md_slide-in-next');
+    
+    // Décrémenter l'étape
+    Social_md_currentStep--;
+    
+    // Afficher la nouvelle étape
+    const prevStepEl = document.querySelector(`.Social_md_form-step[data-step="${Social_md_currentStep}"]`);
+    prevStepEl.classList.add('active');
+    prevStepEl.classList.add('Social_md_slide-in-prev');
+    
+    // Mettre à jour l'indicateur de progression
+    const progressDots = document.querySelectorAll('.Social_md_progress-dot');
+    progressDots.forEach((dot, index) => {
+        const step = index + 1;
+        
+        if (step < Social_md_currentStep) {
+            dot.classList.add('complete');
+            dot.classList.remove('active');
+        } else if (step === Social_md_currentStep) {
+            dot.classList.add('active');
+            dot.classList.remove('complete');
+        } else {
+            dot.classList.remove('active');
+            dot.classList.remove('complete');
+        }
+    });
+}
+
+// Configurer les champs en fonction de la plateforme sélectionnée
+function Social_md_configurePlatformFields() {
+    if (!Social_md_selectedPlatform) return;
+    
+    // Mettre à jour le titre
+    const platformNameEl = document.querySelector('.Social_md_selected-platform-name');
+    if (platformNameEl) {
+        platformNameEl.textContent = Social_md_getPlatformDisplayName(Social_md_selectedPlatform);
+    }
+    
+    // Configurer les attributs de classe pour les couleurs de la plateforme
+    const modalContent = document.querySelector('#Social_md_addAccountModal .Social_md_modal-content');
+    if (modalContent) {
+        modalContent.className = 'Social_md_modal-content ' + Social_md_selectedPlatform + '-platform';
+    }
+    
+    // Configurer les champs en fonction de la plateforme
+    const emailField = document.querySelector('.Social_md_email-field');
+    const phoneField = document.querySelector('.Social_md_phone-field');
+    const telegramChannelsField = document.querySelector('.Social_md_telegram-channels-field');
+    
+    // Réinitialiser l'affichage des champs
+    emailField.style.display = 'block';
+    phoneField.style.display = 'none';
+    telegramChannelsField.style.display = 'none';
+    
+    // Configurer selon la plateforme
+    if (Social_md_selectedPlatform === 'whatsapp' || Social_md_selectedPlatform === 'telegram') {
+        emailField.style.display = 'none';
+        phoneField.style.display = 'block';
+        
+        // Afficher les canaux Telegram si nécessaire
+        if (Social_md_selectedPlatform === 'telegram') {
+            telegramChannelsField.style.display = 'block';
+        }
+    }
+    
+    // Pré-remplir l'URL de connexion en fonction de la plateforme
+    const loginUrlInput = document.getElementById('Social_md_accountLoginUrl');
+    if (loginUrlInput) {
+        loginUrlInput.value = Social_md_getDefaultLoginUrl(Social_md_selectedPlatform);
+    }
+}
+
+// Obtenir le nom d'affichage d'une plateforme
+function Social_md_getPlatformDisplayName(platform) {
+    const platformNames = {
+        'email': 'Email',
+        'facebook': 'Facebook',
+        'tiktok': 'TikTok',
+        'twitter': 'X (Twitter)',
+        'instagram': 'Instagram',
+        'whatsapp': 'WhatsApp',
+        'telegram': 'Telegram',
+        'youtube': 'YouTube',
+        'github': 'GitHub'
+    };
+    
+    return platformNames[platform] || platform;
+}
+
+// Obtenir l'URL de connexion par défaut pour une plateforme
+function Social_md_getDefaultLoginUrl(platform) {
+    const defaultUrls = {
+        'email': 'https://mail.google.com',
+        'facebook': 'https://facebook.com',
+        'tiktok': 'https://www.tiktok.com',
+        'twitter': 'https://twitter.com',
+        'instagram': 'https://instagram.com',
+        'whatsapp': 'https://web.whatsapp.com',
+        'telegram': 'https://web.telegram.org',
+        'youtube': 'https://youtube.com',
+        'github': 'https://github.com/login'
+    };
+    
+    return defaultUrls[platform] || '';
+}
+
+// Initialiser les champs du formulaire
+function Social_md_initializeFormFields() {
+    // Initialiser le champ de mot de passe
+    const togglePasswordBtn = document.querySelector('.Social_md_toggle-password-input');
+    const passwordInput = document.getElementById('Social_md_accountPassword');
+    
+    if (togglePasswordBtn && passwordInput) {
+        togglePasswordBtn.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                togglePasswordBtn.querySelector('svg').innerHTML = `
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                `;
+            } else {
+                passwordInput.type = 'password';
+                togglePasswordBtn.querySelector('svg').innerHTML = `
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                `;
+            }
+        });
+    }
+    
+    // Initialiser la sélection des badges
+    const badgeOptions = document.querySelectorAll('.Social_md_badge-option');
+    const selectedBadgesContainer = document.querySelector('.Social_md_selected-badges');
+    const badgesInput = document.getElementById('Social_md_accountBadges');
+    
+    badgeOptions.forEach(badge => {
+        badge.addEventListener('click', () => {
+            const badgeText = badge.getAttribute('data-badge');
+            
+            // Vérifier si le badge est déjà sélectionné
+            if (badge.classList.contains('selected')) {
+                // Désélectionner le badge
+                badge.classList.remove('selected');
+                Social_md_selectedBadges = Social_md_selectedBadges.filter(b => b !== badgeText);
+                
+                // Mettre à jour l'affichage
+                Social_md_updateSelectedBadges();
+            } else {
+                // Sélectionner le badge
+                badge.classList.add('selected');
+                Social_md_selectedBadges.push(badgeText);
+                
+                // Mettre à jour l'affichage
+                Social_md_updateSelectedBadges();
+            }
+            
+            // Mettre à jour le champ caché
+            if (badgesInput) {
+                badgesInput.value = JSON.stringify(Social_md_selectedBadges);
+            }
+        });
+    });
+    
+    // Initialiser l'ajout de canaux Telegram
+    const addChannelBtn = document.querySelector('.Social_md_add-channel-btn');
+    if (addChannelBtn) {
+        addChannelBtn.addEventListener('click', () => {
+            Social_md_addTelegramChannel();
+        });
+    }
+}
+
+// Mettre à jour l'affichage des badges sélectionnés
+function Social_md_updateSelectedBadges() {
+    const selectedBadgesContainer = document.querySelector('.Social_md_selected-badges');
+    if (!selectedBadgesContainer) return;
+    
+    // Vider le conteneur
+    selectedBadgesContainer.innerHTML = '';
+    
+    // Ajouter chaque badge sélectionné
+    Social_md_selectedBadges.forEach(badge => {
+        const badgeEl = document.createElement('div');
+        badgeEl.className = 'Social_md_selected-badge';
+        badgeEl.innerHTML = `
+            ${badge}
+            <span class="Social_md_remove-badge" data-badge="${badge}">&times;</span>
+        `;
+        
+        selectedBadgesContainer.appendChild(badgeEl);
+        
+        // Ajouter l'événement pour supprimer le badge
+        const removeBtn = badgeEl.querySelector('.Social_md_remove-badge');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => {
+                const badgeToRemove = removeBtn.getAttribute('data-badge');
+                
+                // Retirer le badge de la liste
+                Social_md_selectedBadges = Social_md_selectedBadges.filter(b => b !== badgeToRemove);
+                
+                // Mettre à jour l'affichage
+                Social_md_updateSelectedBadges();
+                
+                // Désélectionner le badge dans les options
+                const badgeOption = document.querySelector(`.Social_md_badge-option[data-badge="${badgeToRemove}"]`);
+                if (badgeOption) {
+                    badgeOption.classList.remove('selected');
+                }
+                
+                // Mettre à jour le champ caché
+                const badgesInput = document.getElementById('Social_md_accountBadges');
+                if (badgesInput) {
+                    badgesInput.value = JSON.stringify(Social_md_selectedBadges);
+                }
+            });
+        }
+    });
+}
+
+// Ajouter un canal Telegram
+function Social_md_addTelegramChannel() {
+    const channelsList = document.getElementById('Social_md_telegramChannelsList');
+    if (!channelsList) return;
+    
+    // Créer un nouvel ID unique
+    const channelId = 'channel_' + Date.now();
+    
+    // Créer l'élément pour le canal
+    const channelEl = document.createElement('div');
+    channelEl.className = 'Social_md_channel-input';
+    channelEl.setAttribute('data-id', channelId);
+    
+    channelEl.innerHTML = `
+        <div class="Social_md_input-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="Social_md_input-icon">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+            <input type="text" name="channelName_${channelId}" placeholder="Nom du canal" required>
+        </div>
+        <div class="Social_md_input-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="Social_md_input-icon">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+            <input type="text" name="channelType_${channelId}" placeholder="Type (Groupe, Canal...)" required>
+        </div>
+        <div class="Social_md_input-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="Social_md_input-icon">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+            <input type="url" name="channelLink_${channelId}" placeholder="Lien (https://t.me/...)" required>
+        </div>
+        <div class="Social_md_input-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="Social_md_input-icon">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+            <input type="text" name="channelIcon_${channelId}" placeholder="Icône (emoji)" value="📱" required>
+        </div>
+        <button type="button" class="Social_md_remove-channel" data-id="${channelId}">&times;</button>
+    `;
+    
+    channelsList.appendChild(channelEl);
+    
+    // Ajouter l'événement pour supprimer le canal
+    const removeBtn = channelEl.querySelector('.Social_md_remove-channel');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', () => {
+            const channelId = removeBtn.getAttribute('data-id');
+            const channelEl = document.querySelector(`.Social_md_channel-input[data-id="${channelId}"]`);
+            
+            if (channelEl) {
+                channelEl.remove();
+            }
+        });
+    }
+}
+
+// Soumettre le nouveau compte
+async function Social_md_submitNewAccount() {
+    try {
+        // Récupérer les données du formulaire
+        const form = document.getElementById('Social_md_addAccountForm');
+        if (!form) return;
+        
+        const formData = new FormData(form);
+        
+        // Créer l'objet du compte
+        const accountData = {
+            category: Social_md_selectedPlatform,
+            platform: Social_md_getPlatformDisplayName(Social_md_selectedPlatform),
+            name: formData.get('name'),
+            email: formData.get('email') || null,
+            phoneNumber: formData.get('phoneNumber') || null,
+            password: formData.get('password'),
+            loginUrl: formData.get('loginUrl'),
+            icon: Social_md_selectedPlatform,
+            description: formData.get('description') || `Compte ${Social_md_getPlatformDisplayName(Social_md_selectedPlatform)}`
+        };
+        
+        // Ajouter les badges si présents
+        if (Social_md_selectedBadges.length > 0) {
+            accountData.badges = Social_md_selectedBadges;
+        }
+        
+        // Collecter les canaux Telegram si présents
+        if (Social_md_selectedPlatform === 'telegram') {
+            const channels = [];
+            const channelElements = document.querySelectorAll('.Social_md_channel-input');
+            
+            channelElements.forEach(channelEl => {
+                const channelId = channelEl.getAttribute('data-id');
+                
+                const channel = {
+                    name: form.querySelector(`[name="channelName_${channelId}"]`).value,
+                    type: form.querySelector(`[name="channelType_${channelId}"]`).value,
+                    link: form.querySelector(`[name="channelLink_${channelId}"]`).value,
+                    icon: form.querySelector(`[name="channelIcon_${channelId}"]`).value
+                };
+                
+                channels.push(channel);
+            });
+            
+            if (channels.length > 0) {
+                accountData.channels = channels;
+            }
+        }
+
+        // Vérifier s'il s'agit d'une édition ou d'un nouvel ajout
+        const editId = form.getAttribute('data-edit-id');
+        if (editId) {
+            // Supprimer l'ancien compte
+            await supabase
+                .from('social_accounts')
+                .delete()
+                .eq('id', editId);
+
+            // Ajouter le nouveau compte
+            await addSocialAccount(accountData);
+        } else {
+            // Ajouter un nouveau compte
+            await addSocialAccount(accountData);
+        }
+        
+        // Réinitialiser l'affichage des comptes
+        await Social_md_initializeSocialAccounts();
+        
+        // Fermer le modal
+        Social_md_closeAddAccountModal();
+        
+        // Afficher un message de succès
+        Social_md_showToast(editId ? 'Compte modifié avec succès !' : 'Compte ajouté avec succès !', 'success');
+        
+        // Réinitialiser l'attribut data-edit-id
+        form.removeAttribute('data-edit-id');
+    } catch (error) {
+        Social_md_showToast('Erreur lors de l\'opération', 'error');
+    }
+}
+
+
+
+// Afficher un toast
+function Social_md_showToast(message, type = 'success') {
+    // Vérifier si un toast existe déjà
+    let toast = document.querySelector('.Social_md_toast');
+    
+    // Si non, créer un nouveau toast
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'Social_md_toast';
+        document.body.appendChild(toast);
+    }
+    
+    // Configurer le toast
+    toast.className = `Social_md_toast ${type}`;
+    
+    // Définir l'icône en fonction du type
+    let icon = '✓';
+    if (type === 'error') {
+        icon = '✕';
+    }
+    
+    toast.innerHTML = `
+        <div class="Social_md_toast-icon">${icon}</div>
+        <div class="Social_md_toast-message">${message}</div>
+    `;
+    
+    // Afficher le toast
+    setTimeout(() => {
+        toast.classList.add('show');
+        
+        // Masquer le toast après 3 secondes
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }, 100);
+}
+
+// Ajoutez cet appel à votre fonction d'initialisation existante
 function initializeIdentityContent() {
     initializeBirthdayCountdown();
     initializeFloatingThoughts();
@@ -1464,7 +2739,17 @@ function initializeIdentityContent() {
     updateCurrentAge();
     initializeMoodSlider();
     initializeDreams();
+    
+    // Initialiser les comptes de réseaux sociaux
+    Social_md_initializeSocialAccounts();
+    
+    // Initialiser le bouton d'ajout de compte
+    Social_md_initializeAddAccountButton();
 }
+
+
+
+
 
         // Fonctions pour le Chat
         let contactInfo = {
@@ -4514,6 +5799,52 @@ async function loadDataFromSupabase() {
         console.error('Exception lors du chargement des données:', error);
         return false;
     }
+}
+// Fonctions pour interagir avec Supabase
+async function fetchSocialAccounts() {
+  try {
+    const { data, error } = await supabase
+      .from('social_accounts')
+      .select('*')
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des comptes:', error);
+    return [];
+  }
+}
+
+async function addSocialAccount(account) {
+  try {
+    // Ajout de la date de création
+    const now = new Date().toISOString();
+    
+    const { data, error } = await supabase
+      .from('social_accounts')
+      .insert([{
+        category: account.category,
+        platform: account.platform,
+        name: account.name,
+        email: account.email,
+        phone_number: account.phoneNumber,
+        password: account.password,
+        login_url: account.loginUrl,
+        icon: account.icon,
+        description: account.description,
+        badges: account.badges || [],
+        channels: account.channels || null,
+        created_at: now  // Ajout de cette ligne
+      }])
+      .select();
+
+    if (error) throw error;
+    return data[0];
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout du compte:', error);
+    throw error;
+  }
 }
 
 // Fonction pour enregistrer un nouvel élément dans Supabase
