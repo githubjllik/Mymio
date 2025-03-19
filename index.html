@@ -50,6 +50,40 @@
 
 </head>
 <body>
+  <div class="search_on_elements_container" id="search_on_elements_container">
+    <input type="text" class="search_on_elements_input" id="search_on_elements_input" placeholder="Rechercher des titres, descriptions, tags...">
+    <button class="search_on_elements_close" id="search_on_elements_close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </button>
+</div>
+
+<div class="search_on_elements_results" id="search_on_elements_results">
+    <button id="search_on_elements_prev">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    </button>
+    <div class="search_on_elements_count" id="search_on_elements_count">0/0</div>
+    <button id="search_on_elements_next">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+    </button>
+    <button id="search_on_elements_close_results">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </button>
+</div>
+
+<div class="search_on_elements_not_found" id="search_on_elements_not_found">
+    Aucun résultat trouvé
+</div>
+
     <div class="universe-container">
       <nav class="main-nav">
     <div class="nav-item active" id="nav-universe" data-category="universe">
@@ -184,15 +218,17 @@
         <main class="content-area">
             <nav class="sub-nav">
                 <div class="breadcrumb-nav">
-                    <div class="breadcrumb-item">Univers</div>
-                    <div class="breadcrumb-item">Pensées</div>
-                    <div class="breadcrumb-item">Journal</div>
+                    <!-- Les items de breadcrumb seront insérés ici par JavaScript -->
                 </div>
-                <div class="view-controls">
-                    <div class="view-control-btn active">📑</div>
-                    <div class="view-control-btn">📊</div>
-                    <div class="view-control-btn">🗂️</div>
-                </div>
+<div class="view-controls">
+    <div id="search_on_elements_icon" class="view-control-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+    </div>
+</div>
+
             </nav>
 
             <div class="filters">
@@ -240,6 +276,25 @@
 
 
 <div class="chat-input-wrapper">
+<div class="top_and_bottom_onchat_indicators_container">
+    <button id="top_and_bottom_onchat_scroll_to_top" class="top_and_bottom_onchat_button top_and_bottom_onchat_hidden">
+        <div class="top_and_bottom_onchat_button_inner">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 15l-6-6-6 6"></path>
+            </svg>
+            <div class="top_and_bottom_onchat_pulse_effect"></div>
+        </div>
+    </button>
+    <button id="top_and_bottom_onchat_scroll_to_bottom" class="top_and_bottom_onchat_button top_and_bottom_onchat_hidden">
+        <div class="top_and_bottom_onchat_button_inner">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9l6 6 6-6"></path>
+            </svg>
+            <div class="top_and_bottom_onchat_pulse_effect"></div>
+        </div>
+    </button>
+</div>
+
     <!-- Bouton pour upload d'images -->
     <div class="image-upload-wrapper">
         <button class="image-upload-button" onclick="document.getElementById('messageImages').click()">
@@ -252,18 +307,28 @@
     </div>
 
     <!-- Zone de saisie -->
-    <div class="chat-input-area">
-        <textarea class="chat-textbox" id="messageInput" placeholder="Écrivez votre message..." rows="1"></textarea>
-        <button class="chat-send-btn" onclick="showContextMenu(event)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
-            </svg>
-                                        <div class="chat-context-menu" id="contextMenu">
-                                <div class="chat-context-option" onclick="sendMessage('receive')">Recevoir</div>
-                                <div class="chat-context-option" onclick="sendMessage('send')">Envoyer</div>
-                            </div>
-        </button>
+<div class="chat-input-area">
+    <div class="expand-textarea-icon" id="expandTextareaIcon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6"></path>
+            <path d="M9 21H3v-6"></path>
+            <path d="M21 3l-7 7"></path>
+            <path d="M3 21l7-7"></path>
+        </svg>
     </div>
+    <textarea class="chat-textbox" id="messageInput" placeholder="Écrivez votre message..." rows="1"></textarea>
+    <button class="chat-send-btn" onclick="showContextMenu(event)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+        </svg>
+        <div class="chat-context-menu" id="contextMenu">
+            <div class="chat-context-option" onclick="sendMessage('receive')">Recevoir</div>
+            <div class="chat-context-option" onclick="sendMessage('send')">Envoyer</div>
+        </div>
+    </button>
+</div>
+
+
 
     <!-- Actions rapides -->
     <div class="chat-quick-actions">
@@ -278,6 +343,38 @@
     </div>
 </div>
 
+<div id="expandedTextareaContainer" class="expanded-textarea-container" style="display: none;">
+    <div class="expanded-textarea-header">
+        <div class="expanded-textarea-collapse-icon" id="collapseTextareaIcon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 14h6v6"></path>
+                <path d="M20 10h-6V4"></path>
+                <path d="M14 10l7-7"></path>
+                <path d="M3 21l7-7"></path>
+            </svg>
+        </div>
+    </div>
+    <textarea class="expanded-textbox" id="expandedMessageInput" placeholder="Écrivez votre message..." rows="10"></textarea>
+    <div class="expanded-textarea-footer">
+        <div class="image-upload-wrapper">
+            <button class="image-upload-button" onclick="document.getElementById('messageImages').click()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1-2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+            </button>
+        </div>
+        <button class="chat-send-btn" onclick="showExpandedContextMenu(event)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+            </svg>
+            <div class="chat-context-menu" id="expandedContextMenu">
+                <div class="chat-context-option" onclick="sendExpandedMessage('receive')">Recevoir</div>
+                <div class="chat-context-option" onclick="sendExpandedMessage('send')">Envoyer</div>
+            </div>
+        </button>
+    </div>
+</div>
 
 
                     <!-- Bouton Retour/Quitter -->
@@ -287,6 +384,9 @@
                         </svg>
                         Retour
                     </button>
+                
+            
+
                 </div>
 
                 <!-- Modal d'Image (cachée par défaut) -->

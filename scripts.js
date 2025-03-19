@@ -81,43 +81,50 @@ function filterContent(category, type) {
     identityContainer.style.display = 'none';
 
     if (category === 'Identity') {
+        // Masquer les éléments <nav class="sub-nav"> et <div class="filters">
+        hideSubNavAndFilters();
         identityContainer.style.display = 'block';
         initializeIdentityContent(); // Initialiser le contenu dynamique
-    } else if (category === 'universe') {
-        grid.style.display = 'grid';
-        grid.innerHTML = ''; // Réinitialiser le contenu
-
-        let filteredData = sampleData;
-
-        if (type !== 'Tous') {
-            filteredData = sampleData.filter(data => data.type.toLowerCase() === type.toLowerCase());
-        }
-
-        filteredData.forEach(data => {
-            grid.innerHTML += createContentCard(data);
-        });
-        attachCardClickHandlers();
     } else {
-        grid.style.display = 'grid';
-        grid.innerHTML = ''; // Réinitialiser le contenu
+        // Réafficher les éléments <nav class="sub-nav"> et <div class="filters">
+        showSubNavAndFilters();
+        
+        if (category === 'universe') {
+            grid.style.display = 'grid';
+            grid.innerHTML = ''; // Réinitialiser le contenu
 
-        let filteredData;
-        if (type === 'Tous') {
-            filteredData = sampleData.filter(data => data.category === category);
+            let filteredData = sampleData;
+
+            if (type !== 'Tous') {
+                filteredData = sampleData.filter(data => data.type.toLowerCase() === type.toLowerCase());
+            }
+
+            filteredData.forEach(data => {
+                grid.innerHTML += createContentCard(data);
+            });
+            attachCardClickHandlers();
         } else {
-            filteredData = sampleData.filter(data => data.category === category && data.type.toLowerCase() === type.toLowerCase());
-        }
+            grid.style.display = 'grid';
+            grid.innerHTML = ''; // Réinitialiser le contenu
 
-        filteredData.forEach(data => {
-            grid.innerHTML += createContentCard(data);
-        });
-        attachCardClickHandlers();
+            let filteredData;
+            if (type === 'Tous') {
+                filteredData = sampleData.filter(data => data.category === category);
+            } else {
+                filteredData = sampleData.filter(data => data.category === category && data.type.toLowerCase() === type.toLowerCase());
+            }
+
+            filteredData.forEach(data => {
+                grid.innerHTML += createContentCard(data);
+            });
+            attachCardClickHandlers();
+        }
     }
 
     // Mettre à jour les compteurs et l'ordre des éléments
     updateCategoryCounts();
 
-    // **Ajouter la ligne suivante :**
+    // Mise à jour de la visibilité du hub de création
     toggleCreationHubVisibility();
 }
 
@@ -2740,6 +2747,8 @@ function initializeIdentityContent() {
     initializeMoodSlider();
     initializeDreams();
     
+        // Masquer les éléments <nav class="sub-nav"> et <div class="filters">
+    hideSubNavAndFilters();
     // Initialiser les comptes de réseaux sociaux
     Social_md_initializeSocialAccounts();
     
@@ -2748,7 +2757,31 @@ function initializeIdentityContent() {
 }
 
 
+function hideSubNavAndFilters() {
+    const subNav = document.querySelector('nav.sub-nav');
+    const filters = document.querySelector('div.filters');
+    
+    if (subNav) {
+        subNav.style.display = 'none';
+    }
+    
+    if (filters) {
+        filters.style.display = 'none';
+    }
+}
 
+function showSubNavAndFilters() {
+    const subNav = document.querySelector('nav.sub-nav');
+    const filters = document.querySelector('div.filters');
+    
+    if (subNav) {
+        subNav.style.display = ''; // Réinitialise au style par défaut
+    }
+    
+    if (filters) {
+        filters.style.display = ''; // Réinitialise au style par défaut
+    }
+}
 
 
         // Fonctions pour le Chat
@@ -2807,21 +2840,27 @@ async function startChat(event) {
 
 
         function initializeChat() {
-            document.getElementById('setupForm').style.display = 'none';
-            document.getElementById('chatInterface').style.display = 'block';
-            
-            const contactImg = document.getElementById('contactImg');
-            const quickContactImg = document.getElementById('quickContactImg');
-            if (contactInfo.image) {
-                contactImg.style.backgroundImage = `url(${contactInfo.image})`;
-                quickContactImg.style.backgroundImage = `url(${contactInfo.image})`;
-            } else {
-                contactImg.textContent = contactInfo.name[0].toUpperCase();
-                quickContactImg.textContent = contactInfo.name[0].toUpperCase();
-            }
-            
-            document.getElementById('contactNameDisplay').textContent = contactInfo.name;
-        }
+    document.getElementById('setupForm').style.display = 'none';
+    document.getElementById('chatInterface').style.display = 'block';
+    
+    const contactImg = document.getElementById('contactImg');
+    const quickContactImg = document.getElementById('quickContactImg');
+    if (contactInfo.image) {
+        contactImg.style.backgroundImage = `url(${contactInfo.image})`;
+        quickContactImg.style.backgroundImage = `url(${contactInfo.image})`;
+    } else {
+        contactImg.textContent = contactInfo.name[0].toUpperCase();
+        quickContactImg.textContent = contactInfo.name[0].toUpperCase();
+    }
+    
+    document.getElementById('contactNameDisplay').textContent = contactInfo.name;
+    
+    // Initialiser les indicateurs de défilement
+    setTimeout(() => {
+        top_and_bottom_onchat_initScrollIndicators();
+    }, 500);
+}
+
 
         function showContextMenu(event) {
             const menu = document.getElementById('contextMenu');
@@ -3049,12 +3088,155 @@ async function updateElementTitleWithContact(elementId, contactName) {
 }
 
 
+// Déclarer des variables pour les indicateurs de défilement
+let top_and_bottom_onchat_scrollTimer = null;
+let top_and_bottom_onchat_lastScrollTop = 0;
+let top_and_bottom_onchat_isScrolling = false;
+
+// Fonction pour initialiser les indicateurs de défilement
+function top_and_bottom_onchat_initScrollIndicators() {
+    const messageContainer = document.getElementById('messageContainer');
+    const scrollTopBtn = document.getElementById('top_and_bottom_onchat_scroll_to_top');
+    const scrollBottomBtn = document.getElementById('top_and_bottom_onchat_scroll_to_bottom');
+    
+    if (!messageContainer || !scrollTopBtn || !scrollBottomBtn) return;
+    
+    // Fonction pour faire défiler doucement vers le haut
+    scrollTopBtn.addEventListener('click', () => {
+        top_and_bottom_onchat_smoothScrollTo(messageContainer, 0, 500);
+    });
+    
+    // Fonction pour faire défiler doucement vers le bas
+    scrollBottomBtn.addEventListener('click', () => {
+        top_and_bottom_onchat_smoothScrollTo(messageContainer, messageContainer.scrollHeight, 500);
+    });
+    
+    // Gérer l'événement de défilement
+    messageContainer.addEventListener('scroll', () => {
+        top_and_bottom_onchat_handleScroll(messageContainer, scrollTopBtn, scrollBottomBtn);
+    });
+    
+    // Vérification initiale
+    top_and_bottom_onchat_checkScrollPosition(messageContainer, scrollTopBtn, scrollBottomBtn);
+}
+
+// Fonction pour gérer l'événement de défilement
+function top_and_bottom_onchat_handleScroll(container, topBtn, bottomBtn) {
+    top_and_bottom_onchat_isScrolling = true;
+    
+    // Effacer le minuteur précédent
+    if (top_and_bottom_onchat_scrollTimer !== null) {
+        clearTimeout(top_and_bottom_onchat_scrollTimer);
+    }
+    
+    // Définir la position actuelle
+    top_and_bottom_onchat_checkScrollPosition(container, topBtn, bottomBtn);
+    
+    // Définir un minuteur pour détecter la fin du défilement
+    top_and_bottom_onchat_scrollTimer = setTimeout(() => {
+        top_and_bottom_onchat_isScrolling = false;
+        top_and_bottom_onchat_lastScrollTop = container.scrollTop;
+        
+        // Masquer les boutons après 3 secondes d'inactivité avec une transition élégante
+        setTimeout(() => {
+            if (!top_and_bottom_onchat_isScrolling) {
+                // Ajout d'un délai différent pour chaque bouton pour un effet d'échelonnement
+                setTimeout(() => {
+                    topBtn.classList.remove('top_and_bottom_onchat_visible');
+                    topBtn.classList.add('top_and_bottom_onchat_fade_out');
+                }, 0);
+                
+                setTimeout(() => {
+                    bottomBtn.classList.remove('top_and_bottom_onchat_visible');
+                    bottomBtn.classList.add('top_and_bottom_onchat_fade_out');
+                }, 150);
+            }
+        }, 3000);
+    }, 100);
+}
+
+
+// Fonction pour vérifier la position de défilement et afficher/masquer les boutons
+function top_and_bottom_onchat_checkScrollPosition(container, topBtn, bottomBtn) {
+    const scrollTop = container.scrollTop;
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
+    
+    // Seuils
+    const topThreshold = 100; // Nombre de pixels depuis le haut
+    const bottomThreshold = 100; // Nombre de pixels depuis le bas
+    
+    // Déterminer la direction du défilement
+    const isScrollingDown = scrollTop > top_and_bottom_onchat_lastScrollTop;
+    const isScrollingUp = scrollTop < top_and_bottom_onchat_lastScrollTop;
+    
+    // Bouton de défilement vers le haut
+    if (scrollTop > topThreshold && isScrollingUp) {
+        topBtn.classList.remove('top_and_bottom_onchat_hidden', 'top_and_bottom_onchat_fade_out');
+        topBtn.classList.add('top_and_bottom_onchat_visible', 'top_and_bottom_onchat_fade_in');
+    } else if (!isScrollingUp || scrollTop <= topThreshold) {
+        topBtn.classList.remove('top_and_bottom_onchat_visible', 'top_and_bottom_onchat_fade_in');
+        topBtn.classList.add('top_and_bottom_onchat_fade_out');
+    }
+    
+    // Bouton de défilement vers le bas
+    if (scrollTop + clientHeight < scrollHeight - bottomThreshold && isScrollingDown) {
+        bottomBtn.classList.remove('top_and_bottom_onchat_hidden', 'top_and_bottom_onchat_fade_out');
+        bottomBtn.classList.add('top_and_bottom_onchat_visible', 'top_and_bottom_onchat_fade_in');
+    } else if (!isScrollingDown || scrollTop + clientHeight >= scrollHeight - bottomThreshold) {
+        bottomBtn.classList.remove('top_and_bottom_onchat_visible', 'top_and_bottom_onchat_fade_in');
+        bottomBtn.classList.add('top_and_bottom_onchat_fade_out');
+    }
+    
+    // Enregistrer la dernière position
+    top_and_bottom_onchat_lastScrollTop = scrollTop;
+}
+
+// Fonction pour faire défiler en douceur
+function top_and_bottom_onchat_smoothScrollTo(element, to, duration) {
+    const start = element.scrollTop;
+    const change = to - start;
+    let currentTime = 0;
+    const increment = 20;
+    
+    const animateScroll = function() {
+        currentTime += increment;
+        const val = top_and_bottom_onchat_easeInOutQuad(currentTime, start, change, duration);
+        element.scrollTop = val;
+        if (currentTime < duration) {
+            requestAnimationFrame(animateScroll);
+        }
+    };
+    
+    animateScroll();
+}
+
+// Fonction d'atténuation pour le défilement en douceur
+function top_and_bottom_onchat_easeInOutQuad(t, b, c, d) {
+    t /= d / 2;
+    if (t < 1) return c / 2 * t * t + b;
+    t--;
+    return -c / 2 * (t * (t - 2) - 1) + b;
+}
+
+
+
 function scrollToBottom() {
     const messageContainer = document.getElementById('messageContainer');
     if (messageContainer) {
-        messageContainer.scrollTop = messageContainer.scrollHeight;
+        top_and_bottom_onchat_smoothScrollTo(messageContainer, messageContainer.scrollHeight, 300);
+        
+        // Assurez-vous que les indicateurs sont mis à jour
+        const scrollTopBtn = document.getElementById('top_and_bottom_onchat_scroll_to_top');
+        const scrollBottomBtn = document.getElementById('top_and_bottom_onchat_scroll_to_bottom');
+        if (scrollTopBtn && scrollBottomBtn) {
+            setTimeout(() => {
+                top_and_bottom_onchat_checkScrollPosition(messageContainer, scrollTopBtn, scrollBottomBtn);
+            }, 350);
+        }
     }
 }
+
 
 
         function previewImage(event) {
@@ -3307,27 +3489,78 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Gestion des catégories
             // Gestion des nav-items
-            document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-        // Gestion de la classe active
-        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-        item.classList.add('active');
+            // Ajouter cette fonction dans une section appropriée de votre script
+function updateBreadcrumb(navItem) {
+    // Récupérer le nom à afficher depuis le tooltip
+    const tooltip = navItem.querySelector('.tooltip');
+    const navName = tooltip ? tooltip.textContent : navItem.dataset.category;
 
-        // Mettre à jour la catégorie actuelle
-        currentCategory = item.dataset.category;
+    // Sélectionner le conteneur de breadcrumb
+    const breadcrumbNav = document.querySelector('.breadcrumb-nav');
 
-        // Réinitialiser le type à 'Tous'
-        currentType = 'Tous';
+    // **Option 1 : Remplacer tous les éléments du breadcrumb par le nav-item cliqué**
+    breadcrumbNav.innerHTML = `<div class="breadcrumb-item">${navName}</div>`;
 
-        // Mettre à jour les filtres visuels
-        document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
-        const tousFilter = document.querySelector('.filter-tag');
-        if (tousFilter) tousFilter.classList.add('active');
+    /* 
+    **Option 2 : Ajouter au breadcrumb pour créer une hiérarchie (si applicable) 
+    // Exemple : Ajouter le nom au début du breadcrumb
+    const newBreadcrumbItem = document.createElement('div');
+    newBreadcrumbItem.className = 'breadcrumb-item';
+    newBreadcrumbItem.textContent = navName;
+    breadcrumbNav.appendChild(newBreadcrumbItem);
 
-        // Appliquer le filtrage
-        filterContent(currentCategory, currentType);
+    // Limiter le nombre d'éléments dans le breadcrumb si nécessaire
+    while (breadcrumbNav.children.length > 3) {
+        breadcrumbNav.removeChild(breadcrumbNav.firstChild);
+    }
+    */
+}
+
+
+    // Ajouter cet écouteur après toutes les définitions de fonctions existantes
+    document.querySelector('.main-nav').addEventListener('click', function(event) {
+        let target = event.target;
+
+        // Parcourir les parents pour trouver l'élément avec la classe 'nav-item'
+        while (target && target !== this && !target.classList.contains('nav-item')) {
+            target = target.parentElement;
+        }
+
+        // Si un nav-item est cliqué
+        if (target && target.classList.contains('nav-item')) {
+            // Gestion de la classe active
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            target.classList.add('active');
+
+            // Mettre à jour la catégorie actuelle
+            currentCategory = target.dataset.category;
+
+            // Réinitialiser le type à 'Tous'
+            currentType = 'Tous';
+
+            // Mettre à jour les filtres visuels
+            document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+            const tousFilter = document.querySelector('.filter-tag');
+            if (tousFilter) tousFilter.classList.add('active');
+
+            // Appliquer le filtrage
+            filterContent(currentCategory, currentType);
+
+            // **Mise à Jour de la Breadcrumb Navigation**
+            updateBreadcrumb(target);
+        }
     });
-});
+
+    // ***** Ajouter ce code ici *****
+
+    // Initialiser la breadcrumb avec l'élément nav actif au chargement
+    const initialActiveNavItem = document.querySelector('.main-nav .nav-item.active');
+    if (initialActiveNavItem) {
+        updateBreadcrumb(initialActiveNavItem);
+    }
+
+    // ********************************
+
 
             // Animation au scroll
             const observer = new IntersectionObserver((entries) => {
@@ -3442,65 +3675,64 @@ async function openChat(elementId) {
         messageContainer.innerHTML = '';
 
         if (conversation.messages && conversation.messages.length > 0) {
-    conversation.messages.forEach(msg => {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `chat-message ${msg.type}`;
-        messageDiv.setAttribute('contenteditable', 'true');
-        messageDiv.setAttribute('data-disable-editing', 'true');
-        messageDiv.setAttribute('spellcheck', 'false');
+            conversation.messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `chat-message ${msg.type}`;
+                messageDiv.setAttribute('contenteditable', 'true');
+                messageDiv.setAttribute('data-disable-editing', 'true');
+                messageDiv.setAttribute('spellcheck', 'false');
 
-        if (msg.text) {
-            const textDiv = document.createElement('div');
-            const processedText = processMessageContent(msg.text);
-            textDiv.innerHTML = processedText;
-            messageDiv.appendChild(textDiv);
-        }
+                if (msg.text) {
+                    const textDiv = document.createElement('div');
+                    const processedText = processMessageContent(msg.text);
+                    textDiv.innerHTML = processedText;
+                    messageDiv.appendChild(textDiv);
+                }
 
-        if (msg.images && msg.images.length > 0) {
-            const imagesContainer = document.createElement('div');
-            imagesContainer.className = 'message-images';
-            msg.images.forEach((img) => {
-                const imgElement = document.createElement('img');
-                imgElement.src = img.data;
-                imgElement.className = 'message-image';
-                imgElement.setAttribute('data-full-image', img.data);
-                imgElement.setAttribute('data-type', img.type);
-                imgElement.setAttribute('data-name', img.name);
+                if (msg.images && msg.images.length > 0) {
+                    const imagesContainer = document.createElement('div');
+                    imagesContainer.className = 'message-images';
+                    msg.images.forEach((img) => {
+                        const imgElement = document.createElement('img');
+                        imgElement.src = img.data;
+                        imgElement.className = 'message-image';
+                        imgElement.setAttribute('data-full-image', img.data);
+                        imgElement.setAttribute('data-type', img.type);
+                        imgElement.setAttribute('data-name', img.name);
 
-                imgElement.onclick = function (e) {
-                    e.stopPropagation();
-                    openImageModal(this);
-                };
-                imagesContainer.appendChild(imgElement);
+                        imgElement.onclick = function (e) {
+                            e.stopPropagation();
+                            openImageModal(this);
+                        };
+                        imagesContainer.appendChild(imgElement);
+                    });
+                    messageDiv.appendChild(imagesContainer);
+                }
+
+                // Empêcher toute interaction d'édition
+                messageDiv.addEventListener('mousedown', function (e) {
+                    e.preventDefault();
+                });
+
+                messageDiv.addEventListener('keydown', function (e) {
+                    e.preventDefault();
+                });
+
+                messageDiv.addEventListener('input', function (e) {
+                    e.preventDefault();
+                });
+
+                messageDiv.addEventListener('focus', function (e) {
+                    e.target.blur();
+                });
+
+                messageContainer.appendChild(messageDiv);
             });
-            messageDiv.appendChild(imagesContainer);
+            
+            // Initialiser Prism.js pour tout le contenu chargé
+            Prism.highlightAllUnder(messageContainer);
+            initializeInlineCodeCopy(messageContainer);
         }
-
-        // Empêcher toute interaction d'édition
-        messageDiv.addEventListener('mousedown', function (e) {
-            e.preventDefault();
-        });
-
-        messageDiv.addEventListener('keydown', function (e) {
-            e.preventDefault();
-        });
-
-        messageDiv.addEventListener('input', function (e) {
-            e.preventDefault();
-        });
-
-        messageDiv.addEventListener('focus', function (e) {
-            e.target.blur();
-        });
-
-        messageContainer.appendChild(messageDiv);
-    });
-    
-    // Initialiser Prism.js pour tout le contenu chargé
-    Prism.highlightAllUnder(messageContainer);
-    initializeInlineCodeCopy(messageContainer);
-}
-
 
         // Ajout du code pour gérer la hauteur du conteneur de messages
         requestAnimationFrame(() => {
@@ -3514,6 +3746,11 @@ async function openChat(elementId) {
             const safetyMargin = 25;
             messageContainer.style.height = `${containerHeight - headerHeight - inputHeight - safetyMargin}px`;
             messageContainer.style.paddingBottom = `${safetyMargin}px`;
+            
+            // Initialiser les indicateurs de défilement
+            setTimeout(() => {
+                top_and_bottom_onchat_initScrollIndicators();
+            }, 500);
         });
     } else {
         // Nouvelle conversation - afficher le formulaire de configuration
@@ -3529,6 +3766,7 @@ async function openChat(elementId) {
 
     toggleCreationHubVisibility();
 }
+
 
 
 
@@ -3617,6 +3855,91 @@ function initializePrism() {
 }
 
 
+// Fonction pour basculer vers la vue étendue du textarea
+function expandTextarea() {
+    const messageInput = document.getElementById('messageInput');
+    const expandedMessageInput = document.getElementById('expandedMessageInput');
+    const inputArea = document.querySelector('.chat-input-area');
+    const expandedContainer = document.getElementById('expandedTextareaContainer');
+    
+    // Copier le contenu du petit textarea vers le grand
+    expandedMessageInput.value = messageInput.value;
+    
+    // Cacher la zone de saisie normale et afficher la zone étendue
+    inputArea.style.display = 'none';
+    expandedContainer.style.display = 'flex';
+    
+    // Donner le focus au textarea étendu
+    expandedMessageInput.focus();
+}
+
+// Fonction pour revenir à la vue normale
+function collapseTextarea() {
+    const messageInput = document.getElementById('messageInput');
+    const expandedMessageInput = document.getElementById('expandedMessageInput');
+    const inputArea = document.querySelector('.chat-input-area');
+    const expandedContainer = document.getElementById('expandedTextareaContainer');
+    
+    // Copier le contenu du grand textarea vers le petit
+    messageInput.value = expandedMessageInput.value;
+    
+    // Cacher la zone étendue et afficher la zone de saisie normale
+    expandedContainer.style.display = 'none';
+    inputArea.style.display = 'flex';
+    
+    // Donner le focus au textarea normal
+    messageInput.focus();
+    
+    // Ajuster la hauteur du textarea normal
+    messageInput.style.height = 'auto';
+    messageInput.style.height = Math.min(messageInput.scrollHeight, 150) + 'px';
+}
+
+// Fonction pour afficher le menu contextuel en mode étendu
+function showExpandedContextMenu(event) {
+    const menu = document.getElementById('expandedContextMenu');
+    menu.classList.toggle('active');
+    event.stopPropagation();
+}
+
+// Fonction pour envoyer un message depuis la zone étendue
+function sendExpandedMessage(type) {
+    const expandedMessageInput = document.getElementById('expandedMessageInput');
+    const messageInput = document.getElementById('messageInput');
+    
+    // Copier le contenu vers le textarea normal
+    messageInput.value = expandedMessageInput.value;
+    
+    // Utiliser la fonction d'envoi existante
+    sendMessage(type);
+    
+    // Revenir à la vue normale
+    collapseTextarea();
+}
+
+// Initialisation des écouteurs d'événements pour la zone d'édition étendue
+document.addEventListener('DOMContentLoaded', function() {
+    // Écouteur existant pour le textarea normal...
+    
+    // Ajout des nouveaux écouteurs pour l'expansion/réduction
+    const expandIcon = document.getElementById('expandTextareaIcon');
+    const collapseIcon = document.getElementById('collapseTextareaIcon');
+    
+    expandIcon.addEventListener('click', expandTextarea);
+    collapseIcon.addEventListener('click', collapseTextarea);
+    
+    // Fermer le menu contextuel étendu lors d'un clic ailleurs
+    document.addEventListener('click', function() {
+        document.getElementById('expandedContextMenu').classList.remove('active');
+    });
+    
+    // Adapter la taille du textarea étendu aux redimensionnements
+    window.addEventListener('resize', function() {
+        if (document.getElementById('expandedTextareaContainer').style.display !== 'none') {
+            // Ajustements si nécessaire
+        }
+    });
+});
 
 
         
@@ -4190,6 +4513,10 @@ async function deleteFile(fileName) {
 function exitFolder() {
     document.getElementById('folderContainer').style.display = 'none';
     document.getElementById('contentGrid').style.display = 'grid';
+    
+        // Réafficher les éléments <nav> et <div class="filters">
+    showSubNavAndFilters();
+    
     toggleCreationHubVisibility();
 
     // Réinitialiser le chemin actuel
@@ -4201,7 +4528,8 @@ function exitFolder() {
 async function openFolderInterface() {
     document.getElementById('contentGrid').style.display = 'none';
     document.getElementById('folderContainer').style.display = 'block';
-    
+        // Masquer les éléments <nav class="sub-nav"> et <div class="filters">
+    hideSubNavAndFilters();
     // Obtenir l'ID de l'élément actif
     const elementId = getCurrentElementId();
     if (!elementId) {
@@ -6808,6 +7136,264 @@ Exporté le: ${new Date().toLocaleString()}
 //══════════════════════════════╗
 // 🟪 JS PARTIE 11
 //══════════════════════════════╝
+//═══════【 RECHERCHE JS 】═══════//
+  // Fonction de recherche des éléments
+document.addEventListener('DOMContentLoaded', function() {
+    // Éléments DOM
+    const searchIcon = document.getElementById('search_on_elements_icon');
+    const searchContainer = document.getElementById('search_on_elements_container');
+    const searchInput = document.getElementById('search_on_elements_input');
+    const searchClose = document.getElementById('search_on_elements_close');
+    const searchResults = document.getElementById('search_on_elements_results');
+    const searchCount = document.getElementById('search_on_elements_count');
+    const searchPrev = document.getElementById('search_on_elements_prev');
+    const searchNext = document.getElementById('search_on_elements_next');
+    const searchCloseResults = document.getElementById('search_on_elements_close_results');
+    const searchNotFound = document.getElementById('search_on_elements_not_found');
+    
+    // Variables de recherche
+    let matchedCards = [];
+    let currentMatch = -1;
+    let searchTimeout;
+    
+    // Fonction pour ouvrir/fermer la barre de recherche
+searchIcon.addEventListener('click', function() {
+    searchContainer.classList.add('active');
+    searchInput.focus();
+});
+
+searchClose.addEventListener('click', function() {
+    searchContainer.classList.remove('active');
+    clearSearch();
+});
+    
+    // Fonction pour effectuer la recherche
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(performSearch, 300);
+    });
+    
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        } else if (e.key === 'Escape') {
+            searchContainer.classList.remove('active');
+            clearSearch();
+        }
+    });
+    
+    // Navigation dans les résultats
+    searchPrev.addEventListener('click', function() {
+        navigateResults(-1);
+    });
+    
+    searchNext.addEventListener('click', function() {
+        navigateResults(1);
+    });
+    
+    searchCloseResults.addEventListener('click', function() {
+        clearSearch();
+    });
+    
+    // Fonction principale de recherche
+    function performSearch() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        
+        if (searchTerm === '') {
+            clearSearch();
+            return;
+        }
+        
+        // Réinitialisation
+        matchedCards = [];
+        currentMatch = -1;
+        
+        // Recherche dans sampleData
+        if (window.sampleData && window.sampleData.length > 0) {
+            window.sampleData.forEach(item => {
+                // Recherche dans le titre
+                const titleMatch = item.title.toLowerCase().includes(searchTerm);
+                
+                // Recherche dans la description
+                const descMatch = item.description ? 
+                    item.description.toLowerCase().includes(searchTerm) : false;
+                
+                // Recherche dans les tags
+                const tagMatch = item.tags ? 
+                    item.tags.some(tag => tag.toLowerCase().includes(searchTerm)) : false;
+                
+                if (titleMatch || descMatch || tagMatch) {
+                    matchedCards.push(item.id);
+                }
+            });
+            
+            // Afficher les résultats
+            if (matchedCards.length > 0) {
+                // Afficher tous les éléments dans la grille
+                const grid = document.getElementById('contentGrid');
+                grid.innerHTML = '';
+                
+                // Filtrer et afficher uniquement les éléments correspondants
+                const filteredData = window.sampleData.filter(data => 
+                    matchedCards.includes(data.id)
+                );
+                
+                filteredData.forEach(data => {
+                    grid.innerHTML += createHighlightedCard(data, searchTerm);
+                });
+                
+                // Initialiser les handlers
+                attachCardClickHandlers();
+                attachCardActionHandlers();
+                
+                // Mettre à jour le compteur de résultats
+                searchCount.textContent = `1/${matchedCards.length}`;
+                searchResults.classList.add('active');
+                
+                // Sélectionner le premier résultat
+                navigateResults(1);
+            } else {
+                // Aucun résultat
+                searchNotFound.style.display = 'block';
+                setTimeout(() => {
+                    searchNotFound.style.display = 'none';
+                }, 3000);
+                
+                // Réinitialiser la grille
+                populateGrid();
+            }
+        }
+    }
+    
+    // Fonction pour créer une carte avec mise en surbrillance
+    function createHighlightedCard(data, searchTerm) {
+        if (!data.id) {
+            data.id = 'demo-' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // Mettre en surbrillance les correspondances
+        const highlightText = (text, term) => {
+            if (!text) return '';
+            const regex = new RegExp(`(${term})`, 'gi');
+            return text.replace(regex, '<span class="search_on_elements_highlight">$1</span>');
+        };
+        
+        // Mettre en surbrillance les tags correspondants
+        const highlightTags = (tags, term) => {
+            if (!tags || !Array.isArray(tags)) return '';
+            
+            return tags.map(tag => {
+                if (tag.toLowerCase().includes(term.toLowerCase())) {
+                    const regex = new RegExp(`(${term})`, 'gi');
+                    return `<span class="card-tag">${tag.replace(regex, '<span class="search_on_elements_highlight">$1</span>')}</span>`;
+                }
+                return `<span class="card-tag">${tag}</span>`;
+            }).join('');
+        };
+        
+        // Icône en fonction du type
+        const typeIcon = {
+            chat: "💬",
+            note: "📝",
+            dossier: "📁"
+        }[data.type] || "📄";
+        
+        // Fonction pour générer l'affichage des images
+        const generateImagesDisplay = (type, images) => {
+            if (!data.description) {
+                return `
+                    <div class="card-images ${type}-images">
+                        ${images.map(image => `<span class="card-image ${type}-image">${image}</span>`).join('')}
+                    </div>
+                `;
+            }
+            return '';
+        };
+        
+        return `
+            <div class="content-card ${data.type}-card" data-type="${data.type}" data-title="${data.title}" data-id="${data.id}">
+                <div class="card-header">
+                    <div class="card-category">
+                        <span class="type-icon">${typeIcon}</span>
+                        ${data.category}
+                    </div>
+                    <h3 class="card-title">${highlightText(data.title, searchTerm)}</h3>
+                    <div class="card-meta">
+                        <span>📅 ${data.date}</span>
+                        <span>⭐ ${data.priority}</span>
+                    </div>
+                </div>
+                <div class="card-content">
+                    ${data.description ? 
+                        `<p class="card-description">${highlightText(data.description, searchTerm)}</p>` : 
+                        generateImagesDisplay(data.type, data.images)
+                    }
+                    <div class="card-tags">
+                        ${highlightTags(data.tags, searchTerm)}
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="card-edit-btn" data-id="${data.id}">✏️</button>
+                    <button class="card-delete-btn" data-id="${data.id}">🗑️</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Navigation dans les résultats
+    function navigateResults(direction) {
+        if (matchedCards.length === 0) return;
+        
+        // Supprimer la mise en surbrillance précédente
+        const currentHighlights = document.querySelectorAll('.search_on_elements_current');
+        currentHighlights.forEach(el => {
+            el.classList.remove('search_on_elements_current');
+            el.classList.add('search_on_elements_highlight');
+        });
+        
+        // Calculer le nouvel index
+        currentMatch += direction;
+        if (currentMatch >= matchedCards.length) currentMatch = 0;
+        if (currentMatch < 0) currentMatch = matchedCards.length - 1;
+        
+        // Mettre à jour le compteur
+        searchCount.textContent = `${currentMatch + 1}/${matchedCards.length}`;
+        
+        // Trouver la carte actuelle
+        const currentCard = document.querySelector(`.content-card[data-id="${matchedCards[currentMatch]}"]`);
+        
+        if (currentCard) {
+            // Faire défiler jusqu'à la carte
+            currentCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Mettre en surbrillance l'élément actuel
+            const firstHighlight = currentCard.querySelector('.search_on_elements_highlight');
+            if (firstHighlight) {
+                firstHighlight.classList.remove('search_on_elements_highlight');
+                firstHighlight.classList.add('search_on_elements_current');
+            }
+            
+            // Ajouter une animation subtile
+            currentCard.style.animation = 'pulse 0.5s ease';
+            setTimeout(() => {
+                currentCard.style.animation = '';
+            }, 500);
+        }
+    }
+    
+    // Nettoyer la recherche
+    function clearSearch() {
+        searchInput.value = '';
+        matchedCards = [];
+        currentMatch = -1;
+        searchResults.classList.remove('active');
+        searchNotFound.style.display = 'none';
+        
+        // Réinitialiser la grille
+        populateGrid();
+    }
+});
+
 
 
 /*══════════════════════════════╗
