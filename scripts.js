@@ -2876,6 +2876,21 @@ async function startChat(event) {
 async function sendMessage(type) {
     const messageInput = document.getElementById('messageInput');
     const messageContainer = document.getElementById('messageContainer');
+    
+    // Vérifier si nous sommes en mode édition
+    const editingMessageId = messageInput.getAttribute('data-editing-message-id');
+    if (editingMessageId) {
+        // Si on est en mode édition mais qu'on clique sur Envoyer/Recevoir, créer un nouveau message
+        messageInput.removeAttribute('data-editing-message-id');
+        document.querySelector('.chat-send-btn').classList.remove('editing-mode');
+        
+        // Enlever l'option de remplacement du menu contextuel
+        const replaceOption = document.querySelector('.replace-option');
+        if (replaceOption) replaceOption.remove();
+        
+        const expandedReplaceOption = document.getElementById('expandedContextMenu')?.querySelector('.replace-option');
+        if (expandedReplaceOption) expandedReplaceOption.remove();
+    }
 
     if (messageInput.value.trim() === '' && selectedImages.length === 0) return;
 
@@ -2896,6 +2911,11 @@ async function sendMessage(type) {
         images: [],
         timestamp: new Date().toISOString()
     };
+
+    // Générer un ID unique pour ce message
+    const messageId = crypto.randomUUID();
+    messageDiv.setAttribute('data-message-id', messageId);
+    messageData.id = messageId;
 
     if (messageInput.value.trim() !== '') {
         const textDiv = document.createElement('div');
@@ -2930,8 +2950,66 @@ async function sendMessage(type) {
         messageDiv.appendChild(imagesContainer);
     }
 
+    // Ajouter les boutons d'action au message
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'message-actions';
+    
+    // Bouton Copier
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'message-action-btn copy';
+    copyBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+    `;
+    copyBtn.setAttribute('title', 'Copier');
+    copyBtn.onclick = function(e) {
+        e.stopPropagation();
+        copyMessage(messageDiv);
+    };
+    
+    // Bouton Éditer
+    const editBtn = document.createElement('button');
+    editBtn.className = 'message-action-btn edit';
+    editBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+        </svg>
+    `;
+    editBtn.setAttribute('title', 'Modifier');
+    editBtn.onclick = function(e) {
+        e.stopPropagation();
+        editMessage(messageDiv);
+    };
+    
+    // Bouton Supprimer
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'message-action-btn delete';
+    deleteBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+    `;
+    deleteBtn.setAttribute('title', 'Supprimer');
+    deleteBtn.onclick = function(e) {
+        e.stopPropagation();
+        showDeleteConfirmation(messageId);
+    };
+    
+    actionsDiv.appendChild(copyBtn);
+    actionsDiv.appendChild(editBtn);
+    actionsDiv.appendChild(deleteBtn);
+    messageDiv.appendChild(actionsDiv);
+
     // Empêcher toute interaction d'édition
     messageDiv.addEventListener('mousedown', function (e) {
+        // Permettre les clics sur les boutons d'action
+        if (e.target.closest('.message-actions')) {
+            return;
+        }
         e.preventDefault();
     });
 
@@ -2975,6 +3053,8 @@ async function sendMessage(type) {
 
     updateSelectedImagesDisplay();
 }
+
+
 
 
 // Fonction pour détecter et traiter le code dans un message
@@ -3674,65 +3754,129 @@ async function openChat(elementId) {
         const messageContainer = document.getElementById('messageContainer');
         messageContainer.innerHTML = '';
 
-        if (conversation.messages && conversation.messages.length > 0) {
-            conversation.messages.forEach(msg => {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `chat-message ${msg.type}`;
-                messageDiv.setAttribute('contenteditable', 'true');
-                messageDiv.setAttribute('data-disable-editing', 'true');
-                messageDiv.setAttribute('spellcheck', 'false');
+        // Modifier cette partie de la fonction openChat
+if (conversation.messages && conversation.messages.length > 0) {
+    conversation.messages.forEach(msg => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${msg.type}`;
+        messageDiv.setAttribute('contenteditable', 'true');
+        messageDiv.setAttribute('data-disable-editing', 'true');
+        messageDiv.setAttribute('spellcheck', 'false');
+        
+        // Ajout de l'ID du message
+        const messageId = msg.id || crypto.randomUUID();
+        messageDiv.setAttribute('data-message-id', messageId);
 
-                if (msg.text) {
-                    const textDiv = document.createElement('div');
-                    const processedText = processMessageContent(msg.text);
-                    textDiv.innerHTML = processedText;
-                    messageDiv.appendChild(textDiv);
-                }
-
-                if (msg.images && msg.images.length > 0) {
-                    const imagesContainer = document.createElement('div');
-                    imagesContainer.className = 'message-images';
-                    msg.images.forEach((img) => {
-                        const imgElement = document.createElement('img');
-                        imgElement.src = img.data;
-                        imgElement.className = 'message-image';
-                        imgElement.setAttribute('data-full-image', img.data);
-                        imgElement.setAttribute('data-type', img.type);
-                        imgElement.setAttribute('data-name', img.name);
-
-                        imgElement.onclick = function (e) {
-                            e.stopPropagation();
-                            openImageModal(this);
-                        };
-                        imagesContainer.appendChild(imgElement);
-                    });
-                    messageDiv.appendChild(imagesContainer);
-                }
-
-                // Empêcher toute interaction d'édition
-                messageDiv.addEventListener('mousedown', function (e) {
-                    e.preventDefault();
-                });
-
-                messageDiv.addEventListener('keydown', function (e) {
-                    e.preventDefault();
-                });
-
-                messageDiv.addEventListener('input', function (e) {
-                    e.preventDefault();
-                });
-
-                messageDiv.addEventListener('focus', function (e) {
-                    e.target.blur();
-                });
-
-                messageContainer.appendChild(messageDiv);
-            });
-            
-            // Initialiser Prism.js pour tout le contenu chargé
-            Prism.highlightAllUnder(messageContainer);
-            initializeInlineCodeCopy(messageContainer);
+        if (msg.text) {
+            const textDiv = document.createElement('div');
+            const processedText = processMessageContent(msg.text);
+            textDiv.innerHTML = processedText;
+            messageDiv.appendChild(textDiv);
         }
+
+        if (msg.images && msg.images.length > 0) {
+            const imagesContainer = document.createElement('div');
+            imagesContainer.className = 'message-images';
+            msg.images.forEach((img) => {
+                const imgElement = document.createElement('img');
+                imgElement.src = img.data;
+                imgElement.className = 'message-image';
+                imgElement.setAttribute('data-full-image', img.data);
+                imgElement.setAttribute('data-type', img.type);
+                imgElement.setAttribute('data-name', img.name);
+
+                imgElement.onclick = function (e) {
+                    e.stopPropagation();
+                    openImageModal(this);
+                };
+                imagesContainer.appendChild(imgElement);
+            });
+            messageDiv.appendChild(imagesContainer);
+        }
+
+        // Ajouter les boutons d'action au message
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'message-actions';
+        
+        // Bouton Copier
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'message-action-btn copy';
+        copyBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+        `;
+        copyBtn.setAttribute('title', 'Copier');
+        copyBtn.onclick = function(e) {
+            e.stopPropagation();
+            copyMessage(messageDiv);
+        };
+        
+        // Bouton Éditer
+        const editBtn = document.createElement('button');
+        editBtn.className = 'message-action-btn edit';
+        editBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+        `;
+        editBtn.setAttribute('title', 'Modifier');
+        editBtn.onclick = function(e) {
+            e.stopPropagation();
+            editMessage(messageDiv);
+        };
+        
+        // Bouton Supprimer
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'message-action-btn delete';
+        deleteBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+        `;
+        deleteBtn.setAttribute('title', 'Supprimer');
+        deleteBtn.onclick = function(e) {
+            e.stopPropagation();
+            showDeleteConfirmation(messageId);
+        };
+        
+        actionsDiv.appendChild(copyBtn);
+        actionsDiv.appendChild(editBtn);
+        actionsDiv.appendChild(deleteBtn);
+        messageDiv.appendChild(actionsDiv);
+
+        // Empêcher toute interaction d'édition
+        messageDiv.addEventListener('mousedown', function (e) {
+            // Permettre les clics sur les boutons d'action
+            if (e.target.closest('.message-actions')) {
+                return;
+            }
+            e.preventDefault();
+        });
+
+        messageDiv.addEventListener('keydown', function (e) {
+            e.preventDefault();
+        });
+
+        messageDiv.addEventListener('input', function (e) {
+            e.preventDefault();
+        });
+
+        messageDiv.addEventListener('focus', function (e) {
+            e.target.blur();
+        });
+
+        messageContainer.appendChild(messageDiv);
+    });
+    
+    // Initialiser Prism.js pour tout le contenu chargé
+    Prism.highlightAllUnder(messageContainer);
+    initializeInlineCodeCopy(messageContainer);
+}
+
 
         // Ajout du code pour gérer la hauteur du conteneur de messages
         requestAnimationFrame(() => {
@@ -3768,6 +3912,362 @@ async function openChat(elementId) {
 }
 
 
+// Fonction pour copier le contenu d'un message
+function copyMessage(messageElement) {
+    // Créer un clone du message sans les boutons d'action
+    const clone = messageElement.cloneNode(true);
+    const actionsDiv = clone.querySelector('.message-actions');
+    if (actionsDiv) {
+        actionsDiv.remove();
+    }
+    
+    // Obtenir le contenu formaté
+    const content = clone.innerHTML;
+    
+    // Créer un élément temporaire pour extraire le texte avec formatage
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    
+    // Copier dans le presse-papier
+    navigator.clipboard.writeText(tempDiv.innerText)
+        .then(() => {
+            // Animation de succès
+            const copyBtn = messageElement.querySelector('.message-action-btn.copy');
+            copyBtn.classList.add('success-animation');
+            copyBtn.style.background = 'rgba(72, 187, 120, 0.3)';
+            setTimeout(() => {
+                copyBtn.classList.remove('success-animation');
+                copyBtn.style.background = '';
+            }, 1000);
+        })
+        .catch(err => {
+            console.error('Erreur lors de la copie :', err);
+        });
+}
+
+// Fonction pour éditer un message
+function editMessage(messageElement) {
+    const messageId = messageElement.getAttribute('data-message-id');
+    const textDiv = messageElement.querySelector('div:not(.message-actions):not(.message-images)');
+    const imagesContainer = messageElement.querySelector('.message-images');
+    
+    // Récupérer le texte brut (sans formatage)
+    let textContent = '';
+    if (textDiv) {
+        // Récupérer le texte original (avant traitement)
+        const originalText = getOriginalMessageText(messageId);
+        textContent = originalText || textDiv.innerText;
+    }
+    
+    // Récupérer les images si présentes
+    const images = [];
+    if (imagesContainer) {
+        const imgElements = imagesContainer.querySelectorAll('.message-image');
+        imgElements.forEach(img => {
+            images.push({
+                data: img.getAttribute('data-full-image'),
+                type: img.getAttribute('data-type'),
+                name: img.getAttribute('data-name')
+            });
+        });
+    }
+    
+    // Remplir la zone de saisie avec le texte
+    const messageInput = document.getElementById('messageInput');
+    messageInput.value = textContent;
+    
+    // Mettre à jour la hauteur du textarea
+    messageInput.style.height = 'auto';
+    messageInput.style.height = Math.min(messageInput.scrollHeight, 150) + 'px';
+    
+    // Réinitialiser et remplir les images sélectionnées
+    selectedImages = [...images];
+    updateSelectedImagesDisplay();
+    
+    // Définir l'ID du message en cours d'édition
+    document.getElementById('messageInput').setAttribute('data-editing-message-id', messageId);
+    
+    // Faire défiler jusqu'à la zone de saisie et mettre le focus
+    messageInput.focus();
+    messageInput.scrollIntoView({ behavior: 'smooth' });
+    
+    // Ajouter le bouton "Remplacer" au menu contextuel s'il n'existe pas déjà
+    const contextMenu = document.getElementById('contextMenu');
+    if (!contextMenu.querySelector('.replace-option')) {
+        const replaceOption = document.createElement('div');
+        replaceOption.className = 'chat-context-option replace-option';
+        replaceOption.textContent = 'Remplacer';
+        replaceOption.onclick = function(e) {
+            e.stopPropagation();
+            updateMessage(messageId);
+        };
+        
+        // Ajouter au début du menu contextuel
+        contextMenu.insertBefore(replaceOption, contextMenu.firstChild);
+    }
+    
+    // Même chose pour le menu contextuel étendu
+    const expandedContextMenu = document.getElementById('expandedContextMenu');
+    if (expandedContextMenu && !expandedContextMenu.querySelector('.replace-option')) {
+        const replaceOption = document.createElement('div');
+        replaceOption.className = 'chat-context-option replace-option';
+        replaceOption.textContent = 'Remplacer';
+        replaceOption.onclick = function(e) {
+            e.stopPropagation();
+            updateMessage(messageId, true);
+        };
+        
+        // Ajouter au début du menu contextuel étendu
+        expandedContextMenu.insertBefore(replaceOption, expandedContextMenu.firstChild);
+    }
+    
+    // Changer l'apparence du bouton d'envoi pour indiquer le mode édition
+    document.querySelector('.chat-send-btn').classList.add('editing-mode');
+}
+
+async function updateMessage(messageId, fromExpanded = false) {
+    // Récupérer les contenus actuels (texte et images)
+    const messageInput = fromExpanded ? document.getElementById('expandedMessageInput') : document.getElementById('messageInput');
+    const textContent = messageInput.value.trim();
+    
+    // Aucun contenu à envoyer
+    if (textContent === '' && selectedImages.length === 0) return;
+    
+    // Trouver le message à mettre à jour
+    const messageElement = document.querySelector(`.chat-message[data-message-id="${messageId}"]`);
+    if (!messageElement) return;
+    
+    // Déterminer le type (envoyé/reçu) du message original
+    const isReceived = messageElement.classList.contains('received');
+    const messageType = isReceived ? 'received' : 'sent';
+    
+    // Préparer les données du message mis à jour
+    const messageData = {
+        id: messageId,
+        type: messageType,
+        text: textContent,
+        images: selectedImages.map(img => ({
+            data: img.data,
+            type: img.type,
+            name: img.name
+        })),
+        timestamp: new Date().toISOString()
+    };
+    
+    // Mettre à jour le contenu du message
+    const textDiv = messageElement.querySelector('div:not(.message-actions):not(.message-images)');
+    if (textDiv) {
+        // Mettre à jour ou supprimer le div texte selon le contenu
+        if (textContent) {
+            const processedText = processMessageContent(textContent);
+            textDiv.innerHTML = processedText;
+        } else {
+            textDiv.remove();
+        }
+    } else if (textContent) {
+        // Créer un nouveau div texte si nécessaire
+        const newTextDiv = document.createElement('div');
+        const processedText = processMessageContent(textContent);
+        newTextDiv.innerHTML = processedText;
+        // L'insérer au début du message (avant les images et les actions)
+        messageElement.insertBefore(newTextDiv, messageElement.firstChild);
+    }
+    
+    // Mettre à jour les images
+    let imagesContainer = messageElement.querySelector('.message-images');
+    
+    if (selectedImages.length > 0) {
+        if (!imagesContainer) {
+            imagesContainer = document.createElement('div');
+            imagesContainer.className = 'message-images';
+            // Placer le conteneur d'images après le texte et avant les actions
+            const actionsDiv = messageElement.querySelector('.message-actions');
+            messageElement.insertBefore(imagesContainer, actionsDiv);
+        } else {
+            imagesContainer.innerHTML = ''; // Effacer les images existantes
+        }
+        
+        // Ajouter les nouvelles images
+        selectedImages.forEach((img) => {
+            const imgElement = document.createElement('img');
+            imgElement.src = img.data;
+            imgElement.className = 'message-image';
+            imgElement.setAttribute('data-full-image', img.data);
+            imgElement.setAttribute('data-type', img.type);
+            imgElement.setAttribute('data-name', img.name);
+            
+            imgElement.onclick = function(e) {
+                e.stopPropagation();
+                openImageModal(this);
+            };
+            imagesContainer.appendChild(imgElement);
+        });
+    } else if (imagesContainer) {
+        imagesContainer.remove(); // Supprimer le conteneur d'images s'il n'y a plus d'images
+    }
+    
+    // Enregistrer les modifications dans la base de données
+    const success = await saveMessage(currentConversationId, messageData);
+    
+    if (!success) {
+        // Indiquer une erreur
+        messageElement.classList.add('error');
+        let errorIndicator = messageElement.querySelector('.message-error');
+        if (!errorIndicator) {
+            errorIndicator = document.createElement('div');
+            errorIndicator.className = 'message-error';
+            errorIndicator.innerHTML = '⚠️ Non enregistré';
+            messageElement.appendChild(errorIndicator);
+        }
+    }
+    
+    // Réinitialiser l'UI
+    messageInput.value = '';
+    messageInput.removeAttribute('data-editing-message-id');
+    selectedImages = [];
+    updateSelectedImagesDisplay();
+    document.querySelector('.chat-send-btn').classList.remove('editing-mode');
+    
+    // Enlever l'option de remplacement du menu contextuel
+    const replaceOption = document.querySelector('.replace-option');
+    if (replaceOption) replaceOption.remove();
+    
+    const expandedReplaceOption = document.getElementById('expandedContextMenu')?.querySelector('.replace-option');
+    if (expandedReplaceOption) expandedReplaceOption.remove();
+    
+    // Réinitialiser la hauteur du textarea
+    messageInput.style.height = 'auto';
+    
+    // Si nous sommes en mode étendu, revenir au mode normal
+    if (fromExpanded) {
+        collapseTextarea();
+    }
+    
+    // Mettre à jour Prism.js pour le contenu modifié
+    Prism.highlightAllUnder(messageElement);
+    initializeInlineCodeCopy(messageElement);
+}
+
+
+// Fonction pour obtenir le texte original d'un message (depuis la conversation stockée)
+function getOriginalMessageText(messageId) {
+    if (!currentConversationId || !cachedConversations.has(currentConversationId)) {
+        return null;
+    }
+    
+    const conversation = cachedConversations.get(currentConversationId);
+    const message = conversation.messages.find(msg => msg.id === messageId);
+    
+    return message ? message.text : null;
+}
+
+// Fonction pour afficher la confirmation de suppression
+function showDeleteConfirmation(messageId) {
+    document.getElementById('deleteOverlay').classList.add('show');
+    const confirmation = document.getElementById('deleteConfirmation');
+    confirmation.classList.add('show');
+    
+    // Stocker l'ID du message à supprimer
+    confirmation.setAttribute('data-message-id', messageId);
+    
+    // Configurer les boutons
+    document.getElementById('cancelDelete').onclick = hideDeleteConfirmation;
+    document.getElementById('confirmDelete').onclick = () => {
+        deleteMessage(messageId);
+        hideDeleteConfirmation();
+    };
+}
+
+// Fonction pour masquer la confirmation de suppression
+function hideDeleteConfirmation() {
+    document.getElementById('deleteOverlay').classList.remove('show');
+    document.getElementById('deleteConfirmation').classList.remove('show');
+}
+
+// Fonction pour supprimer un message
+async function deleteMessage(messageId) {
+    // Trouver l'élément du message
+    const messageElement = document.querySelector(`.chat-message[data-message-id="${messageId}"]`);
+    if (!messageElement) return;
+    
+    // Animation de suppression
+    messageElement.style.transition = 'all 0.3s ease';
+    messageElement.style.opacity = '0';
+    messageElement.style.transform = 'translateX(20px)';
+    
+    // Supprimer de la base de données
+    const success = await removeMessageFromDatabase(messageId);
+    
+    if (success) {
+        // Attendre la fin de l'animation avant de retirer l'élément du DOM
+        setTimeout(() => {
+            messageElement.remove();
+        }, 300);
+    } else {
+        // Restaurer l'apparence si échec
+        messageElement.style.opacity = '1';
+        messageElement.style.transform = 'translateX(0)';
+        
+        // Ajouter une indication d'erreur
+        messageElement.classList.add('error');
+        let errorIndicator = messageElement.querySelector('.message-error');
+        if (!errorIndicator) {
+            errorIndicator = document.createElement('div');
+            errorIndicator.className = 'message-error';
+            errorIndicator.innerHTML = '⚠️ Échec de la suppression';
+            messageElement.appendChild(errorIndicator);
+        }
+    }
+}
+
+// Fonction pour supprimer un message de la base de données
+async function removeMessageFromDatabase(messageId) {
+    try {
+        if (!currentConversationId) return false;
+        
+        // Récupérer la conversation
+        const { data: currentData, error: fetchError } = await supabase
+            .from('conversations')
+            .select('messages')
+            .eq('id', currentConversationId)
+            .single();
+        
+        if (fetchError) {
+            console.error('Erreur de récupération des messages:', fetchError);
+            return false;
+        }
+        
+        // Filtrer le message à supprimer
+        const currentMessages = currentData.messages || [];
+        const updatedMessages = currentMessages.filter(msg => msg.id !== messageId);
+        
+        // Mettre à jour dans la base de données
+        const { error: updateError } = await supabase
+            .from('conversations')
+            .update({ 
+                messages: updatedMessages,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', currentConversationId);
+        
+        if (updateError) {
+            console.error('Erreur de suppression du message:', updateError);
+            return false;
+        }
+        
+        // Mettre à jour le cache
+        if (cachedConversations.has(currentConversationId)) {
+            const cachedConversation = cachedConversations.get(currentConversationId);
+            cachedConversation.messages = updatedMessages;
+            cacheConversation(currentConversationId, cachedConversation);
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Exception lors de la suppression du message:', error);
+        return false;
+    }
+}
 
 
 
@@ -3865,6 +4365,12 @@ function expandTextarea() {
     // Copier le contenu du petit textarea vers le grand
     expandedMessageInput.value = messageInput.value;
     
+    // Transférer l'attribut d'édition si présent
+    const editingMessageId = messageInput.getAttribute('data-editing-message-id');
+    if (editingMessageId) {
+        expandedMessageInput.setAttribute('data-editing-message-id', editingMessageId);
+    }
+    
     // Cacher la zone de saisie normale et afficher la zone étendue
     inputArea.style.display = 'none';
     expandedContainer.style.display = 'flex';
@@ -3872,6 +4378,7 @@ function expandTextarea() {
     // Donner le focus au textarea étendu
     expandedMessageInput.focus();
 }
+
 
 // Fonction pour revenir à la vue normale
 function collapseTextarea() {
@@ -3882,6 +4389,12 @@ function collapseTextarea() {
     
     // Copier le contenu du grand textarea vers le petit
     messageInput.value = expandedMessageInput.value;
+    
+    // Transférer l'attribut d'édition si présent
+    const editingMessageId = expandedMessageInput.getAttribute('data-editing-message-id');
+    if (editingMessageId) {
+        messageInput.setAttribute('data-editing-message-id', editingMessageId);
+    }
     
     // Cacher la zone étendue et afficher la zone de saisie normale
     expandedContainer.style.display = 'none';
@@ -3895,6 +4408,7 @@ function collapseTextarea() {
     messageInput.style.height = Math.min(messageInput.scrollHeight, 150) + 'px';
 }
 
+
 // Fonction pour afficher le menu contextuel en mode étendu
 function showExpandedContextMenu(event) {
     const menu = document.getElementById('expandedContextMenu');
@@ -3907,8 +4421,24 @@ function sendExpandedMessage(type) {
     const expandedMessageInput = document.getElementById('expandedMessageInput');
     const messageInput = document.getElementById('messageInput');
     
+    // Vérifier si nous sommes en mode édition
+    const editingMessageId = messageInput.getAttribute('data-editing-message-id');
+    
     // Copier le contenu vers le textarea normal
     messageInput.value = expandedMessageInput.value;
+    
+    if (editingMessageId) {
+        // Si en édition et qu'on clique sur Envoyer/Recevoir, créer un nouveau message
+        messageInput.removeAttribute('data-editing-message-id');
+        document.querySelector('.chat-send-btn').classList.remove('editing-mode');
+        
+        // Enlever l'option de remplacement du menu contextuel
+        const replaceOption = document.querySelector('.replace-option');
+        if (replaceOption) replaceOption.remove();
+        
+        const expandedReplaceOption = document.getElementById('expandedContextMenu')?.querySelector('.replace-option');
+        if (expandedReplaceOption) expandedReplaceOption.remove();
+    }
     
     // Utiliser la fonction d'envoi existante
     sendMessage(type);
@@ -3916,6 +4446,7 @@ function sendExpandedMessage(type) {
     // Revenir à la vue normale
     collapseTextarea();
 }
+
 
 // Initialisation des écouteurs d'événements pour la zone d'édition étendue
 document.addEventListener('DOMContentLoaded', function() {
@@ -6447,44 +6978,93 @@ async function saveMessage(conversationId, message) {
             return false;
         }
         
-        // Ajouter le nouveau message
         const currentMessages = currentData.messages || [];
-        const updatedMessages = [...currentMessages, {
-            id: crypto.randomUUID(),
-            type: message.type,
-            text: message.text,
-            images: message.images || [],
-            timestamp: new Date().toISOString()
-        }];
         
-        // Mettre à jour dans la base de données
-        const { error: updateError } = await supabase
-            .from('conversations')
-            .update({ 
-                messages: updatedMessages,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', conversationId);
+        // Vérifier si c'est une mise à jour ou un nouveau message
+        const editingId = document.getElementById('messageInput').getAttribute('data-editing-message-id');
         
-        if (updateError) {
-            console.error('Erreur de sauvegarde du message:', updateError);
-            return false;
+        if (editingId) {
+            // Mise à jour d'un message existant
+            const updatedMessages = currentMessages.map(msg => {
+                if (msg.id === editingId) {
+                    return {
+                        ...msg,
+                        text: message.text,
+                        images: message.images || msg.images,
+                        updated_at: new Date().toISOString()
+                    };
+                }
+                return msg;
+            });
+            
+            // Réinitialiser l'attribut d'édition
+            document.getElementById('messageInput').removeAttribute('data-editing-message-id');
+            
+            // Mettre à jour dans la base de données
+            const { error: updateError } = await supabase
+                .from('conversations')
+                .update({ 
+                    messages: updatedMessages,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', conversationId);
+            
+            if (updateError) {
+                console.error('Erreur de mise à jour du message:', updateError);
+                return false;
+            }
+            
+            // Mettre à jour le cache
+            if (cachedConversations.has(conversationId)) {
+                const cachedConversation = cachedConversations.get(conversationId);
+                cachedConversation.messages = updatedMessages;
+                cacheConversation(conversationId, cachedConversation);
+            }
+            
+            // Supprimer la classe editing-mode du bouton d'envoi
+            document.querySelector('.chat-send-btn').classList.remove('editing-mode');
+            
+            return true;
+        } else {
+            // Nouveau message
+            const updatedMessages = [...currentMessages, {
+                id: message.id || crypto.randomUUID(),
+                type: message.type,
+                text: message.text,
+                images: message.images || [],
+                timestamp: new Date().toISOString()
+            }];
+            
+            // Mettre à jour dans la base de données
+            const { error: updateError } = await supabase
+                .from('conversations')
+                .update({ 
+                    messages: updatedMessages,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', conversationId);
+            
+            if (updateError) {
+                console.error('Erreur de sauvegarde du message:', updateError);
+                return false;
+            }
+            
+            console.log('Message sauvegardé avec succès');
+            // Mettre à jour le cache
+            if (cachedConversations.has(conversationId)) {
+                const cachedConversation = cachedConversations.get(conversationId);
+                cachedConversation.messages = updatedMessages;
+                cacheConversation(conversationId, cachedConversation);
+            }
+            
+            return true;
         }
-        
-        console.log('Message sauvegardé avec succès');
-        // Mettre à jour le cache
-if (cachedConversations.has(currentConversationId)) {
-    const cachedConversation = cachedConversations.get(currentConversationId);
-    cachedConversation.messages = updatedMessages;
-    cacheConversation(currentConversationId, cachedConversation);
-}
-
-        return true;
     } catch (error) {
         console.error('Exception lors de la sauvegarde du message:', error);
         return false;
     }
 }
+
 
 // Fonction pour récupérer l'ID de l'élément actuellement affiché
 function getCurrentElementId() {
@@ -6501,6 +7081,21 @@ function getCurrentElementId() {
 // Variable pour stocker l'ID de la conversation actuelle
 let currentConversationId = null;
 
+// Ajouter dans votre fonction DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Vos écouteurs d'événements existants...
+    
+    // Écouteurs pour la confirmation de suppression
+    document.getElementById('deleteOverlay').addEventListener('click', hideDeleteConfirmation);
+    document.getElementById('cancelDelete').addEventListener('click', hideDeleteConfirmation);
+    
+    // Écouteur pour détecter si l'utilisateur appuie sur Échap
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideDeleteConfirmation();
+        }
+    });
+});
 
 /*══════════════════════════════╗
   ⚫ JS PARTIE 8
@@ -7399,6 +7994,343 @@ searchClose.addEventListener('click', function() {
 /*══════════════════════════════╗
   🟧 JS PARTIE 12
   ═════════════════════════════╝*/
+// Initialisation du menu et de la fonctionnalité de téléchargement
+document.addEventListener('DOMContentLoaded', function() {
+    // Références aux éléments du menu
+    const menuBtn = document.getElementById('chatMenuBtn');
+    const menuDropdown = document.getElementById('chatMenuDropdown');
+    const downloadOption = document.getElementById('downloadChatOption');
+    
+    // Gestion de l'ouverture/fermeture du menu
+    menuBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        menuBtn.classList.toggle('active');
+        menuDropdown.classList.toggle('show');
+    });
+    
+    // Fermer le menu lors d'un clic en dehors
+    document.addEventListener('click', function() {
+        menuBtn.classList.remove('active');
+        menuDropdown.classList.remove('show');
+    });
+    
+    // Empêcher la fermeture lors d'un clic sur le menu
+    menuDropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    
+    // Fonction de téléchargement de la conversation
+    downloadOption.addEventListener('click', function() {
+        downloadChat();
+    });
+});
+
+// Fonction pour télécharger la conversation
+async function downloadChat() {
+    try {
+        // Vérifier si une conversation est active
+        if (!currentConversationId) {
+            alert("Aucune conversation active à télécharger.");
+            return;
+        }
+        
+        // Récupérer les informations de la conversation
+        let conversation;
+        if (cachedConversations.has(currentConversationId)) {
+            conversation = cachedConversations.get(currentConversationId);
+        } else {
+            const { data, error } = await supabase
+                .from('conversations')
+                .select('*')
+                .eq('id', currentConversationId)
+                .single();
+                
+            if (error) {
+                console.error("Erreur lors de la récupération de la conversation:", error);
+                alert("Impossible de télécharger la conversation. Veuillez réessayer.");
+                return;
+            }
+            conversation = data;
+        }
+        
+        // Montrer l'animation de téléchargement
+        const downloadOption = document.getElementById('downloadChatOption');
+        downloadOption.classList.add('downloading');
+        
+        // Générer le HTML de la conversation
+        const chatHTML = generateChatHTML(conversation);
+        
+        // Créer un blob avec le HTML
+        const blob = new Blob([chatHTML], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        
+        // Créer un lien temporaire pour le téléchargement
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Chat_avec_${conversation.contact_name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Nettoyer
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            downloadOption.classList.remove('downloading');
+        }, 1000);
+        
+    } catch (error) {
+        console.error("Erreur lors du téléchargement:", error);
+        alert("Une erreur est survenue lors du téléchargement. Veuillez réessayer.");
+        document.getElementById('downloadChatOption').classList.remove('downloading');
+    }
+}
+
+// Fonction pour générer le HTML de la conversation
+function generateChatHTML(conversation) {
+    // Date formatée
+    const formattedDate = new Date().toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    // HTML de base
+    let html = `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Conversation avec ${conversation.contact_name}</title>
+        <style>
+            :root {
+                --primary-color: #6366f1;
+                --bg-dark: #0a0b1e;
+                --bg-light: #12142a;
+                --text-light: #ffffff;
+            }
+            
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: var(--bg-dark);
+                color: var(--text-light);
+                margin: 0;
+                padding: 20px;
+                line-height: 1.6;
+            }
+            
+            .chat-container {
+                max-width: 800px;
+                margin: 0 auto;
+                background: var(--bg-light);
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            }
+            
+            .chat-header {
+                padding: 20px;
+                background: rgba(255, 255, 255, 0.05);
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+            
+            .chat-profile-img {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: var(--primary-color);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 20px;
+                color: white;
+                ${conversation.contact_image ? `background-image: url(${conversation.contact_image}); background-size: cover;` : ''}
+            }
+            
+            .chat-profile-name {
+                font-size: 1.2rem;
+                font-weight: 600;
+            }
+            
+            .chat-date {
+                margin-left: auto;
+                font-size: 0.85rem;
+                opacity: 0.7;
+            }
+            
+            .chat-messages {
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .chat-message {
+                max-width: 70%;
+                padding: 12px 16px;
+                border-radius: 12px;
+                font-size: 0.95rem;
+                position: relative;
+            }
+            
+            .chat-message.received {
+                background: rgba(255, 255, 255, 0.1);
+                align-self: flex-start;
+                border-bottom-left-radius: 4px;
+            }
+            
+            .chat-message.sent {
+                background: var(--primary-color);
+                align-self: flex-end;
+                border-bottom-right-radius: 4px;
+            }
+            
+            .message-time {
+                font-size: 0.75rem;
+                opacity: 0.7;
+                margin-top: 5px;
+                text-align: right;
+            }
+            
+            .message-images {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 10px;
+            }
+            
+            .message-image {
+                max-width: 100%;
+                border-radius: 8px;
+            }
+            
+            .chat-footer {
+                text-align: center;
+                padding: 15px;
+                font-size: 0.8rem;
+                opacity: 0.5;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            code {
+                font-family: Consolas, Monaco, 'Andale Mono', monospace;
+                background: rgba(0, 0, 0, 0.3);
+                padding: 3px 5px;
+                border-radius: 4px;
+            }
+            
+            pre {
+                background: rgba(0, 0, 0, 0.3);
+                padding: 15px;
+                border-radius: 8px;
+                overflow-x: auto;
+                margin: 10px 0;
+            }
+            
+            pre code {
+                background: transparent;
+                padding: 0;
+            }
+            
+            @media print {
+                body {
+                    background: white;
+                    color: black;
+                }
+                
+                .chat-container {
+                    box-shadow: none;
+                    background: white;
+                }
+                
+                .chat-header {
+                    background: #f5f5f5;
+                }
+                
+                .chat-message.received {
+                    background: #f0f0f0;
+                    color: black;
+                }
+                
+                .chat-message.sent {
+                    background: #e1f5fe;
+                    color: black;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="chat-profile-img">
+                    ${!conversation.contact_image ? conversation.contact_name[0].toUpperCase() : ''}
+                </div>
+                <div class="chat-profile-name">${conversation.contact_name}</div>
+                <div class="chat-date">${formattedDate}</div>
+            </div>
+            <div class="chat-messages">
+    `;
+    
+    // Ajouter les messages
+    if (conversation.messages && conversation.messages.length > 0) {
+        for (const msg of conversation.messages) {
+            const timestamp = new Date(msg.timestamp).toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            html += `<div class="chat-message ${msg.type}">`;
+            
+            // Contenu du message
+            if (msg.text) {
+                // Traiter le texte pour conserver la mise en forme
+                const processedText = msg.text
+                    .replace(/```([\s\S]*?)```/g, function(match, code) {
+                        return `<pre><code>${code.trim()}</code></pre>`;
+                    })
+                    .replace(/`([^`]+)`/g, function(match, code) {
+                        return `<code>${code}</code>`;
+                    })
+                    .replace(/\n/g, '<br>');
+                
+                html += `<div>${processedText}</div>`;
+            }
+            
+            // Images du message
+            if (msg.images && msg.images.length > 0) {
+                html += '<div class="message-images">';
+                for (const img of msg.images) {
+                    html += `<img class="message-image" src="${img.data}" alt="Image">`;
+                }
+                html += '</div>';
+            }
+            
+            // Horodatage
+            html += `<div class="message-time">${timestamp}</div>`;
+            html += '</div>';
+        }
+    } else {
+        html += '<div class="chat-message">Aucun message dans cette conversation.</div>';
+    }
+    
+    // Fermer le HTML
+    html += `
+            </div>
+            <div class="chat-footer">
+                Exporté le ${formattedDate}
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+    
+    return html;
+}
 
 
 //══════════════════════════════╗

@@ -9543,11 +9543,298 @@ code.inline-code:hover::after {
 /*═══════════════════════════*\
   🟧 PARTIE 25  
 \*═══════════════════════════*/
+/* Style des icônes d'actions pour les messages */
+.message-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    justify-content: flex-end;
+}
+
+.chat-message:hover .message-actions {
+    opacity: 1;
+}
+
+.message-action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.message-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.message-action-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2;
+}
+
+.message-action-btn.copy:hover {
+    background: rgba(72, 187, 120, 0.3);
+}
+
+.message-action-btn.edit:hover {
+    background: rgba(66, 153, 225, 0.3);
+}
+
+.message-action-btn.delete:hover {
+    background: rgba(245, 101, 101, 0.3);
+}
+
+/* Style pour la confirmation de suppression */
+.delete-confirmation {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-light);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    width: 90%;
+    max-width: 400px;
+    animation: fadeInScale 0.3s ease;
+    display: none;
+}
+
+.delete-confirmation.show {
+    display: block;
+}
+
+@keyframes fadeInScale {
+    from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }
+    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.delete-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-light);
+}
+
+.delete-message {
+    color: var(--text-gray);
+    margin-bottom: 24px;
+}
+
+.delete-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.delete-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
+}
+
+.delete-cancel:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.delete-confirm {
+    background: #e53e3e;
+    color: white;
+}
+
+.delete-confirm:hover {
+    background: #c53030;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+    z-index: 999;
+    display: none;
+}
+
+.overlay.show {
+    display: block;
+}
+
+/* Animations pour les icônes */
+@keyframes successPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.success-animation {
+    animation: successPulse 0.5s ease;
+}
+/* Remplacez cette partie dans votre CSS */
+.message-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    opacity: 1; /* Changé de 0 à 1 pour toujours afficher */
+    transition: opacity 0.2s ease;
+    justify-content: flex-end;
+}
+
+/* Supprimez ou commentez cette règle */
+/*
+.chat-message:hover .message-actions {
+    opacity: 1;
+}
+*/
+/* Style pour l'option Remplacer dans le menu contextuel */
+.chat-context-option.replace-option {
+    background-color: #3970e4;
+    color: white;
+    font-weight: 500;
+}
+
+.chat-context-option.replace-option:hover {
+    background-color: #2854b8;
+}
+
+/* Animation pour indiquer que le message a été modifié */
+@keyframes message-updated {
+    0% { background-color: rgba(57, 112, 228, 0.2); }
+    100% { background-color: transparent; }
+}
+
+.message-updated {
+    animation: message-updated 1.5s ease-out;
+}
 
 
 /*═══════════════════════════*\
   🟥 PARTIE 26  
 \*═══════════════════════════*/
+/* Style pour le menu d'action dans l'en-tête */
+.chat-header {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: space-between; /* Modifier pour aligner les éléments */
+}
+
+.chat-profile-name {
+    flex-grow: 1; /* Pour que le nom prenne l'espace disponible */
+}
+
+.chat-header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.chat-menu-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.chat-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.chat-menu-btn svg {
+    transition: transform 0.3s ease;
+}
+
+.chat-menu-btn.active svg {
+    transform: rotate(90deg);
+}
+
+.chat-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 220px;
+    background: var(--bg-dark);
+    border-radius: 12px;
+    padding: 0.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.2);
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.chat-menu-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(5px);
+}
+
+.chat-menu-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chat-menu-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(3px);
+}
+
+.chat-menu-option svg {
+    color: var(--accent-1);
+}
+
+/* Animation pour téléchargement */
+@keyframes downloadPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.downloading .chat-menu-option svg {
+    animation: downloadPulse 1s infinite;
+}
 
 
 /*═══════════════════════════*\

@@ -265,10 +265,31 @@
                 </div>
 
                 <div class="chat-interface" id="chatInterface" style="display: none;">
-                    <div class="chat-header">
-                        <div class="chat-profile-img" id="contactImg"></div>
-                        <div class="chat-profile-name" id="contactNameDisplay"></div>
-                    </div>
+                  <div class="chat-header">
+    <div class="chat-profile-img" id="contactImg"></div>
+    <div class="chat-profile-name" id="contactNameDisplay"></div>
+    <div class="chat-header-actions">
+        <button class="chat-menu-btn" id="chatMenuBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="5" r="1"></circle>
+                <circle cx="12" cy="12" r="1"></circle>
+                <circle cx="12" cy="19" r="1"></circle>
+            </svg>
+            <div class="chat-menu-dropdown" id="chatMenuDropdown">
+                <div class="chat-menu-option" id="downloadChatOption">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Télécharger la conversation
+                </div>
+                <!-- Espace réservé pour ajouter d'autres options future -->
+            </div>
+        </button>
+    </div>
+</div>
+
 
                    <div class="chat-messages snap-y scroll-smooth" id="messageContainer">
     <!-- Les messages envoyés/reçus apparaîtront ici -->
@@ -399,6 +420,19 @@
                         <button class="modal-button" onclick="closeImageModal()">Fermer</button>
                     </div>
                 </div>
+            
+            
+            <!-- Confirmation de suppression -->
+<div class="overlay" id="deleteOverlay"></div>
+<div class="delete-confirmation" id="deleteConfirmation">
+    <div class="delete-title">Supprimer ce message ?</div>
+    <div class="delete-message">Cette action est irréversible. Le message sera définitivement supprimé.</div>
+    <div class="delete-actions">
+        <button class="delete-btn delete-cancel" id="cancelDelete">Annuler</button>
+        <button class="delete-btn delete-confirm" id="confirmDelete">Supprimer</button>
+    </div>
+</div>
+
             </div>
             <!-- Interface de Note (cachée par défaut) -->
 <div class="note-container" id="noteContainer" style="display: none;">
