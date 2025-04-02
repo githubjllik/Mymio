@@ -11948,7 +11948,264 @@ textarea.webapp_onidentity-form-input:focus {
 /*═══════════════════════════*\
   🟦 PARTIE 29  
 \*═══════════════════════════*/
+.newadd_onnote_md2html_icon {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+}
+/* Styles pour le convertisseur Markdown */
+.markdown-converter-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 11, 30, 0.9);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s;
+}
 
+.markdown-converter-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.markdown-converter-content {
+    width: 90%;
+    max-width: 1000px;
+    max-height: 90vh;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.3s forwards;
+    display: flex;
+    flex-direction: column;
+}
+
+.markdown-converter-header {
+    padding: 1.5rem;
+    background: var(--bg-tertiary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.markdown-converter-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.markdown-converter-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 24px;
+    transition: var(--transition);
+}
+
+.markdown-converter-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.markdown-converter-body {
+    padding: 1.5rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.markdown-converter-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.instructions {
+    background: rgba(99, 102, 241, 0.1);
+    border-left: 4px solid var(--accent-1);
+    padding: 1rem;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 1.5rem;
+}
+
+.instructions pre {
+    background: var(--bg-primary);
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: monospace;
+    margin: 0.5rem 0;
+    overflow-x: auto;
+    font-size: 0.875rem;
+}
+
+#markdown-input {
+    width: 100%;
+    min-height: 200px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: monospace;
+    resize: vertical;
+    font-size: 0.875rem;
+    outline: none;
+    transition: var(--transition);
+}
+
+#markdown-input:focus {
+    border-color: var(--accent-1);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.output {
+    background: var(--bg-primary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1.5rem;
+    min-height: 200px;
+    overflow-x: auto;
+}
+
+.markdown-converter-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.markdown-converter-actions button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#convertMarkdownBtn {
+    background: var(--accent-1);
+    color: white;
+}
+
+#convertMarkdownBtn:hover {
+    background: var(--accent-2);
+    transform: translateY(-2px);
+}
+
+#insertToEditorBtn {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+#insertToEditorBtn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1rem 0;
+}
+
+th, td {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.75rem;
+    text-align: left;
+}
+
+th {
+    background: rgba(255, 255, 255, 0.05);
+    font-weight: 600;
+}
+
+tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+@media (min-width: 768px) {
+    .markdown-converter-container {
+        flex-direction: row;
+    }
+    
+    .markdown-converter-container > div {
+        flex: 1;
+    }
+}
+/* Styles pour l'icône de conversion Markdown */
+.newadd_onnote_convert_icon {
+    position: absolute;
+    top: 12px;
+    right: 65px; /* Placé à gauche de l'icône d'exportation */
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1001;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.newadd_onnote_convert_icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* Style pour le texte converti */
+.markdown-converted {
+    position: relative;
+}
+
+.markdown-converted::after {
+    content: "✓";
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--success);
+    color: white;
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    animation: fadeIn 0.3s forwards, fadeOut 2s 2s forwards;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
 
 /*═══════════════════════════*\
   🟪 PARTIE 30  

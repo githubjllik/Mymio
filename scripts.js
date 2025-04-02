@@ -4537,6 +4537,307 @@ function initializeNoteExport() {
     });
 }
 
+// Initialisation des fonctionnalités d'exportation
+function initializeNoteExport() {
+    // Récupérer les éléments DOM
+    const exportIcon = document.getElementById('newadd_onnote_exportIcon');
+    const exportMenu = document.getElementById('newadd_onnote_exportMenu');
+    const closeExportMenu = document.getElementById('newadd_onnote_closeExportMenu');
+    const exportItems = document.querySelectorAll('.newadd_onnote_export_item');
+    
+    // Afficher/masquer le menu d'exportation
+    exportIcon.addEventListener('click', () => {
+        exportMenu.classList.toggle('active');
+    });
+    
+    // Fermer le menu d'exportation
+    closeExportMenu.addEventListener('click', () => {
+        exportMenu.classList.remove('active');
+    });
+    
+    // Fermer le menu si on clique en dehors
+    document.addEventListener('click', (e) => {
+        if (!exportIcon.contains(e.target) && !exportMenu.contains(e.target)) {
+            exportMenu.classList.remove('active');
+        }
+    });
+    
+    // Initialiser le convertisseur Markdown
+    initializeMarkdownConverter();
+    
+    // Gérer les clics sur les options d'exportation
+    exportItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const format = item.getAttribute('data-format');
+            
+            if (format === 'md2html') {
+                // Ouvrir le convertisseur Markdown
+                document.getElementById('markdownConverterModal').classList.add('active');
+                exportMenu.classList.remove('active');
+                return;
+            }
+            
+            // Gérer les autres formats d'exportation...
+            // (code existant pour les autres formats)
+            
+            // Fermer le menu d'exportation
+            exportMenu.classList.remove('active');
+        });
+    });
+}
+
+// Initialisation de la fonctionnalité de conversion Markdown
+function initializeMarkdownConverter() {
+    const convertIcon = document.getElementById('newadd_onnote_convertIcon');
+    
+    if (!convertIcon) return;
+    
+    // Vérifier si marked.js est chargé
+    if (typeof marked === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+        script.onload = () => {
+            configureMarked();
+        };
+        document.head.appendChild(script);
+    } else {
+        configureMarked();
+    }
+    
+    // Configurer marked.js
+    function configureMarked() {
+        marked.setOptions({
+            gfm: true,
+            breaks: true,
+            tables: true
+        });
+    }
+    
+    // Traiter la conversion Markdown lorsqu'on clique sur l'icône
+    convertIcon.addEventListener('click', () => {
+        if (!window.editorInstance) return;
+        
+        try {
+            // Récupérer le contenu HTML actuel de l'éditeur
+            const editorContent = window.editorInstance.value;
+            
+            // Créer un élément temporaire pour analyser le contenu HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = editorContent;
+            
+            // Tableau pour suivre les éléments à traiter
+            const markdownGroups = identifyMarkdownGroups(tempDiv);
+            
+            if (markdownGroups.length === 0) {
+                showNotification('Aucun Markdown trouvé à convertir', 'info');
+                return;
+            }
+            
+            // Convertir chaque groupe Markdown identifié
+            let contentChanged = false;
+            markdownGroups.forEach(group => {
+                const convertedHtml = processMarkdownGroup(group);
+                if (convertedHtml) {
+                    contentChanged = true;
+                }
+            });
+            
+            // Mettre à jour le contenu de l'éditeur si des changements ont été faits
+            if (contentChanged) {
+                window.editorInstance.value = tempDiv.innerHTML;
+                showNotification('Markdown converti avec succès', 'success');
+            } else {
+                showNotification('Aucun Markdown n\'a pu être converti', 'info');
+            }
+        } catch (error) {
+            console.error('Erreur lors de la conversion du Markdown:', error);
+            showNotification('Erreur lors de la conversion du Markdown', 'error');
+        }
+    });
+    
+    // Fonction pour identifier les groupes de Markdown (comme les tableaux, listes, etc.)
+    function identifyMarkdownGroups(rootElement) {
+        const groups = [];
+        
+        // Parcourir tous les éléments paragraphe et les balises de texte
+        const textElements = rootElement.querySelectorAll('p');
+        
+        // Identifier les tableaux Markdown (qui s'étendent sur plusieurs paragraphes)
+        let tableStart = -1;
+        let tableRows = [];
+        
+        for (let i = 0; i < textElements.length; i++) {
+            const element = textElements[i];
+            
+            // Ignorer les éléments déjà convertis
+            if (element.classList.contains('markdown-converted')) {
+                continue;
+            }
+            
+            const text = element.textContent.trim();
+            
+            // Détecter le début d'un tableau (ligne qui commence et finit par | avec au moins un | à l'intérieur)
+            if (text.startsWith('|') && text.endsWith('|') && text.indexOf('|', 1) !== text.length - 1) {
+                // Si c'est le début d'un nouveau tableau
+                if (tableStart === -1) {
+                    tableStart = i;
+                }
+                tableRows.push(element);
+                
+                // Détecter si c'est la ligne de séparation (la deuxième ligne d'un tableau Markdown)
+                if (tableRows.length === 2 && /^\|[\s\-:|]+\|$/.test(text)) {
+                    // On a confirmé que c'est un tableau
+                    continue;
+                }
+            } 
+            // Si on était en train de collecter un tableau et qu'on trouve une ligne qui n'appartient pas au tableau
+            else if (tableStart !== -1) {
+                // Si on a au moins 3 lignes (en-tête, séparation, et au moins une ligne de données), c'est un tableau valide
+                if (tableRows.length >= 3) {
+                    groups.push({
+                        type: 'table',
+                        elements: [...tableRows]
+                    });
+                }
+                // Réinitialiser pour le prochain tableau
+                tableStart = -1;
+                tableRows = [];
+            }
+            
+            // Détecter les autres types de Markdown (titres, listes, etc.)
+            if (isMarkdown(text)) {
+                // Pour tout autre Markdown qui tient sur une seule ligne
+                groups.push({
+                    type: 'inline',
+                    elements: [element]
+                });
+            }
+        }
+        
+        // Ne pas oublier de traiter un tableau qui se termine à la fin du contenu
+        if (tableStart !== -1 && tableRows.length >= 3) {
+            groups.push({
+                type: 'table',
+                elements: [...tableRows]
+            });
+        }
+        
+        return groups;
+    }
+    
+    // Traiter un groupe Markdown identifié
+    function processMarkdownGroup(group) {
+        if (group.type === 'table') {
+            return processMarkdownTable(group.elements);
+        } else if (group.type === 'inline') {
+            return processInlineMarkdown(group.elements[0]);
+        }
+        return false;
+    }
+    
+    // Traiter un tableau Markdown
+    function processMarkdownTable(elements) {
+        // Concaténer toutes les lignes du tableau en un seul texte Markdown
+        const markdownText = elements.map(el => el.textContent.trim()).join('\n');
+        
+        // Convertir en HTML
+        const htmlTable = marked.parse(markdownText);
+        
+        // Créer un élément conteneur pour le tableau converti
+        const tableContainer = document.createElement('div');
+        tableContainer.innerHTML = htmlTable;
+        tableContainer.classList.add('markdown-converted');
+        
+        // Remplacer le premier élément par le tableau converti
+        const firstElement = elements[0];
+        firstElement.parentNode.replaceChild(tableContainer, firstElement);
+        
+        // Supprimer les autres éléments du tableau
+        for (let i = 1; i < elements.length; i++) {
+            if (elements[i].parentNode) {
+                elements[i].parentNode.removeChild(elements[i]);
+            }
+        }
+        
+        return true;
+    }
+    
+    // Traiter un élément Markdown inline
+    function processInlineMarkdown(element) {
+        const markdownText = element.textContent.trim();
+        
+        // Convertir en HTML
+        const html = marked.parse(markdownText);
+        
+        // Créer un élément pour le contenu converti
+        const convertedElement = document.createElement('div');
+        convertedElement.innerHTML = html;
+        convertedElement.classList.add('markdown-converted');
+        
+        // Remplacer l'élément original
+        element.parentNode.replaceChild(convertedElement, element);
+        
+        return true;
+    }
+    
+    // Fonction pour vérifier si un texte contient du Markdown
+    function isMarkdown(text) {
+        // Rechercher plusieurs motifs de Markdown couramment utilisés
+        
+        // Pour les titres
+        if (/^#{1,6}\s+.+/.test(text)) {
+            return true;
+        }
+        
+        // Pour les listes non ordonnées
+        if (/^(\s*[\*\-\+]\s+.+)/.test(text)) {
+            return true;
+        }
+        
+        // Pour les listes ordonnées
+        if (/^(\s*\d+\.\s+.+)/.test(text)) {
+            return true;
+        }
+        
+        // Pour le texte en gras ou italique
+        if (/(\*\*|\*|__|_)(.+?)(\*\*|\*|__|_)/.test(text)) {
+            return true;
+        }
+        
+        // Pour les liens
+        if (/\[.+?\]\(.+?\)/.test(text)) {
+            return true;
+        }
+        
+        // Pour les images
+        if (/!\[.+?\]\(.+?\)/.test(text)) {
+            return true;
+        }
+        
+        // Pour les citations
+        if (/^>\s+.+/.test(text)) {
+            return true;
+        }
+        
+        // Pour le code
+        if (/`[^`]+`/.test(text)) {
+            return true;
+        }
+        
+        // Pour les séparateurs horizontaux
+        if (/^(\*{3,}|-{3,}|_{3,})$/.test(text)) {
+            return true;
+        }
+        
+        // Pour les cases à cocher
+        if (/^\s*\-\s+\[\s*[xX]?\s*\]\s+.+/.test(text)) {
+            return true;
+        }
+        
+        return false;
+    }
+}
+
 // Fonction principale d'exportation
 async function exportNote(format) {
     // Vérifier si l'éditeur existe et a du contenu
