@@ -4501,7 +4501,569 @@ function adjustEditorHeight() {
     }
 }
 
-async function openNote(elementId) {
+// Fonctions d'exportation pour la note
+function initializeNoteExport() {
+    // Références aux éléments
+    const exportIcon = document.getElementById('newadd_onnote_exportIcon');
+    const exportMenu = document.getElementById('newadd_onnote_exportMenu');
+    const closeMenuBtn = document.getElementById('newadd_onnote_closeExportMenu');
+    const exportItems = document.querySelectorAll('.newadd_onnote_export_item');
+    const loadingOverlay = document.getElementById('newadd_onnote_loadingOverlay');
+    
+    // Fermer le menu si on clique ailleurs
+    document.addEventListener('click', (e) => {
+        if (!exportMenu.contains(e.target) && e.target !== exportIcon) {
+            exportMenu.classList.remove('active');
+        }
+    });
+    
+    // Ouvrir/fermer le menu d'exportation
+    exportIcon.addEventListener('click', () => {
+        exportMenu.classList.toggle('active');
+    });
+    
+    // Fermer avec le bouton X
+    closeMenuBtn.addEventListener('click', () => {
+        exportMenu.classList.remove('active');
+    });
+    
+    // Gérer les clics sur les formats d'exportation
+    exportItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const format = item.getAttribute('data-format');
+            exportNote(format);
+            exportMenu.classList.remove('active');
+        });
+    });
+}
+
+// Fonction principale d'exportation
+async function exportNote(format) {
+    // Vérifier si l'éditeur existe et a du contenu
+    if (!window.editorInstance) return;
+    
+    const content = window.editorInstance.value;
+    if (!content.trim()) {
+        showNotification('Aucun contenu à exporter');
+        return;
+    }
+    
+    const title = getDocumentTitle() || 'Note';
+    showLoading(true);
+    
+    try {
+        switch (format) {
+            case 'pdf':
+                await exportToPDF(content, title);
+                break;
+            case 'docx':
+                await exportToDocx(content, title);
+                break;
+            case 'txt':
+                exportToTxt(content, title);
+                break;
+            case 'html':
+                exportToHTML(content, title);
+                break;
+            case 'md':
+                exportToMarkdown(content, title);
+                break;
+            default:
+                showNotification('Format non supporté');
+        }
+    } catch (error) {
+        console.error('Erreur lors de l\'exportation:', error);
+        showNotification('Erreur lors de l\'exportation');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Extraire un titre depuis le contenu (h1 ou premier paragraphe)
+function getDocumentTitle() {
+    if (!window.editorInstance) return null;
+    
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = window.editorInstance.value;
+    
+    // Chercher un h1
+    const h1 = tempDiv.querySelector('h1');
+    if (h1 && h1.textContent.trim()) {
+        return h1.textContent.trim();
+    }
+    
+    // Sinon prendre le premier paragraphe
+    const firstP = tempDiv.querySelector('p');
+    if (firstP && firstP.textContent.trim()) {
+        // Limiter à 30 caractères
+        const text = firstP.textContent.trim();
+        return text.length > 30 ? text.substring(0, 27) + '...' : text;
+    }
+    
+    return null;
+}
+
+// Exporter en PDF
+async function exportToPDF(content, title) {
+    try {
+        // Créer un conteneur temporaire pour le rendu
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = content;
+        tempContainer.style.width = '210mm'; // Format A4
+        tempContainer.style.padding = '20mm';
+        tempContainer.style.backgroundColor = 'white';
+        tempContainer.style.color = 'black';
+        
+        // Ajuster les styles pour l'impression
+        const styles = document.createElement('style');
+        styles.textContent = `
+            body { font-family: 'Arial', sans-serif; color: black; }
+            h1, h2, h3, h4, h5, h6 { color: black; }
+            a { color: #0366d6; text-decoration: underline; }
+            img { max-width: 100%; height: auto; }
+            table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+        `;
+        tempContainer.appendChild(styles);
+        
+        // Ajouter le conteneur temporaire au DOM pour le rendu
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        document.body.appendChild(tempContainer);
+        
+        // Créer le PDF (format A4)
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+        
+        // Utiliser html2canvas pour le rendu
+        const canvas = await html2canvas(tempContainer, {
+            scale: 2, // Meilleure qualité
+            useCORS: true,
+            logging: false
+        });
+        
+        // Convertir le canvas en image
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        
+        // Calculer les dimensions pour ajuster au format A4
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        // Ajouter des pages selon la hauteur du contenu
+        let heightLeft = pdfHeight;
+        let position = 0;
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pdf.internal.pageSize.getHeight();
+        
+        while (heightLeft >= 0) {
+            position = heightLeft - pdfHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+            heightLeft -= pdf.internal.pageSize.getHeight();
+        }
+        
+        // Nettoyer
+        document.body.removeChild(tempContainer);
+        
+        // Télécharger le PDF
+        pdf.save(`${title}.pdf`);
+        showNotification('PDF exporté avec succès');
+    } catch (error) {
+        console.error('Erreur lors de l\'exportation PDF:', error);
+        showNotification('Erreur lors de l\'exportation PDF');
+    }
+}
+
+// Exporter en DOCX
+async function exportToDocx(content, title) {
+    try {
+        // Créer un nouveau document DOCX avec JSZip
+        const zip = new JSZip();
+        
+        // Ajouter les fichiers nécessaires au ZIP
+        
+        // [Content_Types].xml
+        zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+  <Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>
+  <Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>
+</Types>`);
+        
+        // _rels/.rels
+        zip.file("_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>
+  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>
+</Relationships>`);
+        
+        // docProps/app.xml
+        zip.file("docProps/app.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">
+  <Application>Claude Note Exporter</Application>
+  <AppVersion>1.0.0</AppVersion>
+</Properties>`);
+        
+        // docProps/core.xml
+        const now = new Date().toISOString();
+        zip.file("docProps/core.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <dc:title>${title}</dc:title>
+  <dc:creator>Claude Note</dc:creator>
+  <cp:lastModifiedBy>Claude Note</cp:lastModifiedBy>
+  <dcterms:created xsi:type="dcterms:W3CDTF">${now}</dcterms:created>
+  <dcterms:modified xsi:type="dcterms:W3CDTF">${now}</dcterms:modified>
+</cp:coreProperties>`);
+        
+        // word/_rels/document.xml.rels
+        zip.file("word/_rels/document.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`);
+        
+        // word/styles.xml
+        zip.file("word/styles.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:style w:type="paragraph" w:default="1" w:styleId="Normal">
+    <w:name w:val="Normal"/>
+    <w:rPr>
+      <w:sz w:val="24"/>
+      <w:szCs w:val="24"/>
+      <w:lang w:val="fr-FR" w:eastAsia="en-US" w:bidi="ar-SA"/>
+    </w:rPr>
+    <w:pPr>
+      <w:spacing w:after="200" w:line="276" w:lineRule="auto"/>
+    </w:pPr>
+  </w:style>
+  <w:style w:type="paragraph" w:styleId="Heading1">
+    <w:name w:val="heading 1"/>
+    <w:basedOn w:val="Normal"/>
+    <w:next w:val="Normal"/>
+    <w:rPr>
+      <w:b/>
+      <w:sz w:val="32"/>
+      <w:szCs w:val="32"/>
+    </w:rPr>
+    <w:pPr>
+      <w:spacing w:before="240" w:after="240"/>
+    </w:pPr>
+  </w:style>
+</w:styles>`);
+        
+        // Créer document.xml à partir du HTML
+        let documentContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>`;
+        
+        // Convertir le HTML en DOCX XML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        
+        // Parcourir les éléments et les convertir en XML DOCX
+        Array.from(tempDiv.children).forEach(element => {
+            if (element.tagName === 'H1') {
+                documentContent += `
+    <w:p>
+      <w:pPr>
+        <w:pStyle w:val="Heading1"/>
+      </w:pPr>
+      <w:r>
+        <w:t>${element.textContent}</w:t>
+      </w:r>
+    </w:p>`;
+            } else if (element.tagName === 'P') {
+                documentContent += `
+    <w:p>
+      <w:r>
+        <w:t>${element.textContent}</w:t>
+      </w:r>
+    </w:p>`;
+            } else {
+                // Pour les autres éléments, simplifier en paragraphes
+                documentContent += `
+    <w:p>
+      <w:r>
+        <w:t>${element.textContent}</w:t>
+      </w:r>
+    </w:p>`;
+            }
+        });
+        
+        // Finaliser le document
+        documentContent += `
+  </w:body>
+</w:document>`;
+        
+        zip.file("word/document.xml", documentContent);
+        
+        // Générer le ZIP et télécharger
+        const blob = await zip.generateAsync({type:'blob'});
+        saveAs(blob, `${title}.docx`);
+        showNotification('Document Word exporté avec succès');
+    } catch (error) {
+        console.error('Erreur lors de l\'exportation DOCX:', error);
+        showNotification('Erreur lors de l\'exportation DOCX');
+    }
+}
+
+// Exporter en texte brut
+function exportToTxt(content, title) {
+    try {
+        // Créer un div temporaire
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        
+        // Extraire le texte brut
+        let txt = '';
+        
+        // Fonction récursive pour parcourir les nœuds
+        function extractText(node) {
+            if (node.nodeType === Node.TEXT_NODE) {
+                txt += node.textContent;
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                // Ajouter des sauts de ligne pour les éléments bloc
+                const nodeName = node.nodeName.toLowerCase();
+                if (['div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'br', 'tr'].includes(nodeName)) {
+                    if (txt && !txt.endsWith('\n')) {
+                        txt += '\n';
+                    }
+                    
+                    // Ajouter des espacements supplémentaires pour les titres
+                    if (nodeName.match(/^h[1-6]$/)) {
+                        txt += '\n';
+                    }
+                }
+                
+                // Parcourir les enfants
+                for (const child of node.childNodes) {
+                    extractText(child);
+                }
+                
+                // Ajouter des sauts de ligne après certains éléments
+                if (['div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'tr'].includes(nodeName)) {
+                    if (!txt.endsWith('\n\n')) {
+                        txt += '\n';
+                    }
+                }
+            }
+        }
+        
+        extractText(tempDiv);
+        
+        // Nettoyer les espaces et sauts de ligne multiples
+        txt = txt.replace(/\n{3,}/g, '\n\n').trim();
+        
+        // Créer un blob et télécharger
+        const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+        saveAs(blob, `${title}.txt`);
+        showNotification('Texte brut exporté avec succès');
+    } catch (error) {
+        console.error('Erreur lors de l\'exportation TXT:', error);
+        showNotification('Erreur lors de l\'exportation TXT');
+    }
+}
+
+// Exporter en HTML
+function exportToHTML(content, title) {
+    try {
+        // Créer un HTML complet avec styles intégrés
+        const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #333;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 { font-size: 2em; }
+        h2 { font-size: 1.75em; }
+        h3 { font-size: 1.5em; }
+        p { margin-bottom: 1em; }
+        img { max-width: 100%; height: auto; }
+        a { color: #0366d6; }
+        code { 
+            font-family: monospace;
+            background-color: #f6f8fa;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+        }
+        pre {
+            background-color: #f6f8fa;
+            padding: 16px;
+            border-radius: 6px;
+            overflow: auto;
+        }
+        blockquote {
+            border-left: 4px solid #dfe2e5;
+            padding-left: 1em;
+            color: #6a737d;
+            margin-left: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 1em;
+        }
+        th, td {
+            border: 1px solid #dfe2e5;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th { background-color: #f6f8fa; }
+        ul, ol { margin-bottom: 1em; }
+        @media print {
+            body { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+    ${content}
+    <div style="text-align: center; margin-top: 40px; color: #6a737d; font-size: 0.8em;">
+        Exporté depuis Claude Note
+    </div>
+</body>
+</html>`;
+        
+        // Créer un blob et télécharger
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        saveAs(blob, `${title}.html`);
+        showNotification('HTML exporté avec succès');
+    } catch (error) {
+        console.error('Erreur lors de l\'exportation HTML:', error);
+        showNotification('Erreur lors de l\'exportation HTML');
+    }
+}
+
+// Exporter en Markdown
+function exportToMarkdown(content, title) {
+    try {
+        // Utiliser TurndownService pour convertir HTML en Markdown
+        const turndownService = new TurndownService({
+            headingStyle: 'atx',
+            codeBlockStyle: 'fenced',
+            emDelimiter: '*',
+        });
+        
+        // Personaliser les règles pour améliorer la conversion
+        turndownService.addRule('listItems', {
+            filter: 'li',
+            replacement: function(content, node, options) {
+                const parent = node.parentNode;
+                const index = Array.prototype.indexOf.call(parent.children, node);
+                const prefix = parent.nodeName === 'OL' ? `${index + 1}. ` : '- ';
+                content = content.replace(/^\s+/, '').replace(/\n/gm, '\n    ');
+                return prefix + content + (node.nextSibling && !/\n$/.test(content) ? '\n' : '');
+            }
+        });
+        
+        // Améliorer le rendu des tableaux
+        turndownService.addRule('tables', {
+            filter: 'table',
+            replacement: function(content, node) {
+                const tableRows = node.querySelectorAll('tr');
+                if (tableRows.length === 0) return '';
+                
+                let markdown = '';
+                
+                // Traiter l'en-tête
+                const headerRow = tableRows[0];
+                const headerCells = headerRow.querySelectorAll('th, td');
+                if (headerCells.length > 0) {
+                    const headerMarkdown = Array.from(headerCells)
+                        .map(cell => cell.textContent.trim())
+                        .join(' | ');
+                    markdown += '| ' + headerMarkdown + ' |\n';
+                    
+                    // Ligne de séparation
+                    markdown += '| ' + Array(headerCells.length).fill('---').join(' | ') + ' |\n';
+                }
+                
+                // Traiter les autres lignes
+                for (let i = 1; i < tableRows.length; i++) {
+                    const cells = tableRows[i].querySelectorAll('td');
+                    if (cells.length > 0) {
+                        const rowMarkdown = Array.from(cells)
+                            .map(cell => cell.textContent.trim())
+                            .join(' | ');
+                        markdown += '| ' + rowMarkdown + ' |\n';
+                    }
+                }
+                
+                return markdown;
+            }
+        });
+        
+        // Convertir le HTML en Markdown
+        const markdown = turndownService.turndown(content);
+        
+        // Créer un blob et télécharger
+        const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+        saveAs(blob, `${title}.md`);
+        showNotification('Markdown exporté avec succès');
+    } catch (error) {
+        console.error('Erreur lors de l\'exportation Markdown:', error);
+        showNotification('Erreur lors de l\'exportation Markdown');
+    }
+}
+
+// Afficher une notification
+function showNotification(message, type = 'success') {
+    // Supprimer les notifications existantes
+    const existingNotif = document.querySelector('.newadd_onnote_notification');
+    if (existingNotif) {
+        existingNotif.remove();
+    }
+    
+    // Créer une nouvelle notification
+    const notification = document.createElement('div');
+    notification.className = 'newadd_onnote_notification';
+    notification.innerHTML = `
+        <div class="newadd_onnote_notification_icon">✓</div>
+        <div class="newadd_onnote_notification_text">${message}</div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Supprimer après animation
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Afficher/masquer l'overlay de chargement
+function showLoading(show) {
+    const overlay = document.getElementById('newadd_onnote_loadingOverlay');
+    if (show) {
+        overlay.classList.add('active');
+    } else {
+        overlay.classList.remove('active');
+    }
+}
+
+// Modifier la fonction openNote pour initialiser l'exportation
+function openNote(elementId) {
     document.getElementById('contentGrid').style.display = 'none';
     document.getElementById('chatContainer').style.display = 'none';
     document.getElementById('noteContainer').style.display = 'block';
@@ -4562,21 +5124,34 @@ async function openNote(elementId) {
     window.editorInstance.value = '';
     
     // Charger le contenu spécifique à cet élément
-    try {
-        const noteContent = await loadNoteContent(elementId);
-        if (noteContent && noteContent.content) {
-            window.editorInstance.value = noteContent.content;
-        } else {
-            // Si pas de contenu, laisser l'éditeur vide et créer une entrée vide
-            await createNoteContent(elementId, '');
-        }
-    } catch (error) {
-        console.error('Erreur lors du chargement du contenu de la note:', error);
-    }
-
-    // Ajuster la hauteur de l'éditeur
-    adjustEditorHeight();
+    loadNoteContent(elementId)
+        .then(noteContent => {
+            if (noteContent && noteContent.content) {
+                window.editorInstance.value = noteContent.content;
+            } else {
+                // Si pas de contenu, laisser l'éditeur vide et créer une entrée vide
+                createNoteContent(elementId, '');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement du contenu de la note:', error);
+        })
+        .finally(() => {
+            // Ajuster la hauteur de l'éditeur
+            adjustEditorHeight();
+            
+            // Initialiser les fonctionnalités d'exportation
+            initializeNoteExport();
+        });
 }
+
+// Ajouter un écouteur d'événements pour le redimensionnement
+window.addEventListener('resize', debounce(() => {
+    if (document.getElementById('noteContainer').style.display !== 'none') {
+        adjustEditorHeight();
+    }
+}, 250));
+
 
 
 
@@ -7994,12 +8569,14 @@ searchClose.addEventListener('click', function() {
 /*══════════════════════════════╗
   🟧 JS PARTIE 12
   ═════════════════════════════╝*/
-// Initialisation du menu et de la fonctionnalité de téléchargement
+// Fonction pour initialiser le menu et ses options
 document.addEventListener('DOMContentLoaded', function() {
     // Références aux éléments du menu
     const menuBtn = document.getElementById('chatMenuBtn');
     const menuDropdown = document.getElementById('chatMenuDropdown');
     const downloadOption = document.getElementById('downloadChatOption');
+    const editProfileOption = document.getElementById('Edit_profil_onchatmenu_editOption');
+    const exitChatOption = document.getElementById('exitChatOption'); // Nouvelle référence
     
     // Gestion de l'ouverture/fermeture du menu
     menuBtn.addEventListener('click', function(e) {
@@ -8022,6 +8599,61 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fonction de téléchargement de la conversation
     downloadOption.addEventListener('click', function() {
         downloadChat();
+    });
+    
+    // Ouvrir le modal d'édition de profil
+    editProfileOption.addEventListener('click', function() {
+        Edit_profil_onchatmenu_openModal();
+    });
+    
+    // Quitter le chat
+    exitChatOption.addEventListener('click', function() {
+        exitChat();
+    });
+    
+    // Gestion du modal d'édition de profil
+    const profileEditModal = document.getElementById('Edit_profil_onchatmenu_modal');
+    const profileEditOverlay = document.getElementById('Edit_profil_onchatmenu_overlay');
+    const closeProfileModal = document.getElementById('Edit_profil_onchatmenu_closeModal');
+    const cancelProfileEdit = document.getElementById('Edit_profil_onchatmenu_cancel');
+    const saveProfileEdit = document.getElementById('Edit_profil_onchatmenu_save');
+    const changeProfileImage = document.getElementById('Edit_profil_onchatmenu_changeImage');
+    const removeProfileImage = document.getElementById('Edit_profil_onchatmenu_removeImage');
+    const profileImageUpload = document.getElementById('Edit_profil_onchatmenu_imageUpload');
+    
+    closeProfileModal.addEventListener('click', Edit_profil_onchatmenu_closeModal);
+    profileEditOverlay.addEventListener('click', Edit_profil_onchatmenu_closeModal);
+    cancelProfileEdit.addEventListener('click', Edit_profil_onchatmenu_closeModal);
+    
+    changeProfileImage.addEventListener('click', function() {
+        profileImageUpload.click();
+    });
+    
+    profileImageUpload.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('Edit_profil_onchatmenu_currentImage').style.backgroundImage = `url(${e.target.result})`;
+                document.getElementById('Edit_profil_onchatmenu_currentImage').textContent = '';
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+    
+    removeProfileImage.addEventListener('click', function() {
+        document.getElementById('Edit_profil_onchatmenu_currentImage').style.backgroundImage = 'none';
+        document.getElementById('Edit_profil_onchatmenu_currentImage').textContent = document.getElementById('Edit_profil_onchatmenu_nameInput').value[0].toUpperCase();
+    });
+    
+    saveProfileEdit.addEventListener('click', function() {
+        Edit_profil_onchatmenu_saveChanges();
+    });
+    
+    // Fermer le modal avec la touche Echap
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && (profileEditModal.style.display === 'block')) {
+            Edit_profil_onchatmenu_closeModal();
+        }
     });
 });
 
@@ -8332,10 +8964,2231 @@ function generateChatHTML(conversation) {
     return html;
 }
 
+// Fonction pour ouvrir le modal d'édition de profil
+function Edit_profil_onchatmenu_openModal() {
+    const profileEditModal = document.getElementById('Edit_profil_onchatmenu_modal');
+    const profileEditOverlay = document.getElementById('Edit_profil_onchatmenu_overlay');
+    const currentProfileImage = document.getElementById('Edit_profil_onchatmenu_currentImage');
+    const contactNameEdit = document.getElementById('Edit_profil_onchatmenu_nameInput');
+    
+    // Remplir les champs avec les informations actuelles
+    contactNameEdit.value = contactInfo.name;
+    
+    if (contactInfo.image) {
+        currentProfileImage.style.backgroundImage = `url(${contactInfo.image})`;
+        currentProfileImage.textContent = '';
+    } else {
+        currentProfileImage.style.backgroundImage = 'none';
+        currentProfileImage.textContent = contactInfo.name[0].toUpperCase();
+    }
+    
+    // Afficher le modal
+    profileEditOverlay.style.display = 'block';
+    profileEditModal.style.display = 'block';
+}
+
+// Fonction pour fermer le modal d'édition de profil
+function Edit_profil_onchatmenu_closeModal() {
+    const profileEditModal = document.getElementById('Edit_profil_onchatmenu_modal');
+    const profileEditOverlay = document.getElementById('Edit_profil_onchatmenu_overlay');
+    
+    profileEditOverlay.style.display = 'none';
+    profileEditModal.style.display = 'none';
+}
+
+// Fonction pour sauvegarder les modifications du profil
+async function Edit_profil_onchatmenu_saveChanges() {
+    const contactNameEdit = document.getElementById('Edit_profil_onchatmenu_nameInput');
+    const currentProfileImage = document.getElementById('Edit_profil_onchatmenu_currentImage');
+    const saveButton = document.getElementById('Edit_profil_onchatmenu_save');
+    
+    // Vérifier si le nom n'est pas vide
+    if (!contactNameEdit.value.trim()) {
+        contactNameEdit.classList.add('error');
+        return;
+    }
+    
+    // Mettre à jour les informations locales
+    const newName = contactNameEdit.value.trim();
+    let newImage = contactInfo.image;
+    
+    // Si l'image a été modifiée
+    if (currentProfileImage.style.backgroundImage !== 'none') {
+        const backgroundImage = currentProfileImage.style.backgroundImage;
+        if (backgroundImage) {
+            newImage = backgroundImage.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+        }
+    } else {
+        newImage = null;
+    }
+    
+    // Animation de chargement
+    saveButton.textContent = 'Enregistrement...';
+    saveButton.disabled = true;
+    
+    try {
+        // Mise à jour dans la base de données
+        if (!currentConversationId) {
+            throw new Error("Aucune conversation active");
+        }
+        
+        const { error } = await supabase
+            .from('conversations')
+            .update({
+                contact_name: newName,
+                contact_image: newImage,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', currentConversationId);
+        
+        if (error) {
+            throw error;
+        }
+        
+        // Mettre à jour le cache
+        if (cachedConversations.has(currentConversationId)) {
+            const cachedConversation = cachedConversations.get(currentConversationId);
+            cachedConversation.contact_name = newName;
+            cachedConversation.contact_image = newImage;
+            cacheConversation(currentConversationId, cachedConversation);
+        }
+        
+        // Mettre à jour l'interface
+        contactInfo.name = newName;
+        contactInfo.image = newImage;
+        
+        const contactImg = document.getElementById('contactImg');
+        const quickContactImg = document.getElementById('quickContactImg');
+        
+        if (contactInfo.image) {
+            contactImg.style.backgroundImage = `url(${contactInfo.image})`;
+            contactImg.textContent = '';
+            quickContactImg.style.backgroundImage = `url(${contactInfo.image})`;
+            quickContactImg.textContent = '';
+        } else {
+            contactImg.style.backgroundImage = 'none';
+            contactImg.textContent = contactInfo.name[0].toUpperCase();
+            quickContactImg.style.backgroundImage = 'none';
+            quickContactImg.textContent = contactInfo.name[0].toUpperCase();
+        }
+        
+        document.getElementById('contactNameDisplay').textContent = contactInfo.name;
+        
+        // Mettre à jour le titre de l'élément
+        const elementId = getCurrentElementId();
+        if (elementId) {
+            await updateElementTitleWithContact(elementId, contactInfo.name);
+        }
+        
+        // Animation de succès
+        saveButton.classList.add('Edit_profil_onchatmenu_success');
+        saveButton.textContent = 'Enregistré !';
+        
+        setTimeout(() => {
+            saveButton.classList.remove('Edit_profil_onchatmenu_success');
+            saveButton.textContent = 'Enregistrer';
+            saveButton.disabled = false;
+            Edit_profil_onchatmenu_closeModal();
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde du profil:', error);
+        saveButton.textContent = 'Erreur';
+        saveButton.style.background = 'var(--error)';
+        
+        setTimeout(() => {
+            saveButton.style.background = '';
+            saveButton.textContent = 'Enregistrer';
+            saveButton.disabled = false;
+        }, 2000);
+    }
+}
 
 //══════════════════════════════╗
 // 🟥 JS PARTIE 13
 //══════════════════════════════╝
+
+  
+// Déclaration globale des applications web existantes
+let webApps = [
+    {
+        id: 'mymio',
+        name: 'Mymio',
+        description: "L'Univers Mental Privé - Un espace personnel pour organiser mes pensées, notes et réflexions",
+        url: 'https://mymio.prd.on-fleek.net/',
+        icon: 'https://mymio.prd.on-fleek.net/favicon.ico',
+        screenshot: '', // L'iframe sera utilisé à la place
+        created: '2023-11-15',
+        status: 'active',
+        github: 'https://github.com/jeanlouislikula/mymio',
+        categories: ['personnel', 'organisation'],
+        technologies: [
+            { 
+                name: 'React', 
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="#61DAFB"><path d="M12 9.861a2.139 2.139 0 100 4.278 2.139 2.139 0 100-4.278zm-5.992 6.394l-.472-.12C2.018 15.246 0 13.737 0 11.996s2.018-3.25 5.536-4.139l.472-.119.133.468a23.53 23.53 0 001.363 3.578l.101.213-.101.213a23.307 23.307 0 00-1.363 3.578l-.133.467zM5.317 8.95c-2.674.751-4.315 1.9-4.315 3.046 0 1.145 1.641 2.294 4.315 3.046a24.95 24.95 0 011.182-3.046A24.752 24.752 0 015.317 8.95zm12.675 7.305l-.133-.469a23.357 23.357 0 00-1.364-3.577l-.101-.213.101-.213a23.42 23.42 0 001.364-3.578l.133-.468.473.119c3.517.889 5.535 2.398 5.535 4.14s-2.018 3.25-5.535 4.139l-.473.12zm-.491-4.259c.48 1.039.877 2.06 1.182 3.046 2.675-.752 4.315-1.901 4.315-3.046 0-1.146-1.641-2.294-4.315-3.046a24.788 24.788 0 01-1.182 3.046zM5.31 8.945l-.133-.467C4.188 4.992 4.488 2.494 6 1.622c1.483-.856 3.864.155 6.359 2.716l.34.349-.34.349a23.552 23.552 0 00-2.422 2.967l-.135.193-.235.02a23.657 23.657 0 00-3.785.61l-.472.119zm1.896-6.63c-.268 0-.505.058-.705.173-.994.573-1.17 2.565-.485 5.253a25.122 25.122 0 013.233-.501 24.847 24.847 0 012.052-2.544c-1.56-1.519-3.037-2.381-4.095-2.381zm9.589 20.362c-.001 0-.001 0 0 0-1.425 0-3.255-1.073-5.154-3.023l-.34-.349.34-.349a23.53 23.53 0 002.421-2.968l.135-.193.234-.02a23.63 23.63 0 003.787-.609l.472-.119.134.468c.987 3.484.688 5.983-.824 6.854a2.38 2.38 0 01-1.205.308zm-4.096-3.381c1.56 1.519 3.037 2.381 4.095 2.381h.001c.267 0 .505-.058.704-.173.994-.573 1.171-2.566.485-5.254a25.02 25.02 0 01-3.234.501 24.674 24.674 0 01-2.051 2.545zM18.69 8.945l-.472-.119a23.479 23.479 0 00-3.787-.61l-.234-.02-.135-.193a23.414 23.414 0 00-2.421-2.967l-.34-.349.34-.349C14.135 1.778 16.515.767 18 1.622c1.512.872 1.812 3.37.824 6.855l-.134.468zM14.75 7.24c1.142.104 2.227.273 3.234.501.686-2.688.509-4.68-.485-5.253-.988-.571-2.845.304-4.8 2.208A24.849 24.849 0 0114.75 7.24zM7.206 22.677A2.38 2.38 0 016 22.369c-1.512-.871-1.812-3.369-.823-6.854l.132-.468.472.119c1.155.291 2.429.496 3.785.609l.235.02.134.193a23.596 23.596 0 002.422 2.968l.34.349-.34.349c-1.898 1.95-3.728 3.023-5.151 3.023zm-1.19-6.427c-.686 2.688-.509 4.681.485 5.254.987.569 2.845-.305 4.8-2.208a24.998 24.998 0 01-2.052-2.545 24.976 24.976 0 01-3.233-.501zm5.984.628c-.823 0-1.669-.036-2.516-.106l-.235-.02-.135-.193a30.388 30.388 0 01-1.35-2.122 30.354 30.354 0 01-1.166-2.228l-.1-.213.1-.213a30.3 30.3 0 011.166-2.228c.414-.749.885-1.48 1.35-2.122l.135-.193.235-.02a29.785 29.785 0 015.033 0l.234.02.134.193a30.006 30.006 0 012.517 4.35l.101.213-.101.213a29.6 29.6 0 01-2.517 4.35l-.134.193-.234.02c-.847.07-1.694.106-2.517.106zm-2.197-1.084c1.48.111 2.914.111 4.395 0a29.006 29.006 0 002.196-3.798 28.585 28.585 0 00-2.197-3.798 29.031 29.031 0 00-4.394 0 28.477 28.477 0 00-2.197 3.798 29.114 29.114 0 002.197 3.798z"/></svg>' 
+            },
+            { 
+                name: 'Firebase', 
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="#FFCA28"><path d="M3.89 15.673L6.255.461A.542.542 0 0 1 7.27.289L9.813 5.06 3.89 15.673zm16.795 3.691L18.433 5.365a.543.543 0 0 0-.918-.295l-14.2 14.294 7.857 4.428a1.62 1.62 0 0 0 1.587 0l7.926-4.428zM14.3 7.148l-1.82-3.482a.542.542 0 0 0-.96 0L3.53 17.984 14.3 7.148z"/></svg>' 
+            },
+            { 
+                name: 'CSS3', 
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="#1572B6"><path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.564-2.438L1.5 0zm7.031 9.75l-.232-2.718 10.059.003.23-2.622L5.412 4.41l.698 8.01h9.126l-.326 3.426-2.91.804-2.955-.81-.188-2.11H6.248l.33 4.171L12 19.351l5.379-1.443.744-8.157H8.531z"/></svg>' 
+            }
+        ],
+        admin: [
+            {
+                type: 'database',
+                name: 'Firebase Console',
+                url: 'https://console.firebase.google.com',
+                credentials: {
+                    email: 'jean-louis@example.com',
+                    password: 'MySecurePassword123'
+                }
+            },
+            {
+                type: 'analytics',
+                name: 'ShinySet Analytics',
+                url: 'https://analytics.shinyset.com',
+                credentials: {
+                    username: 'jeanlouis_mymio',
+                    password: 'AnalyticsPass#42'
+                }
+            }
+        ]
+    },
+    {
+        id: 'aaino',
+        name: 'Aaino',
+        description: "Partagez des liens qui changent la vie - Un hub pour partager et découvrir des ressources web essentielles",
+        url: 'https://aaino.onrender.com/',
+        icon: 'https://aaino.onrender.com/favicon.ico',
+        screenshot: '', // L'iframe sera utilisé à la place
+        created: '2024-01-22',
+        status: 'active',
+        github: 'https://github.com/jeanlouislikula/aaino',
+        categories: ['partage', 'découverte'],
+        technologies: [
+            { 
+                name: 'Vue.js', 
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="#4FC08D"><path d="M24 1.61h-9.94L12 5.16 9.94 1.61H0l12 20.78L24 1.61zM12 14.08L5.16 2.23h4.43L12 6.41l2.41-4.18h4.43L12 14.08z"/></svg>' 
+            },
+            { 
+                name: 'Supabase', 
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="#3FCF8E"><path d="M21.362 9.354H12V.396a.396.396 0 0 0-.716-.233L2.203 12.424l-.401.562a1.04 1.04 0 0 0 .836 1.659H12v8.959a.396.396 0 0 0 .716.233l9.081-12.261.401-.562a1.04 1.04 0 0 0-.836-1.66z"/></svg>' 
+            },
+            { 
+                name: 'Node.js', 
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="#339933"><path d="M12 0C5.373 0 0 5.373 0 12c0 6.627 5.373 12 12 12 6.627 0 12-5.373 12-12 0-6.627-5.373-12-12-12zm2.218 18.616c-.354.069-.468.05-.599-.08-.124-.132-.171-.361-.2-.842-.035-.542-.004-.912.1-1.25.096-.323.193-.47.692-.866.365-.292.551-.47.729-.714.178-.244.296-.525.345-.842.05-.323.05-.756.005-1.039-.046-.289-.142-.513-.292-.668a.458.458 0 0 0-.106-.088c.6.1 1.179.278 1.644.824.402.473.561 1.085.561 1.829 0 1.108-.39 1.96-1.032 2.314-.57.316-1.28.374-1.847.422zM12 2.089c-.8 0-1.487.061-2.046.172-.55.111-1.011.29-1.358.673-.346.376-.489.887-.585 1.31-.097.422-.148.946-.148 1.556 0 .418.011.806.032 1.188.019.362.06.704.098 1.039.04.334.08.67.109 1.039.03.368.05.784.05 1.272 0 .334 0 .61-.025.815-.023.206-.07.346-.129.446-.06.1-.152.163-.274.228-.122.065-.135.08-.513.201-.378.122-.865.223-1.463.346-.6.122-1.283.292-1.918.501-.318.111-.674.223-1.074.39v.13a24.2 24.2 0 0 0 1.074.389c.635.21 1.318.379 1.918.501.598.123 1.085.224 1.463.346.378.121.39.136.513.201.122.065.215.129.274.228.06.1.106.24.13.446.024.206.024.481.024.815 0 .488-.018.904-.048 1.272-.03.368-.07.705-.109 1.04-.038.334-.08.676-.098 1.038a18.5 18.5 0 0 0-.032 1.188c0 .61.05 1.135.148 1.556.096.422.239.934.585 1.31.347.383.807.562 1.358.673.559.111 1.246.173 2.046.173.8 0 1.487-.062 2.046-.173.55-.111 1.011-.29 1.358-.673.347-.376.489-.888.585-1.31.097-.421.148-.946.148-1.556 0-.418-.011-.806-.032-1.188-.019-.362-.06-.704-.098-1.038-.04-.335-.079-.672-.109-1.04-.03-.368-.048-.784-.048-1.272 0-.334 0-.609.024-.815.024-.206.07-.346.13-.446.06-.1.152-.163.274-.228.122-.065.135-.08.513-.201.378-.122.865-.223 1.463-.346.6-.122 1.283-.291 1.918-.501.318-.111.674-.224 1.074-.39v-.128c-.4-.168-.756-.28-1.074-.39-.635-.21-1.318-.38-1.918-.501-.598-.123-1.085-.224-1.463-.346-.378-.121-.39-.136-.513-.201-.122-.065-.215-.129-.274-.228-.06-.1-.106-.24-.13-.446-.023-.206-.023-.481-.023-.815 0-.488.017-.904.048-1.272.03-.369.07-.705.109-1.04.038-.333.08-.676.098-1.038.021-.382.032-.77.032-1.188 0-.61-.05-1.134-.148-1.556-.096-.422-.238-.933-.585-1.31-.346-.382-.807-.561-1.358-.673C13.487 2.15 12.8 2.09 12 2.09"/></svg>' 
+            }
+        ],
+        admin: [
+            {
+                type: 'database',
+                name: 'Supabase Console',
+                url: 'https://app.supabase.io',
+                credentials: {
+                    email: 'jean-louis@example.com',
+                    password: 'SupaSecretPass!42'
+                }
+            },
+            {
+                type: 'hosting',
+                name: 'Render Dashboard',
+                url: 'https://dashboard.render.com',
+                credentials: {
+                    email: 'jean-louis@example.com',
+                    password: 'RenderHostPass!24'
+                }
+            }
+        ]
+    }
+];
+
+// Fonction globale pour générer les cartes d'applications
+function renderApps(apps) {
+    const appsGrid = document.getElementById('webapp_onidentity-apps-grid');
+    appsGrid.innerHTML = '';
+    
+    if (apps.length === 0) {
+        appsGrid.innerHTML = `
+            <div class="webapp_onidentity-no-apps">
+                <div class="webapp_onidentity-no-apps-icon">🔍</div>
+                <p>Aucune application trouvée</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Créer une carte pour chaque application
+    apps.forEach((app, index) => {
+        const card = document.createElement('div');
+        card.className = 'webapp_onidentity-app-card';
+        card.setAttribute('data-app-id', app.id);
+        card.style.animationDelay = `${index * 0.1}s`;
+        
+        // Date formatée
+        const createdDate = new Date(app.created);
+        const formattedDate = createdDate.toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        // Construction du HTML de la carte
+        card.innerHTML = `
+            <div class="webapp_onidentity-app-actions">
+                <button class="webapp_onidentity-edit-btn" aria-label="Modifier" title="Modifier">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+                <button class="webapp_onidentity-delete-btn" aria-label="Supprimer" title="Supprimer">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="webapp_onidentity-app-icon" style="background-color: rgba(255, 255, 255, 0.05);">
+                <img src="${app.icon}" alt="${app.name}" class="webapp_onidentity-app-icon-img">
+            </div>
+            <div class="webapp_onidentity-app-info">
+                <h3 class="webapp_onidentity-app-name">${app.name}</h3>
+                <p class="webapp_onidentity-app-description">${app.description}</p>
+                <div class="webapp_onidentity-app-meta">
+                    <div class="webapp_onidentity-app-date">Créé le ${formattedDate}</div>
+                    <div class="webapp_onidentity-app-badges">
+                        ${app.categories.map(cat => `<span class="webapp_onidentity-app-badge">${cat}</span>`).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Ajouter la carte à la grille
+        appsGrid.appendChild(card);
+        
+        // Récupérer les références aux boutons
+        const editBtn = card.querySelector('.webapp_onidentity-edit-btn');
+        const deleteBtn = card.querySelector('.webapp_onidentity-delete-btn');
+        
+        // Ajouter l'écouteur d'événements pour ouvrir le modal de détail au clic sur la carte
+        card.addEventListener('click', (e) => {
+            // Vérifier que le clic n'est pas sur un des boutons d'action
+            if (!e.target.closest('.webapp_onidentity-edit-btn') && 
+                !e.target.closest('.webapp_onidentity-delete-btn')) {
+                openAppDetail(app);
+            }
+        });
+        
+        // Ajouter l'écouteur pour le bouton d'édition
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Empêcher la propagation jusqu'à la carte
+            openEditModal(app);
+        });
+        
+        // Ajouter l'écouteur pour le bouton de suppression
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Empêcher la propagation jusqu'à la carte
+            confirmDeleteApp(app);
+        });
+    });
+}
+
+
+// Fonction globale pour ouvrir le modal de détail d'une application
+function openAppDetail(app) {
+    const detailModal = document.getElementById('webapp_onidentity-detail-modal');
+    const modalIcon = detailModal.querySelector('.webapp_onidentity-modal-icon');
+    const modalTitle = detailModal.querySelector('.webapp_onidentity-modal-title');
+    const modalDescription = detailModal.querySelector('.webapp_onidentity-app-description');
+    const modalIframe = document.getElementById('webapp_onidentity-site-preview');
+    const modalVisitLink = detailModal.querySelector('.webapp_onidentity-visit-site');
+    const modalGithubLink = detailModal.querySelector('.webapp_onidentity-github-link');
+    const modalTechBadges = detailModal.querySelector('.webapp_onidentity-tech-badges');
+    const modalAdminItems = detailModal.querySelector('.webapp_onidentity-admin-items');
+    const modalCreatedDate = detailModal.querySelector('.webapp_onidentity-created-date');
+    
+    // Remplir les informations du modal
+    modalIcon.style.backgroundImage = `url(${app.icon})`;
+    modalTitle.textContent = app.name;
+    modalDescription.textContent = app.description;
+    
+    // Définir la source de l'iframe
+    modalIframe.src = app.url;
+    
+    // Configurer les liens
+    modalVisitLink.href = app.url;
+    modalGithubLink.href = app.github;
+    
+    // Formater la date
+    const createdDate = new Date(app.created);
+    modalCreatedDate.textContent = createdDate.toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    // Générer les badges de technologies
+    modalTechBadges.innerHTML = '';
+    app.technologies.forEach(tech => {
+        const badge = document.createElement('div');
+        badge.className = 'webapp_onidentity-tech-badge';
+        
+        // Créer l'élément d'icône séparément
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'webapp_onidentity-tech-icon-container';
+        iconSpan.innerHTML = tech.icon;
+        
+        badge.appendChild(iconSpan);
+        
+        // Ajouter le nom de la technologie
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = tech.name;
+        badge.appendChild(nameSpan);
+        
+        modalTechBadges.appendChild(badge);
+    });
+    
+    // Générer les éléments d'administration
+    modalAdminItems.innerHTML = '';
+    app.admin.forEach(admin => {
+        const item = document.createElement('div');
+        item.className = 'webapp_onidentity-admin-item';
+        
+        // Choisir l'icône en fonction du type
+        let icon = '';
+        switch (admin.type) {
+            case 'database':
+                icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>';
+                break;
+            case 'analytics':
+                icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line><line x1="2" y1="20" x2="22" y2="20"></line></svg>';
+                break;
+            case 'hosting':
+                icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>';
+                break;
+            default:
+                icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>';
+        }
+        
+        item.innerHTML = `
+            <div class="webapp_onidentity-admin-item-title">
+                ${icon}
+                <span>${admin.name}</span>
+            </div>
+            <div class="webapp_onidentity-admin-credentials">
+                ${admin.credentials.email ? `
+                    <div class="webapp_onidentity-credential-item">
+                        <span class="webapp_onidentity-credential-label">Email</span>
+                        <div class="webapp_onidentity-credential-value">
+                            ${admin.credentials.email}
+                            <button class="webapp_onidentity-copy-btn" data-value="${admin.credentials.email}" title="Copier">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                ` : ''}
+                ${admin.credentials.username ? `
+                    <div class="webapp_onidentity-credential-item">
+                        <span class="webapp_onidentity-credential-label">Utilisateur</span>
+                        <div class="webapp_onidentity-credential-value">
+                            ${admin.credentials.username}
+                            <button class="webapp_onidentity-copy-btn" data-value="${admin.credentials.username}" title="Copier">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                ` : ''}
+                ${admin.credentials.password ? `
+                    <div class="webapp_onidentity-credential-item">
+                        <span class="webapp_onidentity-credential-label">Mot de passe</span>
+                        <div class="webapp_onidentity-credential-value password">
+                            ${'•'.repeat(admin.credentials.password.length)}
+                            <button class="webapp_onidentity-reveal-btn" data-value="${admin.credentials.password}" title="Révéler">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                            <button class="webapp_onidentity-copy-btn" data-value="${admin.credentials.password}" title="Copier">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+            <a href="${admin.url}" class="webapp_onidentity-visit-btn" target="_blank">
+                Accéder au tableau de bord
+            </a>
+        `;
+        
+        modalAdminItems.appendChild(item);
+    });
+    
+    // Afficher le modal
+    detailModal.classList.add('active');
+    
+    // Empêcher le scroll sur l'ensemble de la page
+    document.body.style.overflow = 'hidden';
+    
+    // Empêcher le scroll de la zone principale
+    const contentArea = document.querySelector('.content-area');
+    if (contentArea) {
+        contentArea.classList.add('no-scroll');
+    }
+    
+    // Faire en sorte que le modal soit visible au centre
+    detailModal.querySelector('.webapp_onidentity-modal-content').scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+    });
+    
+    // Configurer l'iframe avec une vue miniature initiale
+    setTimeout(() => {
+        // Diminuer la taille pour voir l'ensemble du site
+        modalIframe.style.transform = 'scale(0.4)';
+        modalIframe.style.width = '250%';
+        modalIframe.style.height = '250%';
+        
+        // Configurer les contrôles de zoom
+        setupScreenshotControls(modalIframe);
+    }, 500);
+    
+    // Ajouter les écouteurs d'événements pour les boutons de copie et de révélation
+    setupCredentialButtons();
+}
+
+// Fonction pour ouvrir le modal d'édition avec les données pré-remplies
+function openEditModal(app) {
+    // Récupérer le modal d'ajout
+    const addModal = document.getElementById('webapp_onidentity-add-modal');
+    const modalTitle = addModal.querySelector('.webapp_onidentity-modal-title');
+    
+    // Modifier le titre pour indiquer qu'il s'agit d'une modification
+    modalTitle.textContent = "Modifier l'application";
+    
+    // Pré-remplir les champs avec les données de l'application
+    const appNameInput = document.getElementById('webapp_onidentity-app-name');
+    const appUrlInput = document.getElementById('webapp_onidentity-app-url');
+    const appDescInput = document.getElementById('webapp_onidentity-app-description');
+    const appGithubInput = document.getElementById('webapp_onidentity-app-github');
+    const appDateInput = document.getElementById('webapp_onidentity-app-date');
+    const previewIcon = document.getElementById('webapp_onidentity-preview-icon');
+    
+    // Remplir les champs de base
+    appNameInput.value = app.name || '';
+    appUrlInput.value = app.url || '';
+    appDescInput.value = app.description || '';
+    appGithubInput.value = app.github || '';
+    
+    // Formater la date pour l'input date (YYYY-MM-DD)
+    const createdDate = new Date(app.created);
+    const formattedInputDate = createdDate.toISOString().split('T')[0];
+    appDateInput.value = formattedInputDate;
+    
+    // Mettre à jour l'aperçu
+    const previewName = document.getElementById('webapp_onidentity-preview-name');
+    const previewDesc = document.getElementById('webapp_onidentity-preview-description');
+    const previewDate = document.getElementById('webapp_onidentity-preview-date');
+    
+    previewName.textContent = app.name;
+    previewDesc.textContent = app.description;
+    
+    // Formater la date pour l'affichage
+    const formattedDisplayDate = createdDate.toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    previewDate.textContent = `Créé le ${formattedDisplayDate}`;
+    
+    // Mettre à jour l'icône
+    previewIcon.src = app.icon;
+    
+    // IMPORTANT: Réinitialiser les variables globales avant de les remplir
+    window.selectedCategories = [];
+    window.selectedTechnologies = [];
+    window.adminConfigs = [];
+    
+    // Sélectionner les catégories
+    const categoryChips = document.querySelectorAll('.webapp_onidentity-category-chip:not(.add-more)');
+    categoryChips.forEach(chip => {
+        const category = chip.getAttribute('data-category');
+        if (app.categories.includes(category)) {
+            chip.classList.add('active');
+            // Ajouter à la liste des catégories sélectionnées
+            window.selectedCategories.push(category);
+        } else {
+            chip.classList.remove('active');
+        }
+    });
+    
+    // Ajouter les catégories personnalisées qui ne sont pas dans les puces prédéfinies
+    app.categories.forEach(category => {
+        const categoryChip = document.querySelector(`.webapp_onidentity-category-chip[data-category="${category}"]`);
+        if (!categoryChip && !window.selectedCategories.includes(category)) {
+            window.selectedCategories.push(category);
+        }
+    });
+    
+    // Mettre à jour l'affichage des catégories sélectionnées
+    updateSelectedCategories();
+    
+    // Sélectionner les technologies
+    const techChips = document.querySelectorAll('.webapp_onidentity-tech-chip:not(.add-more)');
+    const techNames = app.technologies.map(t => t.name);
+    
+    techChips.forEach(chip => {
+        const tech = chip.getAttribute('data-tech');
+        if (techNames.includes(tech)) {
+            chip.classList.add('active');
+            // Ajouter à la liste des technologies sélectionnées
+            window.selectedTechnologies.push(tech);
+        } else {
+            chip.classList.remove('active');
+        }
+    });
+    
+    // Ajouter les technologies personnalisées qui ne sont pas dans les puces prédéfinies
+    techNames.forEach(tech => {
+        const techChip = document.querySelector(`.webapp_onidentity-tech-chip[data-tech="${tech}"]`);
+        if (!techChip && !window.selectedTechnologies.includes(tech)) {
+            window.selectedTechnologies.push(tech);
+        }
+    });
+    
+    // Mettre à jour l'affichage des technologies sélectionnées
+    updateSelectedTechnologies();
+    
+    // Gérer les éléments d'administration
+    const adminItems = document.getElementById('webapp_onidentity-admin-items');
+    adminItems.innerHTML = ''; // Nettoyer les items existants
+    
+    // Ajouter chaque élément d'administration
+    if (app.admin && app.admin.length > 0) {
+        app.admin.forEach(adminItem => {
+            const adminId = addAdminItem();
+            
+            // Trouver l'élément DOM correspondant
+            const adminElement = document.querySelector(`.webapp_onidentity-admin-form-item[data-admin-id="${adminId}"]`);
+            
+            if (adminElement) {
+                // Sélectionner le type
+                const typeOptions = adminElement.querySelectorAll('.webapp_onidentity-admin-type-option');
+                typeOptions.forEach(option => {
+                    const type = option.getAttribute('data-type');
+                    if (type === adminItem.type) {
+                        option.click(); // Simuler un clic pour activer la sélection
+                    }
+                });
+                
+                // Récupérer la config pour la mettre à jour directement
+                const config = window.adminConfigs.find(c => c.id === adminId);
+                if (config) {
+                    config.type = adminItem.type || '';
+                }
+                
+                // Sélectionner la plateforme ou entrer un nom personnalisé
+                const platformOptions = adminElement.querySelectorAll('.webapp_onidentity-platform-option:not(.add-more)');
+                let platformFound = false;
+                
+                platformOptions.forEach(option => {
+                    const platform = option.getAttribute('data-platform');
+                    if (platform && adminItem.name === option.querySelector('span').textContent) {
+                        option.click(); // Simuler un clic pour activer la sélection
+                        platformFound = true;
+                        
+                        // Mettre à jour la config directement
+                        if (config) {
+                            config.platform = platform;
+                            config.name = adminItem.name;
+                        }
+                    }
+                });
+                
+                if (!platformFound) {
+                    // C'est probablement une plateforme personnalisée
+                    const addCustomPlatform = adminElement.querySelector('.webapp_onidentity-platform-option.add-more');
+                    if (addCustomPlatform) {
+                        addCustomPlatform.click();
+                        const platformNameInput = adminElement.querySelector('.admin-platform-name');
+                        if (platformNameInput) {
+                            platformNameInput.value = adminItem.name;
+                            
+                            // Mettre à jour la config directement
+                            if (config) {
+                                config.platform = 'custom';
+                                config.name = adminItem.name;
+                            }
+                        }
+                    }
+                }
+                
+                // Remplir l'URL
+                const urlInput = adminElement.querySelector('.admin-url');
+                if (urlInput) {
+                    urlInput.value = adminItem.url || '';
+                    
+                    // Mettre à jour la config directement
+                    if (config) {
+                        config.url = adminItem.url || '';
+                    }
+                }
+                
+                // Remplir les identifiants
+                const usernameInput = adminElement.querySelector('.admin-username');
+                if (usernameInput) {
+                    const username = adminItem.credentials.email || adminItem.credentials.username || '';
+                    usernameInput.value = username;
+                    
+                    // Mettre à jour la config directement
+                    if (config && config.credentials) {
+                        config.credentials.username = username;
+                    }
+                }
+                
+                const passwordInput = adminElement.querySelector('.admin-password');
+                if (passwordInput) {
+                    passwordInput.value = adminItem.credentials.password || '';
+                    
+                    // Mettre à jour la config directement
+                    if (config && config.credentials) {
+                        config.credentials.password = adminItem.credentials.password || '';
+                    }
+                }
+            }
+        });
+    }
+    
+    // Modifier le comportement du bouton de sauvegarde
+    const saveBtn = addModal.querySelector('.webapp_onidentity-modal-save-btn');
+    
+    // Retirer les écouteurs d'événements existants
+    const newSaveBtn = saveBtn.cloneNode(true);
+    saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+    
+    // Ajouter un nouvel écouteur d'événements pour la mise à jour
+    newSaveBtn.addEventListener('click', () => {
+        // Vérifier clairement que c'est une mise à jour et non un ajout
+        if (addModal.hasAttribute('data-edit-mode') && addModal.getAttribute('data-edit-mode') === 'true') {
+            if (validateForm()) {
+                updateApplication(app.id);
+            }
+        }
+    });
+    
+    // Changer le texte du bouton
+    newSaveBtn.textContent = "Mettre à jour";
+    
+    // Ajouter un attribut data pour indiquer qu'il s'agit d'une modification
+    addModal.setAttribute('data-edit-mode', 'true');
+    addModal.setAttribute('data-app-id', app.id);
+    
+    // Ouvrir le modal
+    addModal.classList.add('active');
+    
+    // Empêcher le scroll sur l'ensemble de la page
+    document.body.style.overflow = 'hidden';
+    
+    // Empêcher le scroll de la zone principale
+    const contentArea = document.querySelector('.content-area');
+    if (contentArea) {
+        contentArea.classList.add('no-scroll');
+    }
+    
+    // Faire en sorte que le modal soit visible au centre
+    addModal.querySelector('.webapp_onidentity-modal-content').scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+    });
+}
+
+
+// Fonction pour mettre à jour l'application existante
+async function updateApplication(appId) {
+    // Référence aux éléments du formulaire
+    const appNameInput = document.getElementById('webapp_onidentity-app-name');
+    const appUrlInput = document.getElementById('webapp_onidentity-app-url');
+    const appDescInput = document.getElementById('webapp_onidentity-app-description');
+    const appGithubInput = document.getElementById('webapp_onidentity-app-github');
+    const appDateInput = document.getElementById('webapp_onidentity-app-date');
+    const previewIcon = document.getElementById('webapp_onidentity-preview-icon');
+    
+    // Récupérer toutes les données du formulaire
+    const updatedApp = {
+        id: appId,
+        name: appNameInput.value,
+        description: appDescInput.value,
+        url: appUrlInput.value,
+        icon: previewIcon.src,
+        created: appDateInput.value,
+        github: appGithubInput.value,
+        categories: window.selectedCategories || [],
+        technologies: (window.selectedTechnologies || []).map(tech => {
+            // Trouver l'icône correspondante
+            const techChip = document.querySelector(`.webapp_onidentity-tech-chip[data-tech="${tech}"]`);
+            let icon = '';
+            
+            if (techChip) {
+                // Récupérer l'icône SVG
+                const svg = techChip.querySelector('svg');
+                icon = svg ? svg.outerHTML : '';
+            }
+            
+            return {
+                name: tech,
+                icon: icon
+            };
+        }),
+        admin: (window.adminConfigs || [])
+            .filter(config => config.type && config.name)
+            .map(config => ({
+                type: config.type,
+                name: config.name,
+                url: config.url,
+                credentials: {
+                    email: config.credentials.username && config.credentials.username.includes('@') 
+                        ? config.credentials.username 
+                        : '',
+                    username: config.credentials.username && !config.credentials.username.includes('@') 
+                        ? config.credentials.username 
+                        : '',
+                    password: config.credentials.password
+                }
+            }))
+    };
+    
+    // Référence au bouton de sauvegarde
+    const saveBtn = document.querySelector('.webapp_onidentity-modal-save-btn');
+    const saveButtonText = saveBtn.textContent;
+    
+    // Afficher un indicateur de chargement
+    saveBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="webapp_onidentity-spinner">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a10 10 0 0 1 10 10"></path>
+        </svg>
+        Mise à jour...
+    `;
+    saveBtn.disabled = true;
+    
+    try {
+        // Mettre à jour dans Supabase
+        const { data, error } = await supabase
+            .from('web_applications')
+            .update(updatedApp)
+            .eq('id', appId)
+            .select();
+        
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+            // Mettre à jour dans la liste locale
+            const index = webApps.findIndex(app => app.id === appId);
+            if (index !== -1) {
+                webApps[index] = data[0];
+            }
+            
+            // Mettre à jour l'affichage
+            renderApps(webApps);
+            
+            // Afficher un message de succès
+            alert(`L'application "${updatedApp.name}" a été mise à jour avec succès`);
+            
+            // Fermer le modal
+            closeAddAppModal();
+        } else {
+            throw new Error("Échec de la mise à jour");
+        }
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour:', error);
+        alert(`Erreur lors de la mise à jour: ${error.message}`);
+    } finally {
+        // Restaurer le bouton de sauvegarde
+        saveBtn.innerHTML = saveButtonText;
+        saveBtn.disabled = false;
+    }
+}
+
+
+
+// Fonction pour confirmer la suppression d'une application
+function confirmDeleteApp(app) {
+    const deleteConfirmModal = document.getElementById('webapp_onidentity-delete-confirm');
+    const appNameElement = document.getElementById('webapp_onidentity-delete-app-name');
+    const confirmBtn = document.getElementById('webapp_onidentity-confirm-delete-btn');
+    const cancelBtn = document.getElementById('webapp_onidentity-cancel-delete-btn');
+    
+    // Afficher le nom de l'application
+    appNameElement.textContent = app.name;
+    
+    // Afficher le modal
+    deleteConfirmModal.classList.add('active');
+    
+    // Empêcher le scroll sur l'ensemble de la page
+    document.body.style.overflow = 'hidden';
+    
+    // Configurer le bouton de confirmation
+    // Retirer les écouteurs d'événements existants
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    
+    // Ajouter un nouvel écouteur d'événements
+    newConfirmBtn.addEventListener('click', async () => {
+        try {
+            // Afficher un indicateur de chargement sur le bouton
+            newConfirmBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="webapp_onidentity-spinner">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 2a10 10 0 0 1 10 10"></path>
+                </svg>
+                Suppression...
+            `;
+            newConfirmBtn.disabled = true;
+            
+            // Supprimer de Supabase
+            const { error } = await supabase
+                .from('web_applications')
+                .delete()
+                .eq('id', app.id);
+            
+            if (error) throw error;
+            
+            // Supprimer de la liste locale
+            webApps = webApps.filter(a => a.id !== app.id);
+            
+            // Mettre à jour l'affichage
+            renderApps(webApps);
+            
+            // Fermer le modal
+            deleteConfirmModal.classList.remove('active');
+            document.body.style.overflow = '';
+            
+            // Afficher un message de succès
+            alert(`L'application "${app.name}" a été supprimée avec succès`);
+        } catch (error) {
+            console.error('Erreur lors de la suppression:', error);
+            alert(`Erreur lors de la suppression: ${error.message}`);
+            
+            // Restaurer le bouton
+            newConfirmBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Supprimer
+            `;
+            newConfirmBtn.disabled = false;
+        }
+    });
+    
+    // Configurer le bouton d'annulation
+    // Retirer les écouteurs d'événements existants
+    const newCancelBtn = cancelBtn.cloneNode(true);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+    
+    // Ajouter un nouvel écouteur d'événements
+    newCancelBtn.addEventListener('click', () => {
+        deleteConfirmModal.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+    
+    // Fermer le modal en cliquant en dehors du contenu
+    deleteConfirmModal.addEventListener('click', (e) => {
+        if (e.target === deleteConfirmModal) {
+            deleteConfirmModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+}
+
+// Variables globales pour suivre les éléments sélectionnés
+window.selectedCategories = [];
+window.selectedTechnologies = [];
+window.adminConfigs = [];
+
+// Fonction pour générer un ID unique
+function generateUniqueId() {
+    return `id_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+}
+
+// Fonction pour mettre à jour le compteur de sélections
+function updateSelectionCount(element, count) {
+    if (element) {
+        element.textContent = count;
+    }
+}
+
+
+  // Fonction pour initialiser la section des applications web
+function initializeWebApps() {
+    
+
+    // Référence aux éléments du DOM
+    const appsGrid = document.getElementById('webapp_onidentity-apps-grid');
+    const searchInput = document.getElementById('webapp_onidentity-search-input');
+    const gridViewBtn = document.getElementById('webapp_onidentity-grid-view');
+    const listViewBtn = document.getElementById('webapp_onidentity-list-view');
+    const detailModal = document.getElementById('webapp_onidentity-detail-modal');
+    
+ 
+    
+
+    
+    // Fonction pour configurer les boutons de copie et de révélation
+    function setupCredentialButtons() {
+        // Boutons pour copier
+        const copyButtons = document.querySelectorAll('.webapp_onidentity-copy-btn');
+        copyButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const value = btn.getAttribute('data-value');
+                
+                // Copier dans le presse-papier
+                navigator.clipboard.writeText(value).then(() => {
+                    // Changer temporairement l'icône pour indiquer la réussite
+                    const originalInnerHTML = btn.innerHTML;
+                    btn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    `;
+                    
+                    // Rétablir l'icône originale après un délai
+                    setTimeout(() => {
+                        btn.innerHTML = originalInnerHTML;
+                    }, 1500);
+                });
+            });
+        });
+        
+        // Boutons pour révéler
+        const revealButtons = document.querySelectorAll('.webapp_onidentity-reveal-btn');
+        revealButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const value = btn.getAttribute('data-value');
+                const credentialValue = btn.parentElement;
+                
+                if (credentialValue.classList.contains('password')) {
+                    // Afficher le texte en clair
+                    credentialValue.textContent = value;
+                    credentialValue.classList.remove('password');
+                    
+                    // Ajouter les boutons à nouveau (ils ont été supprimés lors du remplacement du texte)
+                    credentialValue.appendChild(btn);
+                    
+                    // Modifier l'icône pour indiquer qu'on peut masquer
+                    btn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <path d="M1 12h22"></path>
+                        </svg>
+                    `;
+                    
+                    // Trouver le bouton de copie et l'ajouter à nouveau
+                    const copyBtn = credentialValue.querySelector('.webapp_onidentity-copy-btn');
+                    if (!copyBtn) {
+                        const newCopyBtn = document.createElement('button');
+                        newCopyBtn.className = 'webapp_onidentity-copy-btn';
+                        newCopyBtn.setAttribute('data-value', value);
+                        newCopyBtn.setAttribute('title', 'Copier');
+                        newCopyBtn.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        `;
+                        credentialValue.appendChild(newCopyBtn);
+                        
+                        // Reconfigurer le bouton de copie
+                        newCopyBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(value);
+                            // Changement temporaire pour indiquer la copie réussie
+                            const originalHTML = newCopyBtn.innerHTML;
+                            newCopyBtn.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            `;
+                            setTimeout(() => {
+                                newCopyBtn.innerHTML = originalHTML;
+                            }, 1500);
+                        });
+                    }
+                } else {
+                    // Masquer le texte
+                    credentialValue.textContent = '•'.repeat(value.length);
+                    credentialValue.classList.add('password');
+                    
+                    // Ajouter les boutons à nouveau
+                    credentialValue.appendChild(btn);
+                    
+                    // Modifier l'icône pour indiquer qu'on peut révéler
+                    btn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    `;
+                    
+                    // Recréer le bouton de copie
+                    const newCopyBtn = document.createElement('button');
+                    newCopyBtn.className = 'webapp_onidentity-copy-btn';
+                    newCopyBtn.setAttribute('data-value', value);
+                    newCopyBtn.setAttribute('title', 'Copier');
+                    newCopyBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    `;
+                    credentialValue.appendChild(newCopyBtn);
+                    
+                    // Reconfigurer le bouton de copie
+                    newCopyBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(value);
+                        // Changement temporaire pour indiquer la copie réussie
+                        const originalHTML = newCopyBtn.innerHTML;
+                        newCopyBtn.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        `;
+                        setTimeout(() => {
+                            newCopyBtn.innerHTML = originalHTML;
+                        }, 1500);
+                    });
+                }
+            });
+        });
+    }
+    
+    // Fonction pour rechercher des applications
+    function searchApps(query) {
+        if (!query) {
+            renderApps(webApps);
+            return;
+        }
+        
+        const normalizedQuery = query.toLowerCase();
+        const filteredApps = webApps.filter(app => {
+            return (
+                app.name.toLowerCase().includes(normalizedQuery) ||
+                app.description.toLowerCase().includes(normalizedQuery) ||
+                app.categories.some(cat => cat.toLowerCase().includes(normalizedQuery))
+            );
+        });
+        
+        renderApps(filteredApps);
+    }
+    
+    // Initialisation
+    function init() {
+        // Charger les applications depuis Supabase au chargement
+        loadAppsFromSupabase();      
+        // Afficher les applications au chargement
+        renderApps(webApps);
+        
+        // Configurer la recherche
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                searchApps(e.target.value);
+            });
+        }
+        
+        // Configurer la vue grille/liste
+        if (gridViewBtn && listViewBtn) {
+            gridViewBtn.addEventListener('click', () => {
+                appsGrid.classList.remove('list-view');
+                gridViewBtn.classList.add('active');
+                listViewBtn.classList.remove('active');
+            });
+            
+            listViewBtn.addEventListener('click', () => {
+                appsGrid.classList.add('list-view');
+                listViewBtn.classList.add('active');
+                gridViewBtn.classList.remove('active');
+            });
+        }
+        
+// Configurer la fermeture du modal
+const closeModalBtn = detailModal.querySelector('.webapp_onidentity-modal-close');
+if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', () => {
+        detailModal.classList.remove('active');
+        document.body.style.overflow = '';  // Réactiver le scroll sur l'ensemble de la page
+        
+        // Réactiver le scroll de la zone principale
+        const contentArea = document.querySelector('.content-area');
+        if (contentArea) {
+            contentArea.classList.remove('no-scroll');
+        }
+    });
+}
+
+// Fermer le modal en cliquant en dehors du contenu
+detailModal.addEventListener('click', (e) => {
+    if (e.target === detailModal) {
+        detailModal.classList.remove('active');
+        document.body.style.overflow = '';  // Réactiver le scroll sur l'ensemble de la page
+        
+        // Réactiver le scroll de la zone principale
+        const contentArea = document.querySelector('.content-area');
+        if (contentArea) {
+            contentArea.classList.remove('no-scroll');
+        }
+    }
+});
+
+    }
+    
+    // Lancer l'initialisation
+    init();
+
+  
+    // Fonction pour configurer les contrôles de zoom et de navigation
+function setupScreenshotControls(iframe) {
+    const zoomInBtn = document.getElementById('webapp_onidentity-zoom-in');
+    const zoomOutBtn = document.getElementById('webapp_onidentity-zoom-out');
+    const resetViewBtn = document.getElementById('webapp_onidentity-reset-view');
+    
+    // Variable pour stocker le niveau de zoom actuel
+    let currentScale = 0.4; // Échelle initiale
+    
+    // Fonction pour mettre à jour la transformation
+    function updateTransform() {
+        iframe.style.transform = `scale(${currentScale})`;
+        
+        // Ajuster la taille pour compenser le zoom
+        const widthPercentage = Math.min(250, 100 / currentScale * 100);
+        const heightPercentage = Math.min(250, 100 / currentScale * 100);
+        
+        iframe.style.width = `${widthPercentage}%`;
+        iframe.style.height = `${heightPercentage}%`;
+    }
+    
+    // Zoom in
+    zoomInBtn.addEventListener('click', () => {
+        currentScale = Math.min(1, currentScale + 0.1); // Limiter le zoom max à 1
+        updateTransform();
+    });
+    
+    // Zoom out
+    zoomOutBtn.addEventListener('click', () => {
+        currentScale = Math.max(0.2, currentScale - 0.1); // Limiter le zoom min à 0.2
+        updateTransform();
+    });
+    
+    // Reset view
+    resetViewBtn.addEventListener('click', () => {
+        currentScale = 0.4; // Revenir à l'échelle initiale
+        updateTransform();
+    });
+    
+    // Permettre la navigation par glisser-déposer dans l'iframe
+    let isDragging = false;
+    let startX, startY, startTranslateX = 0, startTranslateY = 0;
+    const iframeContainer = iframe.parentElement;
+    
+    iframeContainer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        // Récupérer la translation actuelle
+        const transform = iframe.style.transform;
+        const translateMatch = transform.match(/translate\((-?\d+\.?\d*)px, (-?\d+\.?\d*)px\)/);
+        
+        if (translateMatch) {
+            startTranslateX = parseFloat(translateMatch[1]);
+            startTranslateY = parseFloat(translateMatch[2]);
+        }
+        
+        e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        const dx = (e.clientX - startX) / currentScale;
+        const dy = (e.clientY - startY) / currentScale;
+        
+        iframe.style.transform = `scale(${currentScale}) translate(${startTranslateX + dx}px, ${startTranslateY + dy}px)`;
+    });
+    
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            
+            // Mettre à jour la position de départ pour le prochain drag
+            const transform = iframe.style.transform;
+            const translateMatch = transform.match(/translate\((-?\d+\.?\d*)px, (-?\d+\.?\d*)px\)/);
+            
+            if (translateMatch) {
+                startTranslateX = parseFloat(translateMatch[1]);
+                startTranslateY = parseFloat(translateMatch[2]);
+            }
+        }
+    });
+    
+    // Support tactile
+    iframeContainer.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+            isDragging = true;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            
+            const transform = iframe.style.transform;
+            const translateMatch = transform.match(/translate\((-?\d+\.?\d*)px, (-?\d+\.?\d*)px\)/);
+            
+            if (translateMatch) {
+                startTranslateX = parseFloat(translateMatch[1]);
+                startTranslateY = parseFloat(translateMatch[2]);
+            }
+            
+            e.preventDefault();
+        }
+    }, { passive: false });
+    
+    document.addEventListener('touchmove', (e) => {
+        if (!isDragging || e.touches.length !== 1) return;
+        
+        const dx = (e.touches[0].clientX - startX) / currentScale;
+        const dy = (e.touches[0].clientY - startY) / currentScale;
+        
+        iframe.style.transform = `scale(${currentScale}) translate(${startTranslateX + dx}px, ${startTranslateY + dy}px)`;
+        
+        e.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener('touchend', () => {
+        if (isDragging) {
+            isDragging = false;
+            
+            const transform = iframe.style.transform;
+            const translateMatch = transform.match(/translate\((-?\d+\.?\d*)px, (-?\d+\.?\d*)px\)/);
+            
+            if (translateMatch) {
+                startTranslateX = parseFloat(translateMatch[1]);
+                startTranslateY = parseFloat(translateMatch[2]);
+            }
+        }
+    });
+}
+  
+}
+
+
+// Fonction globale pour fermer le modal d'ajout/édition
+function closeAddAppModal() {
+    const addModal = document.getElementById('webapp_onidentity-add-modal');
+    addModal.classList.remove('active');
+    
+    // Réactiver le scroll sur l'ensemble de la page
+    document.body.style.overflow = '';
+    
+    // Réactiver le scroll de la zone principale
+    const contentArea = document.querySelector('.content-area');
+    if (contentArea) {
+        contentArea.classList.remove('no-scroll');
+    }
+    
+    // Réinitialiser le titre du modal pour la prochaine utilisation
+    const modalTitle = addModal.querySelector('.webapp_onidentity-modal-title');
+    modalTitle.textContent = "Ajouter une nouvelle application";
+    
+    // Réinitialiser le bouton de sauvegarde
+    const saveBtn = addModal.querySelector('.webapp_onidentity-modal-save-btn');
+    saveBtn.textContent = "Ajouter";
+    
+    // Retirer les attributs d'édition
+    addModal.removeAttribute('data-edit-mode');
+    addModal.removeAttribute('data-app-id');
+    
+    // Réinitialiser les variables globales
+    window.selectedCategories = [];
+    window.selectedTechnologies = [];
+    window.adminConfigs = [];
+}
+
+// Fonction pour initialiser le modal d'ajout d'application web
+function initializeAddAppModal() {
+    // Exposer ces fonctions globalement pour pouvoir les appeler depuis les fonctions d'édition
+    window.updateSelectedCategories = updateSelectedCategories;
+    window.updateSelectedTechnologies = updateSelectedTechnologies;
+    window.selectedCategories = [];
+    window.selectedTechnologies = [];
+    window.adminConfigs = [];
+    window.addAdminItem = addAdminItem;
+    window.validateForm = validateForm;
+
+    // Références aux éléments du DOM
+    const addBtn = document.getElementById('webapp_onidentity-add-btn');
+    const addModal = document.getElementById('webapp_onidentity-add-modal');
+    const closeModalBtn = addModal.querySelector('.webapp_onidentity-modal-close');
+    const cancelBtn = addModal.querySelector('.webapp_onidentity-modal-cancel-btn');
+    const saveBtn = addModal.querySelector('.webapp_onidentity-modal-save-btn');
+    const addForm = document.getElementById('webapp_onidentity-add-form');
+    
+    // Champs d'entrée pour les données de base
+    const appNameInput = document.getElementById('webapp_onidentity-app-name');
+    const appUrlInput = document.getElementById('webapp_onidentity-app-url');
+    const appDescInput = document.getElementById('webapp_onidentity-app-description');
+    const appGithubInput = document.getElementById('webapp_onidentity-app-github');
+    const appDateInput = document.getElementById('webapp_onidentity-app-date');
+    
+    // Éléments d'aperçu
+    const previewName = document.getElementById('webapp_onidentity-preview-name');
+    const previewDesc = document.getElementById('webapp_onidentity-preview-description');
+    const previewDate = document.getElementById('webapp_onidentity-preview-date');
+    const previewIcon = document.getElementById('webapp_onidentity-preview-icon');
+    const previewBadges = document.getElementById('webapp_onidentity-preview-badges');
+    
+    // Éléments pour les catégories et technologies
+    const categoryChips = document.querySelectorAll('.webapp_onidentity-category-chip:not(.add-more)');
+    const techChips = document.querySelectorAll('.webapp_onidentity-tech-chip:not(.add-more)');
+    const addCategoryBtn = document.querySelector('.webapp_onidentity-category-chip.add-more');
+    const addTechBtn = document.querySelector('.webapp_onidentity-tech-chip.add-more');
+    const customCategoryDiv = document.querySelector('.webapp_onidentity-custom-category');
+    const customTechDiv = document.querySelector('.webapp_onidentity-custom-tech');
+    const addCustomCategoryBtn = document.querySelector('.webapp_onidentity-add-category-btn');
+    const addCustomTechBtn = document.querySelector('.webapp_onidentity-add-tech-btn');
+    const customCategoryInput = document.getElementById('webapp_onidentity-custom-category');
+    const customTechInput = document.getElementById('webapp_onidentity-custom-tech');
+    const selectedCategoriesDiv = document.getElementById('webapp_onidentity-selected-category-chips');
+    const selectedTechDiv = document.getElementById('webapp_onidentity-selected-tech-chips');
+    const selectedCategoriesCount = document.getElementById('webapp_onidentity-selected-categories-count');
+    const selectedTechCount = document.getElementById('webapp_onidentity-selected-tech-count');
+    
+    // Éléments pour l'administration
+    const adminItems = document.getElementById('webapp_onidentity-admin-items');
+    const addAdminBtn = document.getElementById('webapp_onidentity-add-admin-btn');
+    const adminItemTemplate = document.getElementById('webapp_onidentity-admin-item-template');
+    
+    // Initialiser la date à aujourd'hui
+    const today = new Date().toISOString().split('T')[0];
+    appDateInput.value = today;
+    
+    // Mettre à jour l'aperçu de la date
+    const formattedDate = new Date().toLocaleDateString('fr-FR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    previewDate.textContent = `Créé le ${formattedDate}`;
+    
+    // Event listeners pour l'ouverture et la fermeture du modal
+    addBtn.addEventListener('click', () => {
+        // S'assurer que c'est un nouvel ajout et non une modification
+        const modalTitle = addModal.querySelector('.webapp_onidentity-modal-title');
+        modalTitle.textContent = "Ajouter une nouvelle application";
+        
+        // Réinitialiser le bouton de sauvegarde
+        const saveBtn = addModal.querySelector('.webapp_onidentity-modal-save-btn');
+        
+        // Retirer les écouteurs d'événements existants
+        const newSaveBtn = saveBtn.cloneNode(true);
+        saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+        
+        // Configurer pour l'ajout
+        newSaveBtn.textContent = "Ajouter";
+        
+        // Ajouter un nouvel écouteur d'événements pour l'ajout
+        newSaveBtn.addEventListener('click', () => {
+            if (validateForm()) {
+                saveApplication();
+            }
+        });
+        
+        // Retirer les attributs d'édition
+        addModal.removeAttribute('data-edit-mode');
+        addModal.removeAttribute('data-app-id');
+        
+        // Ouvrir le modal et réinitialiser le formulaire
+        openAddAppModal();
+    });
+    
+    closeModalBtn.addEventListener('click', () => {
+        closeAddAppModal();
+    });
+    
+    cancelBtn.addEventListener('click', () => {
+        closeAddAppModal();
+    });
+    
+    // Fermer le modal en cliquant en dehors du contenu
+    addModal.addEventListener('click', (e) => {
+        if (e.target === addModal) {
+            closeAddAppModal();
+        }
+    });
+    
+    // Fonction pour ouvrir le modal d'ajout
+    function openAddAppModal() {
+        addModal.classList.add('active');
+        
+        // Empêcher le scroll sur l'ensemble de la page
+        document.body.style.overflow = 'hidden';
+        
+        // Empêcher le scroll de la zone principale
+        const contentArea = document.querySelector('.content-area');
+        if (contentArea) {
+            contentArea.classList.add('no-scroll');
+        }
+        
+        // Faire en sorte que le modal soit visible au centre
+        addModal.querySelector('.webapp_onidentity-modal-content').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+        });
+        
+        // Réinitialiser le formulaire
+        resetForm();
+    }
+    
+    // Fonction pour réinitialiser le formulaire
+    function resetForm() {
+        addForm.reset();
+        appDateInput.value = today;
+        previewDate.textContent = `Créé le ${formattedDate}`;
+        previewName.textContent = "Nom de l'application";
+        previewDesc.textContent = "Description de l'application";
+        previewIcon.src = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2280%22%20height%3D%2280%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2220%22%20height%3D%2220%22%20rx%3D%222%22%20ry%3D%222%22%3E%3C%2Frect%3E%3Cline%20x1%3D%2212%22%20y1%3D%226%22%20x2%3D%2212%22%20y2%3D%2218%22%3E%3C%2Fline%3E%3Cline%20x1%3D%226%22%20y1%3D%2212%22%20x2%3D%2218%22%20y2%3D%2212%22%3E%3C%2Fline%3E%3C%2Fsvg%3E";
+        
+        // Réinitialiser les catégories et technologies
+        window.selectedCategories = [];
+        window.selectedTechnologies = [];
+        updateSelectedCategories();
+        updateSelectedTechnologies();
+        
+        // Réinitialiser les puces
+        categoryChips.forEach(chip => chip.classList.remove('active'));
+        techChips.forEach(chip => chip.classList.remove('active'));
+        
+        // Masquer les entrées personnalisées
+        customCategoryDiv.style.display = 'none';
+        customTechDiv.style.display = 'none';
+        
+        // Réinitialiser les éléments d'administration
+        adminItems.innerHTML = '';
+        window.adminConfigs = [];
+    }
+    
+    // Event listeners pour la mise à jour de l'aperçu
+    appNameInput.addEventListener('input', () => {
+        previewName.textContent = appNameInput.value || "Nom de l'application";
+    });
+    
+    appDescInput.addEventListener('input', () => {
+        previewDesc.textContent = appDescInput.value || "Description de l'application";
+    });
+    
+    let urlDebounceTimer;
+    appUrlInput.addEventListener('input', () => {
+        if (appUrlInput.value) {
+            try {
+                // Tenter de récupérer le favicon du site
+                const faviconUrl = `${new URL(appUrlInput.value).origin}/favicon.ico`;
+                previewIcon.src = faviconUrl;
+                previewIcon.onerror = () => {
+                    previewIcon.src = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2280%22%20height%3D%2280%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2220%22%20height%3D%2220%22%20rx%3D%222%22%20ry%3D%222%22%3E%3C%2Frect%3E%3Cline%20x1%3D%2212%22%20y1%3D%226%22%20x2%3D%2212%22%20y2%3D%2218%22%3E%3C%2Fline%3E%3Cline%20x1%3D%226%22%20y1%3D%2212%22%20x2%3D%2218%22%20y2%3D%2212%22%3E%3C%2Fline%3E%3C%2Fsvg%3E";
+                };
+                
+                // Débouncer pour éviter trop de requêtes
+                clearTimeout(urlDebounceTimer);
+                urlDebounceTimer = setTimeout(async () => {
+                    // Ajouter un loader ou un indicateur près du champ description
+                    appDescInput.classList.add('loading');
+                    
+                    // Optionnel: Ajouter un style pour l'état de chargement
+                    const loadingIndicator = document.createElement('div');
+                    loadingIndicator.className = 'webapp_onidentity-loading-indicator';
+                    loadingIndicator.id = 'description-loader';
+                    loadingIndicator.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="webapp_onidentity-spinner">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 2a10 10 0 0 1 10 10"></path>
+                        </svg>
+                        <span>Extraction en cours...</span>
+                    `;
+                    
+                    // Ajouter l'indicateur après le label de description
+                    const descLabel = document.querySelector('label[for="webapp_onidentity-app-description"]');
+                    if (descLabel && !document.getElementById('description-loader')) {
+                        descLabel.parentNode.insertBefore(loadingIndicator, appDescInput);
+                    }
+                    
+                    try {
+                        // Obtenir les métadonnées
+                        const metadata = await extractWebsiteMetadata(appUrlInput.value);
+                        
+                        if (metadata) {
+                            // Si on a des métadonnées, les afficher dans le champ de description
+                            if (metadata.description) {
+                                appDescInput.value = metadata.description;
+                                // Mettre à jour l'aperçu
+                                previewDesc.textContent = metadata.description;
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Erreur lors de l'extraction:", error);
+                    } finally {
+                        // Supprimer le loader
+                        appDescInput.classList.remove('loading');
+                        const loader = document.getElementById('description-loader');
+                        if (loader) loader.remove();
+                    }
+                }, 800); // Attendre 800ms après la dernière frappe
+            } catch (error) {
+                console.error("URL invalide:", error);
+            }
+        } else {
+            previewIcon.src = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2280%22%20height%3D%2280%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2220%22%20height%3D%2220%22%20rx%3D%222%22%20ry%3D%222%22%3E%3C%2Frect%3E%3Cline%20x1%3D%2212%22%20y1%3D%226%22%20x2%3D%2212%22%20y2%3D%2218%22%3E%3C%2Fline%3E%3Cline%20x1%3D%226%22%20y1%3D%2212%22%20x2%3D%2218%22%20y2%3D%2212%22%3E%3C%2Fline%3E%3C%2Fsvg%3E";
+            
+            // Supprimer le loader si on efface l'URL
+            const loader = document.getElementById('description-loader');
+            if (loader) loader.remove();
+        }
+    });
+    
+    appDateInput.addEventListener('change', () => {
+        const selectedDate = new Date(appDateInput.value);
+        const formattedSelectedDate = selectedDate.toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        previewDate.textContent = `Créé le ${formattedSelectedDate}`;
+    });
+    
+    // Event listeners pour les puces de catégorie
+    categoryChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            const category = chip.getAttribute('data-category');
+            
+            if (chip.classList.contains('active')) {
+                // Désélectionner
+                chip.classList.remove('active');
+                window.selectedCategories = window.selectedCategories.filter(cat => cat !== category);
+            } else {
+                // Sélectionner
+                chip.classList.add('active');
+                window.selectedCategories.push(category);
+            }
+            
+            updateSelectedCategories();
+        });
+    });
+    
+    // Event listeners pour les puces de technologie
+    techChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            const tech = chip.getAttribute('data-tech');
+            
+            if (chip.classList.contains('active')) {
+                // Désélectionner
+                chip.classList.remove('active');
+                window.selectedTechnologies = window.selectedTechnologies.filter(t => t !== tech);
+            } else {
+                // Sélectionner
+                chip.classList.add('active');
+                window.selectedTechnologies.push(tech);
+            }
+            
+            updateSelectedTechnologies();
+        });
+    });
+    
+    // Event listener pour ajouter une catégorie personnalisée
+    addCategoryBtn.addEventListener('click', () => {
+        customCategoryDiv.style.display = 'block';
+        customCategoryInput.focus();
+    });
+    
+    // Event listener pour ajouter une technologie personnalisée
+    addTechBtn.addEventListener('click', () => {
+        customTechDiv.style.display = 'block';
+        customTechInput.focus();
+    });
+    
+    // Ajouter une catégorie personnalisée
+    addCustomCategoryBtn.addEventListener('click', () => {
+        const category = customCategoryInput.value.trim();
+        if (category) {
+            if (!window.selectedCategories.includes(category)) {
+                window.selectedCategories.push(category);
+                updateSelectedCategories();
+            }
+            customCategoryInput.value = '';
+            customCategoryDiv.style.display = 'none';
+        }
+    });
+    
+    // Ajouter une technologie personnalisée
+    addCustomTechBtn.addEventListener('click', () => {
+        const tech = customTechInput.value.trim();
+        if (tech) {
+            if (!window.selectedTechnologies.includes(tech)) {
+                window.selectedTechnologies.push(tech);
+                updateSelectedTechnologies();
+            }
+            customTechInput.value = '';
+            customTechDiv.style.display = 'none';
+        }
+    });
+    
+    // Fonction pour mettre à jour l'affichage des catégories sélectionnées
+    function updateSelectedCategories() {
+        selectedCategoriesDiv.innerHTML = '';
+        selectedCategoriesCount.textContent = window.selectedCategories.length;
+        
+        previewBadges.innerHTML = '';
+        
+        window.selectedCategories.forEach(category => {
+            // Ajouter à la liste des sélectionnés
+            const chip = document.createElement('div');
+            chip.className = 'webapp_onidentity-selected-chip';
+            chip.innerHTML = `
+                <span>${category}</span>
+                <button class="webapp_onidentity-remove-chip" data-category="${category}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            `;
+            selectedCategoriesDiv.appendChild(chip);
+            
+            // Ajouter à l'aperçu
+            const badge = document.createElement('span');
+            badge.className = 'webapp_onidentity-app-badge';
+            badge.textContent = category;
+            previewBadges.appendChild(badge);
+            
+            // Ajouter l'event listener pour supprimer
+            chip.querySelector('.webapp_onidentity-remove-chip').addEventListener('click', () => {
+                window.selectedCategories = window.selectedCategories.filter(cat => cat !== category);
+                
+                // Désélectionner la puce si elle existe
+                const categoryChip = document.querySelector(`.webapp_onidentity-category-chip[data-category="${category}"]`);
+                if (categoryChip) {
+                    categoryChip.classList.remove('active');
+                }
+                
+                updateSelectedCategories();
+            });
+        });
+    }
+    
+    // Fonction pour mettre à jour l'affichage des technologies sélectionnées
+    function updateSelectedTechnologies() {
+        selectedTechDiv.innerHTML = '';
+        selectedTechCount.textContent = window.selectedTechnologies.length;
+        
+        window.selectedTechnologies.forEach(tech => {
+            const chip = document.createElement('div');
+            chip.className = 'webapp_onidentity-selected-chip';
+            chip.innerHTML = `
+                <span>${tech}</span>
+                <button class="webapp_onidentity-remove-chip" data-tech="${tech}">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            `;
+            selectedTechDiv.appendChild(chip);
+            
+            // Ajouter l'event listener pour supprimer
+            chip.querySelector('.webapp_onidentity-remove-chip').addEventListener('click', () => {
+                window.selectedTechnologies = window.selectedTechnologies.filter(t => t !== tech);
+                
+                // Désélectionner la puce si elle existe
+                const techChip = document.querySelector(`.webapp_onidentity-tech-chip[data-tech="${tech}"]`);
+                if (techChip) {
+                    techChip.classList.remove('active');
+                }
+                
+                updateSelectedTechnologies();
+            });
+        });
+    }
+    
+    // Event listener pour ajouter un élément d'administration
+    addAdminBtn.addEventListener('click', () => {
+        addAdminItem();
+    });
+    
+    // Fonction pour ajouter un élément d'administration
+    function addAdminItem() {
+        // Cloner le template
+        const template = adminItemTemplate.content.cloneNode(true);
+        const adminItem = template.querySelector('.webapp_onidentity-admin-form-item');
+        
+        // Ajouter un ID unique
+        const adminId = `admin_${Date.now()}`;
+        adminItem.setAttribute('data-admin-id', adminId);
+        
+        // Ajouter au DOM
+        adminItems.appendChild(adminItem);
+        
+        // Configurer les event listeners
+        setupAdminItemListeners(adminItem, adminId);
+        
+        // Ajouter à la configuration
+        window.adminConfigs.push({
+            id: adminId,
+            type: '',
+            platform: '',
+            name: '',
+            url: '',
+            credentials: {
+                username: '',
+                password: ''
+            }
+        });
+        
+        return adminId;
+    }
+    
+    // Fonction pour configurer les event listeners d'un élément d'administration
+    function setupAdminItemListeners(adminItem, adminId) {
+        const removeBtn = adminItem.querySelector('.webapp_onidentity-admin-remove-btn');
+        const typeOptions = adminItem.querySelectorAll('.webapp_onidentity-admin-type-option');
+        const platformOptions = adminItem.querySelectorAll('.webapp_onidentity-platform-option');
+        const platformNameInput = adminItem.querySelector('.admin-platform-name');
+        const urlInput = adminItem.querySelector('.admin-url');
+        const usernameInput = adminItem.querySelector('.admin-username');
+        const passwordInput = adminItem.querySelector('.admin-password');
+        const passwordToggle = adminItem.querySelector('.webapp_onidentity-password-toggle');
+        const addMorePlatform = adminItem.querySelector('.webapp_onidentity-platform-option.add-more');
+        
+        // Event listener pour supprimer l'élément
+        removeBtn.addEventListener('click', () => {
+            adminItem.remove();
+            window.adminConfigs = window.adminConfigs.filter(config => config.id !== adminId);
+        });
+        
+        // Event listeners pour sélectionner le type
+        typeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // Désélectionner tous les autres
+                typeOptions.forEach(opt => opt.classList.remove('active'));
+                
+                // Sélectionner celui-ci
+                option.classList.add('active');
+                
+                const type = option.getAttribute('data-type');
+                
+                // Mettre à jour le config
+                const config = window.adminConfigs.find(c => c.id === adminId);
+                if (config) {
+                    config.type = type;
+                }
+                
+                // Filtrer les options de plateforme selon le type
+                platformOptions.forEach(platform => {
+                    const platformType = platform.getAttribute('data-type');
+                    
+                    if (platform.classList.contains('add-more')) {
+                        return; // Toujours afficher l'option "Autre"
+                    }
+                    
+                    if (platformType === type || !platformType) {
+                        platform.style.display = 'flex';
+                    } else {
+                        platform.style.display = 'none';
+                        
+                        // Désélectionner si c'était sélectionné
+                        if (platform.classList.contains('active')) {
+                            platform.classList.remove('active');
+                            platformNameInput.style.display = 'none';
+                            
+                            // Réinitialiser la configuration
+                            const config = window.adminConfigs.find(c => c.id === adminId);
+                            if (config) {
+                                config.platform = '';
+                                config.name = '';
+                            }
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Event listeners pour sélectionner la plateforme
+        platformOptions.forEach(option => {
+            if (!option.classList.contains('add-more')) {
+                option.addEventListener('click', () => {
+                    // Désélectionner tous les autres
+                    platformOptions.forEach(opt => {
+                        if (!opt.classList.contains('add-more')) {
+                            opt.classList.remove('active');
+                        }
+                    });
+                    
+                    // Sélectionner celui-ci
+                    option.classList.add('active');
+                    
+                    const platform = option.getAttribute('data-platform');
+                    const platformName = option.querySelector('span').textContent;
+                    
+                    // Masquer l'entrée de nom personnalisé
+                    platformNameInput.style.display = 'none';
+                    
+                    // Mettre à jour le config
+                    const config = window.adminConfigs.find(c => c.id === adminId);
+                    if (config) {
+                        config.platform = platform;
+                        config.name = platformName;
+                    }
+                });
+            } else {
+                // Option "Autre" - afficher l'entrée de texte
+                option.addEventListener('click', () => {
+                    platformOptions.forEach(opt => {
+                        if (!opt.classList.contains('add-more')) {
+                            opt.classList.remove('active');
+                        }
+                    });
+                    
+                    platformNameInput.style.display = 'block';
+                    platformNameInput.focus();
+                    
+                    // Mettre à jour le config
+                    const config = window.adminConfigs.find(c => c.id === adminId);
+                    if (config) {
+                        config.platform = 'custom';
+                        config.name = '';
+                    }
+                });
+            }
+        });
+        
+        // Event listener pour l'entrée de nom personnalisée
+        platformNameInput.addEventListener('input', () => {
+            const config = window.adminConfigs.find(c => c.id === adminId);
+            if (config) {
+                config.name = platformNameInput.value;
+            }
+        });
+        
+        // Event listener pour l'URL
+        urlInput.addEventListener('input', () => {
+            const config = window.adminConfigs.find(c => c.id === adminId);
+            if (config) {
+                config.url = urlInput.value;
+            }
+        });
+        
+        // Event listeners pour les identifiants
+        usernameInput.addEventListener('input', () => {
+            const config = window.adminConfigs.find(c => c.id === adminId);
+            if (config) {
+                config.credentials.username = usernameInput.value;
+            }
+        });
+        
+        passwordInput.addEventListener('input', () => {
+            const config = window.adminConfigs.find(c => c.id === adminId);
+            if (config) {
+                config.credentials.password = passwordInput.value;
+            }
+        });
+        
+        // Toggle pour afficher/masquer le mot de passe
+        passwordToggle.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordToggle.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                `;
+            } else {
+                passwordInput.type = 'password';
+                passwordToggle.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                `;
+            }
+        });
+    }
+    
+    // Fonction pour valider le formulaire
+    function validateForm() {
+        // Vérifier les champs obligatoires
+        if (!appNameInput.value) {
+            alert("Veuillez entrer le nom de l'application");
+            appNameInput.focus();
+            return false;
+        }
+        
+        if (!appUrlInput.value) {
+            alert("Veuillez entrer l'URL du site");
+            appUrlInput.focus();
+            return false;
+        }
+        
+        if (!appDescInput.value) {
+            alert("Veuillez entrer une description");
+            appDescInput.focus();
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Fonction pour enregistrer l'application
+    async function saveApplication() {
+        // Récupérer toutes les données
+        const newApp = {
+            id: generateId(appNameInput.value),
+            name: appNameInput.value,
+            description: appDescInput.value,
+            url: appUrlInput.value,
+            icon: previewIcon.src,
+            screenshot: '', // À implémenter ultérieurement
+            created: appDateInput.value,
+            status: 'active',
+            github: appGithubInput.value,
+            categories: window.selectedCategories,
+            technologies: window.selectedTechnologies.map(tech => {
+                // Trouver l'icône correspondante
+                const techChip = document.querySelector(`.webapp_onidentity-tech-chip[data-tech="${tech}"]`);
+                let icon = '';
+                
+                if (techChip) {
+                    // Récupérer l'icône SVG
+                    const svg = techChip.querySelector('svg');
+                    icon = svg ? svg.outerHTML : '';
+                }
+                
+                return {
+                    name: tech,
+                    icon: icon
+                };
+            }),
+            admin: window.adminConfigs.filter(config => config.type && config.name).map(config => ({
+                type: config.type,
+                name: config.name,
+                url: config.url,
+                credentials: {
+                    email: config.credentials.username && config.credentials.username.includes('@') 
+                        ? config.credentials.username 
+                        : '',
+                    username: config.credentials.username && !config.credentials.username.includes('@') 
+                        ? config.credentials.username 
+                        : '',
+                    password: config.credentials.password
+                }
+            }))
+        };
+        
+        // Afficher un indicateur de chargement
+        const saveButtonText = saveBtn.textContent;
+        saveBtn.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="webapp_onidentity-spinner">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 2a10 10 0 0 1 10 10"></path>
+            </svg>
+            Sauvegarde...
+        `;
+        saveBtn.disabled = true;
+        
+        try {
+            // Sauvegarder dans Supabase
+            const savedApp = await saveApplicationToSupabase(newApp);
+            
+            if (savedApp) {
+                // Ajouter à la liste locale des applications
+                webApps.push(savedApp);
+                renderApps(webApps);
+                
+                // Afficher un message de succès
+                alert(`L'application "${savedApp.name}" a été ajoutée avec succès dans Supabase`);
+                
+                // Fermer le modal
+                closeAddAppModal();
+            } else {
+                throw new Error("Échec de la sauvegarde dans Supabase");
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert(`Erreur lors de la sauvegarde: ${error.message}`);
+        } finally {
+            // Restaurer le bouton de sauvegarde
+            saveBtn.innerHTML = saveButtonText;
+            saveBtn.disabled = false;
+        }
+    }
+    
+    // Fonction utilitaire pour générer un ID
+    function generateId(name) {
+        return name.toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^\w\-]+/g, '')
+            .replace(/\-\-+/g, '-')
+            .replace(/^-+/, '')
+            .replace(/-+$/, '');
+    }
+}
+
+
+// Fonction pour extraire les métadonnées d'un site web à partir de l'URL
+async function extractWebsiteMetadata(url) {
+    if (!url || !url.match(/^https?:\/\/.+/i)) {
+        return null;
+    }
+    
+    try {
+        // Essayer la méthode Wikimedia
+        const proxyUrl = `https://meta.wikimedia.org/api/rest_v1/meta/html/https://${url.replace(/^https?:\/\//i, '')}`;
+        const response = await fetch(proxyUrl);
+        
+        if (!response.ok) {
+            throw new Error("Échec de la première méthode");
+        }
+        
+        const htmlText = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+        
+        // Extraire le titre et la description
+        const title = doc.querySelector('title')?.textContent || 
+                      doc.querySelector('meta[property="og:title"]')?.getAttribute('content') || 
+                      doc.querySelector('meta[name="twitter:title"]')?.getAttribute('content') || 
+                      '';
+        
+        const description = doc.querySelector('meta[name="description"]')?.getAttribute('content') || 
+                            doc.querySelector('meta[property="og:description"]')?.getAttribute('content') || 
+                            doc.querySelector('meta[name="twitter:description"]')?.getAttribute('content') || 
+                            '';
+        
+        return { title, description };
+    } catch (error) {
+        try {
+            // Essayer la méthode AllOrigins
+            const allOriginsUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+            const response = await fetch(allOriginsUrl);
+            
+            if (!response.ok) {
+                throw new Error("Échec de la deuxième méthode");
+            }
+            
+            const htmlText = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            
+            // Extraire le titre et la description
+            const title = doc.querySelector('title')?.textContent || 
+                          doc.querySelector('meta[property="og:title"]')?.getAttribute('content') || 
+                          doc.querySelector('meta[name="twitter:title"]')?.getAttribute('content') || 
+                          '';
+            
+            const description = doc.querySelector('meta[name="description"]')?.getAttribute('content') || 
+                                doc.querySelector('meta[property="og:description"]')?.getAttribute('content') || 
+                                doc.querySelector('meta[name="twitter:description"]')?.getAttribute('content') || 
+                                '';
+            
+            return { title, description };
+        } catch (finalError) {
+            console.error("Impossible d'extraire les métadonnées:", finalError);
+            return null;
+        }
+    }
+}
+
+// Ajouter cette fonction à l'initialisation du site
+document.addEventListener('DOMContentLoaded', function() {
+    // Appeler initializeAddAppModal() après que les autres fonctions d'initialisation ont été exécutées
+    if (document.getElementById('identityContainer')) {
+        initializeAddAppModal();
+    }
+});
+
+
+// Ajouter cette fonction à l'initialisation du site
+document.addEventListener('DOMContentLoaded', function() {
+    // Appeler initializeWebApps() après que les autres fonctions d'initialisation ont été exécutées
+    if (document.getElementById('identityContainer')) {
+        initializeWebApps();
+    }
+});
+
+
+// Fonction pour charger les applications depuis Supabase
+async function loadAppsFromSupabase() {
+    try {
+        const { data, error } = await supabase
+            .from('web_applications')
+            .select('*');
+        
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+            // Remplacer webApps par les données de Supabase
+            webApps = data;
+            renderApps(webApps);
+        } else {
+            console.log('Aucune application trouvée dans Supabase, utilisation des données par défaut.');
+            // Garder webApps par défaut et les sauvegarder dans Supabase
+            saveInitialAppsToSupabase();
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement des applications depuis Supabase:', error);
+    }
+}
+
+// Fonction pour sauvegarder les applications initiales dans Supabase
+async function saveInitialAppsToSupabase() {
+    try {
+        for (const app of webApps) {
+            const { error } = await supabase
+                .from('web_applications')
+                .upsert(app, { onConflict: 'id' });
+            
+            if (error) throw error;
+        }
+        console.log('Applications initiales sauvegardées dans Supabase avec succès');
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde des applications initiales:', error);
+    }
+}
+
+// Fonction pour sauvegarder une nouvelle application dans Supabase
+async function saveApplicationToSupabase(app) {
+    try {
+        const { data, error } = await supabase
+            .from('web_applications')
+            .insert(app)
+            .select();
+        
+        if (error) throw error;
+        
+        console.log('Application sauvegardée dans Supabase avec succès:', data);
+        return data[0];
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde de l\'application:', error);
+        return null;
+    }
+}
+
 
 
 /*══════════════════════════════╗

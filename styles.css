@@ -9836,15 +9836,2113 @@ code.inline-code:hover::after {
     animation: downloadPulse 1s infinite;
 }
 
+  /* Style pour le modal d'édition de profil */
+.Edit_profil_onchatmenu_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: none;
+}
+
+.Edit_profil_onchatmenu_modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-light);
+    width: 95%;
+    max-width: 450px;
+    border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    overflow: hidden;
+    display: none;
+    animation: Edit_profil_onchatmenu_fadeIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes Edit_profil_onchatmenu_fadeIn {
+    from { transform: translate(-50%, -60%); opacity: 0; }
+    to { transform: translate(-50%, -50%); opacity: 1; }
+}
+
+.Edit_profil_onchatmenu_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.Edit_profil_onchatmenu_header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+}
+
+.Edit_profil_onchatmenu_closeBtn {
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.Edit_profil_onchatmenu_closeBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(90deg);
+}
+
+.Edit_profil_onchatmenu_content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.Edit_profil_onchatmenu_imageContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.Edit_profil_onchatmenu_currentImage {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: white;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.Edit_profil_onchatmenu_actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.Edit_profil_onchatmenu_actionBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-light);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.Edit_profil_onchatmenu_actionBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.Edit_profil_onchatmenu_name {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.Edit_profil_onchatmenu_name label {
+    font-size: 0.9rem;
+    color: var(--text-gray);
+}
+
+.Edit_profil_onchatmenu_input {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.Edit_profil_onchatmenu_input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.Edit_profil_onchatmenu_footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.Edit_profil_onchatmenu_cancelBtn {
+    padding: 0.6rem 1.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-light);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.Edit_profil_onchatmenu_cancelBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.Edit_profil_onchatmenu_saveBtn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.Edit_profil_onchatmenu_saveBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Animation pour la sauvegarde */
+@keyframes Edit_profil_onchatmenu_saveSuccess {
+    0% { background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)); }
+    50% { background: var(--success); }
+    100% { background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)); }
+}
+
+.Edit_profil_onchatmenu_success {
+    animation: Edit_profil_onchatmenu_saveSuccess 1s ease;
+}
+/* Remplacez ce bloc dans votre CSS */
+.chat-menu-btn svg {
+    transition: transform 0.3s ease;
+}
+
+.chat-menu-btn.active svg {
+    transform: rotate(90deg);
+}
+
+/* Par celui-ci */
+.chat-menu-btn svg {
+    transition: transform 0.3s ease;
+}
+
+.chat-menu-btn.active svg {
+    transform: rotate(90deg);
+}
+
+/* Empêcher la rotation des icônes dans le menu déroulant */
+.chat-menu-option svg {
+    color: var(--accent-1);
+    transform: rotate(0deg) !important; /* Forcer l'absence de rotation */
+}
+/* Style spécifique pour l'option de quitter */
+#exitChatOption svg {
+    color: #ff6b6b; /* Teinte rouge/orange pour l'icône de sortie */
+}
+
+#exitChatOption:hover {
+    background: rgba(255, 107, 107, 0.1); /* Fond légèrement rougeâtre au survol */
+}
+.hide_btnretour_onchat {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    pointer-events: none !important;
+}
+
+
 
 /*═══════════════════════════*\
   🟨 PARTIE 27  
 \*═══════════════════════════*/
+/* Styles pour l'icône d'exportation et son menu */
+.newadd_onnote_export_icon {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1001;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.newadd_onnote_export_icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+.newadd_onnote_export_menu {
+    position: absolute;
+    top: 60px;
+    right: 15px;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    width: 240px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    padding: 0;
+    transform-origin: top right;
+    transform: scale(0.95);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1002;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.newadd_onnote_export_menu.active {
+    transform: scale(1);
+    opacity: 1;
+    visibility: visible;
+}
+
+.newadd_onnote_export_header {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.newadd_onnote_export_header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.newadd_onnote_export_item {
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: var(--text-primary);
+}
+
+.newadd_onnote_export_item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.newadd_onnote_export_item_icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.newadd_onnote_export_item_content {
+    flex: 1;
+}
+
+.newadd_onnote_export_item_title {
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.newadd_onnote_export_item_description {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.newadd_onnote_pdf_icon {
+    background: linear-gradient(135deg, #f56565, #e53e3e);
+}
+
+.newadd_onnote_docx_icon {
+    background: linear-gradient(135deg, #3182ce, #2b6cb0);
+}
+
+.newadd_onnote_txt_icon {
+    background: linear-gradient(135deg, #a0aec0, #718096);
+}
+
+.newadd_onnote_html_icon {
+    background: linear-gradient(135deg, #805ad5, #6b46c1);
+}
+
+.newadd_onnote_markdown_icon {
+    background: linear-gradient(135deg, #38b2ac, #319795);
+}
+
+/* Animation pour les notifications */
+@keyframes newadd_onnote_notification_animation {
+    0% { transform: translateY(30px); opacity: 0; }
+    15% { transform: translateY(0); opacity: 1; }
+    85% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-30px); opacity: 0; }
+}
+
+.newadd_onnote_notification {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-tertiary);
+    padding: 12px 20px;
+    border-radius: 10px;
+    border-left: 4px solid var(--accent-1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 1010;
+    animation: newadd_onnote_notification_animation 3s forwards;
+}
+
+.newadd_onnote_notification_icon {
+    width: 24px;
+    height: 24px;
+    background: var(--accent-1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.newadd_onnote_notification_text {
+    font-weight: 500;
+}
+
+/* Overlay de chargement */
+.newadd_onnote_loading_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 11, 30, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+}
+
+.newadd_onnote_loading_overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.newadd_onnote_loading_spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid transparent;
+    border-top-color: var(--accent-1);
+    border-radius: 50%;
+    animation: newadd_onnote_spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+.newadd_onnote_loading_text {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+@keyframes newadd_onnote_spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 
 /*═══════════════════════════*\
   🟩 PARTIE 28  
 \*═══════════════════════════*/
+
+  /* Styles pour la section des applications web */
+.webapp_onidentity-section {
+    margin-top: 3rem;
+    position: relative;
+}
+
+.webapp_onidentity-intro {
+    margin-bottom: 1.5rem;
+}
+
+.webapp_onidentity-intro p {
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+}
+
+.webapp_onidentity-quote {
+    position: relative;
+    margin: 1.5rem 0;
+    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    font-style: italic;
+    text-align: center;
+}
+
+.webapp_onidentity-quote-mark {
+    font-size: 2rem;
+    color: var(--accent-1);
+    position: absolute;
+    opacity: 0.5;
+}
+
+.webapp_onidentity-quote-mark:first-child {
+    top: 0;
+    left: 0.5rem;
+}
+
+.webapp_onidentity-quote-mark:last-child {
+    bottom: 0;
+    right: 0.5rem;
+}
+
+.webapp_onidentity-quote-text {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.webapp_onidentity-controls {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.webapp_onidentity-category-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.webapp_onidentity-category-btn:hover, 
+.webapp_onidentity-view-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.webapp_onidentity-category-btn.active {
+    background: var(--accent-1);
+    color: white;
+}
+
+.webapp_onidentity-search {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    min-width: 180px;
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-search:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+}
+
+.webapp_onidentity-search::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.webapp_onidentity-view-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: var(--text-secondary);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.webapp_onidentity-view-btn.active {
+    background: var(--accent-2);
+    color: white;
+}
+
+.webapp_onidentity-container {
+    position: relative;
+    margin: 1rem 0;
+}
+
+.webapp_onidentity-apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-apps-grid.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.webapp_onidentity-app-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.webapp_onidentity-app-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-1);
+}
+
+.webapp_onidentity-apps-grid.list-view .webapp_onidentity-app-card {
+    display: flex;
+    align-items: center;
+    height: 100px;
+}
+
+.webapp_onidentity-app-icon {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background-position: center;
+    background-size: cover;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.webapp_onidentity-apps-grid.list-view .webapp_onidentity-app-icon {
+    width: 100px;
+    height: 100%;
+    aspect-ratio: auto;
+}
+
+.webapp_onidentity-app-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+    z-index: 1;
+}
+
+.webapp_onidentity-app-icon-img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-apps-grid.list-view .webapp_onidentity-app-icon-img {
+    width: 50px;
+    height: 50px;
+}
+
+.webapp_onidentity-app-card:hover .webapp_onidentity-app-icon-img {
+    transform: scale(1.1);
+}
+
+.webapp_onidentity-app-info {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.webapp_onidentity-apps-grid.list-view .webapp_onidentity-app-info {
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+}
+
+.webapp_onidentity-app-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 0;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    -webkit-background-clip: text;
+    color: transparent;
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-apps-grid.list-view .webapp_onidentity-app-name {
+    margin-right: 1rem;
+}
+
+.webapp_onidentity-app-card:hover .webapp_onidentity-app-name {
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.webapp_onidentity-app-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.webapp_onidentity-apps-grid.list-view .webapp_onidentity-app-description {
+    flex: 1;
+    -webkit-line-clamp: 1;
+    padding-right: 1.5rem;
+}
+
+.webapp_onidentity-app-date {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 0.5rem;
+}
+
+.webapp_onidentity-apps-grid.list-view .webapp_onidentity-app-date {
+    margin-top: 0;
+    white-space: nowrap;
+}
+
+.webapp_onidentity-app-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.webapp_onidentity-apps-grid.list-view .webapp_onidentity-app-badges {
+    margin-top: 0;
+    margin-left: auto;
+}
+
+.webapp_onidentity-app-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-app-badge.core {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--accent-1);
+}
+
+.webapp_onidentity-detail-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.webapp_onidentity-detail-modal.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.webapp_onidentity-modal-content {
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-detail-modal.active .webapp_onidentity-modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.webapp_onidentity-modal-header {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.webapp_onidentity-modal-icon-container {
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.webapp_onidentity-modal-icon {
+    width: 40px;
+    height: 40px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.webapp_onidentity-modal-title {
+    flex: 1;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.webapp_onidentity-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.webapp_onidentity-modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.webapp_onidentity-modal-body {
+    padding: 0 1.5rem;
+    overflow-y: auto;
+    max-height: calc(90vh - 150px);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.webapp_onidentity-app-preview {
+    margin: 1.5rem 0;
+}
+
+.webapp_onidentity-app-screenshot {
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.webapp_onidentity-app-screenshot img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-detail-section {
+    margin-bottom: 1.5rem;
+}
+
+.webapp_onidentity-detail-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--accent-2);
+    margin-bottom: 1rem;
+}
+
+.webapp_onidentity-app-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.webapp_onidentity-access-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.webapp_onidentity-access-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.webapp_onidentity-access-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    border-color: var(--accent-2);
+}
+
+.webapp_onidentity-visit-site {
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    color: white;
+}
+
+.webapp_onidentity-github-link {
+    background: #24292e;
+    color: white;
+}
+
+.webapp_onidentity-admin-access {
+    margin-top: 1rem;
+}
+
+.webapp_onidentity-admin-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.webapp_onidentity-admin-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.webapp_onidentity-admin-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-1);
+}
+
+.webapp_onidentity-admin-item-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--accent-1);
+}
+
+.webapp_onidentity-admin-credentials {
+    margin-top: 0.75rem;
+}
+
+.webapp_onidentity-credential-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.webapp_onidentity-credential-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.webapp_onidentity-credential-value {
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    max-width: 150px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.webapp_onidentity-credential-value.password {
+    font-family: monospace;
+    letter-spacing: 1px;
+}
+
+.webapp_onidentity-reveal-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.15rem;
+    margin-left: 0.25rem;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.webapp_onidentity-reveal-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.webapp_onidentity-copy-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.15rem;
+    margin-left: 0.25rem;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.webapp_onidentity-copy-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.webapp_onidentity-visit-btn {
+    display: block;
+    margin-top: 1rem;
+    text-align: center;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.webapp_onidentity-visit-btn:hover {
+    background: var(--accent-1);
+}
+
+.webapp_onidentity-tech-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.webapp_onidentity-tech-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.webapp_onidentity-tech-badge:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.webapp_onidentity-tech-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.webapp_onidentity-modal-footer {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 1rem;
+}
+
+.webapp_onidentity-app-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.webapp_onidentity-app-status::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: grey;
+}
+
+.webapp_onidentity-app-status.active::before {
+    background: var(--success);
+    box-shadow: 0 0 10px var(--success);
+}
+
+.webapp_onidentity-app-status.inactive::before {
+    background: var(--warning);
+}
+
+.webapp_onidentity-app-status.error::before {
+    background: var(--error);
+}
+
+.webapp_onidentity-no-apps {
+    width: 100%;
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    margin: 2rem 0;
+}
+
+.webapp_onidentity-no-apps-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+@keyframes webapp_onidentity_fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes webapp_onidentity_pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.webapp_onidentity-app-card {
+    animation: webapp_onidentity_fadeIn 0.4s ease-out forwards;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .webapp_onidentity-apps-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    
+    .webapp_onidentity-apps-grid.list-view .webapp_onidentity-app-card {
+        height: auto;
+        flex-direction: column;
+    }
+    
+    .webapp_onidentity-apps-grid.list-view .webapp_onidentity-app-icon {
+        width: 100%;
+        aspect-ratio: 16/9;
+    }
+    
+    .webapp_onidentity-apps-grid.list-view .webapp_onidentity-app-info {
+        flex-direction: column;
+        padding: 1rem;
+    }
+    
+    .webapp_onidentity-apps-grid.list-view .webapp_onidentity-app-badges {
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+    
+    .webapp_onidentity-modal-body {
+        flex-direction: column;
+    }
+    
+    .webapp_onidentity-access-links {
+        flex-direction: column;
+    }
+    
+    .webapp_onidentity-admin-items {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .webapp_onidentity-controls {
+        justify-content: center;
+    }
+    
+    .webapp_onidentity-search {
+        min-width: 100%;
+        order: -1;
+        margin-bottom: 0.5rem;
+    }
+    
+    .webapp_onidentity-quote {
+        padding: 1rem;
+    }
+    
+    .webapp_onidentity-apps-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .webapp_onidentity-app-icon-img {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .webapp_onidentity-modal-content {
+        width: 95%;
+        border-radius: 16px;
+    }
+    
+    .webapp_onidentity-modal-header {
+        padding: 1rem;
+    }
+    
+    .webapp_onidentity-modal-icon-container {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .webapp_onidentity-modal-icon {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .webapp_onidentity-modal-title {
+        font-size: 1.25rem;
+    }
+    
+    .webapp_onidentity-modal-body {
+        padding: 0 1rem;
+    }
+}
+/* Styles pour empêcher le scroll et centrer le modal */
+.content-area.no-scroll {
+    overflow: hidden;
+}
+
+/* Assurez-vous que le modal est centré et fixe */
+#webapp_onidentity-detail-modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+}
+
+/* Style pour le contenu du modal */
+.webapp_onidentity-modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(30px) scale(0.95);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#webapp_onidentity-detail-modal.active .webapp_onidentity-modal-content {
+    transform: translateY(0) scale(1);
+}
+
+
+
+
+  /* Styles pour l'iframe et les contrôles de zoom */
+.webapp_onidentity-iframe-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #fff;
+}
+
+#webapp_onidentity-site-preview {
+    width: 100%;
+    height: 100%;
+    border: none;
+    transform-origin: 0 0;
+    transition: transform 0.3s ease;
+}
+
+.webapp_onidentity-screenshot-controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.webapp_onidentity-zoom-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+}
+
+.webapp_onidentity-zoom-btn:hover {
+    background: rgba(0, 0, 0, 0.85);
+    transform: translateY(-2px);
+}
+
+.webapp_onidentity-app-screenshot {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    background-color: #f5f5f5;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+
+
+
+
+  /* Styles pour les icônes de technologies */
+.webapp_onidentity-tech-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.webapp_onidentity-tech-badge:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.webapp_onidentity-tech-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.webapp_onidentity-tech-icon-container svg {
+    width: 16px;
+    height: 16px;
+}
+
+
+
+
+/* Styles pour le bouton d'ajout d'application */
+.webapp_onidentity-add-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-right: auto;
+}
+
+.webapp_onidentity-add-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+}
+
+/* Styles pour le modal d'ajout d'application */
+.webapp_onidentity-add-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.webapp_onidentity-add-modal.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.webapp_onidentity-add-modal .webapp_onidentity-modal-content {
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.webapp_onidentity-add-modal.active .webapp_onidentity-modal-content {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* Styles pour le formulaire d'ajout */
+.webapp_onidentity-add-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.webapp_onidentity-form-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-form-section:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.webapp_onidentity-form-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent-2);
+    margin-top: 0;
+    margin-bottom: 1.25rem;
+}
+
+.webapp_onidentity-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.webapp_onidentity-form-group {
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.webapp_onidentity-form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.webapp_onidentity-form-group label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.webapp_onidentity-form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-form-input:focus {
+    outline: none;
+    border-color: var(--accent-1);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.webapp_onidentity-form-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+textarea.webapp_onidentity-form-input {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Styles pour les sections de puce (chips) */
+.webapp_onidentity-category-chips,
+.webapp_onidentity-tech-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.webapp_onidentity-category-chip,
+.webapp_onidentity-tech-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-category-chip:hover,
+.webapp_onidentity-tech-chip:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.webapp_onidentity-category-chip.active,
+.webapp_onidentity-tech-chip.active {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: var(--accent-1);
+    color: var(--accent-1);
+}
+
+.webapp_onidentity-category-chip.add-more,
+.webapp_onidentity-tech-chip.add-more {
+    background: rgba(0, 0, 0, 0.2);
+    border-style: dashed;
+}
+
+.webapp_onidentity-category-chip.add-more:hover,
+.webapp_onidentity-tech-chip.add-more:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.webapp_onidentity-custom-category,
+.webapp_onidentity-custom-tech {
+    margin: 1rem 0;
+}
+
+.webapp_onidentity-add-category-btn,
+.webapp_onidentity-add-tech-btn {
+    background: var(--accent-1);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.webapp_onidentity-add-category-btn:hover,
+.webapp_onidentity-add-tech-btn:hover {
+    background: var(--accent-2);
+}
+
+.webapp_onidentity-selected-categories,
+.webapp_onidentity-selected-technologies {
+    margin-top: 1rem;
+}
+
+.webapp_onidentity-selected-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.webapp_onidentity-selected-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.webapp_onidentity-selected-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.4rem 0.75rem;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid var(--accent-1);
+    border-radius: 8px;
+    color: var(--accent-1);
+    font-size: 0.85rem;
+}
+
+.webapp_onidentity-remove-chip {
+    background: none;
+    border: none;
+    color: var(--accent-1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.webapp_onidentity-remove-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Styles pour la section d'administration */
+.webapp_onidentity-admin-form-item {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-admin-form-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.webapp_onidentity-admin-form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.webapp_onidentity-admin-remove-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.webapp_onidentity-admin-remove-btn:hover {
+    background: rgba(255, 0, 0, 0.2);
+    color: var(--error);
+}
+
+.webapp_onidentity-admin-type-selector,
+.webapp_onidentity-platform-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.webapp_onidentity-admin-type-option,
+.webapp_onidentity-platform-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-admin-type-option:hover,
+.webapp_onidentity-platform-option:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.webapp_onidentity-admin-type-option.active,
+.webapp_onidentity-platform-option.active {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: var(--accent-1);
+    color: var(--accent-1);
+}
+
+.webapp_onidentity-platform-option.add-more,
+.webapp_onidentity-admin-type-option.add-more {
+    background: rgba(0, 0, 0, 0.2);
+    border-style: dashed;
+}
+
+.webapp_onidentity-credential-group {
+    grid-column: 1 / -1;
+    margin-top: 0.5rem;
+}
+
+.webapp_onidentity-credential-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.webapp_onidentity-password-input {
+    position: relative;
+}
+
+.webapp_onidentity-password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.webapp_onidentity-password-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.webapp_onidentity-add-item-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-weight: 500;
+    width: 100%;
+    justify-content: center;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+}
+
+.webapp_onidentity-add-item-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-1);
+    color: var(--text-primary);
+}
+
+/* Styles pour la section d'aperçu */
+.webapp_onidentity-preview-container {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.webapp_onidentity-app-card.preview {
+    width: 100%;
+    max-width: 400px;
+    cursor: default;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: webapp_onidentity_pulse 2s infinite;
+}
+
+/* Styles pour le pied de page du modal */
+.webapp_onidentity-modal-footer {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.webapp_onidentity-modal-cancel-btn {
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.webapp_onidentity-modal-cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.webapp_onidentity-modal-save-btn {
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.webapp_onidentity-modal-save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+}
+
+/* Animation pour le bouton d'ajout */
+@keyframes webapp_onidentity_pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+/* Styles responsifs */
+@media (max-width: 768px) {
+    .webapp_onidentity-form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .webapp_onidentity-credential-inputs {
+        grid-template-columns: 1fr;
+    }
+    
+    .webapp_onidentity-admin-form-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .webapp_onidentity-admin-remove-btn {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 480px) {
+    .webapp_onidentity-add-btn {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 0.75rem;
+    }
+    
+    .webapp_onidentity-form-section {
+        padding: 1rem;
+    }
+    
+    .webapp_onidentity-category-chip,
+    .webapp_onidentity-tech-chip,
+    .webapp_onidentity-admin-type-option,
+    .webapp_onidentity-platform-option {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+
+
+/* Styles pour l'indicateur de chargement */
+.webapp_onidentity-loading-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--accent-1);
+    margin-bottom: 8px;
+    animation: fadeIn 0.3s ease;
+}
+
+.webapp_onidentity-spinner {
+    animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Style pour les champs en cours de chargement */
+.webapp_onidentity-form-input.loading {
+    background-color: rgba(255, 255, 255, 0.07);
+    border-color: var(--accent-1);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* Amélioration pour le champ de description */
+textarea.webapp_onidentity-form-input {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.5;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+textarea.webapp_onidentity-form-input:focus {
+    min-height: 120px; /* Un peu plus grand en focus pour plus de confort */
+}
+
+
+
+/* Style pour l'astuce d'extraction automatique */
+.webapp_onidentity-description-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    opacity: 0.7;
+}
+
+.webapp_onidentity-description-hint svg {
+    color: var(--accent-1);
+}
+
+
+
+/* Styles pour les boutons d'action */
+.webapp_onidentity-app-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+}
+
+.webapp_onidentity-app-card:hover .webapp_onidentity-app-actions {
+    opacity: 1;
+}
+
+.webapp_onidentity-edit-btn,
+.webapp_onidentity-delete-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    border: none;
+    color: white;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.webapp_onidentity-edit-btn:hover {
+    background: rgba(66, 153, 225, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+}
+
+.webapp_onidentity-delete-btn:hover {
+    background: rgba(229, 62, 62, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+}
+
+/* Modal de confirmation de suppression */
+.webapp_onidentity-delete-confirm {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.webapp_onidentity-delete-confirm.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.webapp_onidentity-delete-dialog {
+    background: #1e1e2e;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    transform: translateY(20px);
+    transition: transform 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.webapp_onidentity-delete-confirm.active .webapp_onidentity-delete-dialog {
+    transform: translateY(0);
+}
+
+.webapp_onidentity-delete-dialog h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #fff;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.webapp_onidentity-delete-dialog h3 svg {
+    color: #e53e3e;
+}
+
+.webapp_onidentity-delete-app-name {
+    color: #90cdf4;
+    font-weight: 500;
+}
+
+.webapp_onidentity-delete-dialog p {
+    margin-bottom: 24px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.5;
+}
+
+.webapp_onidentity-delete-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.webapp_onidentity-cancel-delete-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.webapp_onidentity-confirm-delete-btn {
+    background: #e53e3e;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.webapp_onidentity-cancel-delete-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.webapp_onidentity-confirm-delete-btn:hover {
+    background: #c53030;
+}
+
 
 
 /*═══════════════════════════*\
