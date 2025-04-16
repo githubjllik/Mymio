@@ -12210,3 +12210,1069 @@ tr:hover {
 /*═══════════════════════════*\
   🟪 PARTIE 30  
 \*═══════════════════════════*/
+/* Section Navigateurs Recommandés */
+.newadd_onnote_browsers_section {
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.newadd_onnote_browsers_header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.newadd_onnote_browsers_icon {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--accent-2), var(--accent-3));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.newadd_onnote_browsers_header p {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin: 0;
+    font-weight: 500;
+}
+
+.newadd_onnote_browsers_container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.newadd_onnote_browser_item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: 70px;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.newadd_onnote_browser_item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    border-color: var(--accent-1);
+}
+
+.newadd_onnote_browser_icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    transition: transform 0.3s ease;
+}
+
+.newadd_onnote_browser_item:hover .newadd_onnote_browser_icon {
+    transform: scale(1.1);
+}
+
+.newadd_onnote_browser_item span {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    opacity: 0.9;
+}
+
+/* Animation subtile pour les éléments du navigateur */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.newadd_onnote_browser_item {
+    animation: fadeInUp 0.3s ease forwards;
+    animation-delay: calc(var(--i, 0) * 0.05s);
+}
+
+/* Style pour les médias plus petits */
+@media (max-width: 768px) {
+    .newadd_onnote_browsers_container {
+        gap: 8px;
+    }
+    
+    .newadd_onnote_browser_item {
+        width: 60px;
+        padding: 8px;
+    }
+    
+    .newadd_onnote_browser_icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .newadd_onnote_browser_item span {
+        font-size: 0.7rem;
+    }
+}
+
+
+/*═══════════════════════════*\
+  🟢 PARTIE 31  
+\*═══════════════════════════*/
+/* Styles pour l'icône de conversion LaTeX */
+.newadd_onnote_latex_icon {
+    position: absolute;
+    top: 12px;
+    right: 115px; /* Placé à gauche de l'icône de conversion Markdown */
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1001;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.newadd_onnote_latex_icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+/* Style pour les formules LaTeX rendues */
+.latex-rendered {
+    display: inline-block;
+    margin: 10px 0;
+    padding: 5px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.latex-rendered:hover {
+    background: rgba(139, 92, 246, 0.2);
+}
+
+/* Animation pour indiquer le succès de conversion */
+.latex-conversion-success {
+    animation: pulseSuccess 1s forwards;
+}
+
+@keyframes pulseSuccess {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Styles pour les formules LaTeX et leur persistance */
+.latex-formula-container {
+    display: block;
+    min-height: 30px;
+}
+
+.latex-original-text {
+    position: absolute;
+    left: -9999px;
+    visibility: hidden;
+    height: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 0;
+}
+
+/* Amélioration du style des formules pour éviter les problèmes de rendu */
+.latex-rendered {
+    display: block;
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 8px;
+    transition: all 0.3s;
+    position: relative;
+    min-height: 40px;
+    text-align: center;
+}
+
+/* Style pour le survol et l'affichage après le traitement */
+.latex-rendered:hover {
+    background: rgba(139, 92, 246, 0.2);
+}
+
+/* Assurez-vous que MathJax affiche correctement les formules */
+.MathJax {
+    display: inline-block !important;
+    margin: 0 auto !important;
+}
+
+
+/*═══════════════════════════*\
+  🔵 PARTIE 32  
+\*═══════════════════════════*/
+/* Styles pour le menu de conversion ultra moderne */
+.newadd_onnote_convert_menu_icon {
+    position: absolute;
+    top: 12px;
+    right: 65px; /* Placé à gauche de l'icône d'exportation */
+    background: conic-gradient(from 135deg at 20% 30%, var(--accent-1), var(--accent-2), var(--accent-3), var(--accent-1));
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1001;
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: subtle-float 3s ease-in-out infinite;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes subtle-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+.newadd_onnote_convert_menu_icon:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(139, 92, 246, 0.5), 0 0 15px rgba(99, 102, 241, 0.3);
+}
+
+.newadd_onnote_convert_menu {
+    position: absolute;
+    top: 60px;
+    right: 65px;
+    background: rgba(26, 28, 53, 0.95);
+    border-radius: 16px;
+    width: 280px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+    padding: 0;
+    transform-origin: top right;
+    transform: scale(0.95) translateY(-20px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 1002;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.newadd_onnote_convert_menu.active {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+.newadd_onnote_convert_header {
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.newadd_onnote_convert_header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.5px;
+}
+
+.newadd_onnote_convert_item {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: all 0.25s;
+    color: var(--text-primary);
+    position: relative;
+    overflow: hidden;
+}
+
+.newadd_onnote_convert_item:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.newadd_onnote_convert_item:hover {
+    background: rgba(255, 255, 255, 0.07);
+    transform: translateX(4px);
+}
+
+.newadd_onnote_convert_item:hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--accent-1), var(--accent-2));
+}
+
+.newadd_onnote_convert_item_icon {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: transform 0.3s;
+    color: white;
+}
+
+.newadd_onnote_convert_item:hover .newadd_onnote_convert_item_icon {
+    transform: rotate(-10deg) scale(1.1);
+}
+
+.newadd_onnote_convert_item_content {
+    flex: 1;
+}
+
+.newadd_onnote_convert_item_title {
+    font-weight: 600;
+    margin-bottom: 4px;
+    letter-spacing: 0.3px;
+    font-size: 0.95rem;
+}
+
+.newadd_onnote_convert_item_description {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    line-height: 1.4;
+}
+
+.newadd_onnote_markdown_convert_icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+}
+
+.newadd_onnote_latex_convert_icon {
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+}
+
+/* Animation d'ouverture du menu */
+@keyframes menu-slide-in {
+    0% { opacity: 0; transform: translateY(-10px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.newadd_onnote_convert_item {
+    animation: menu-slide-in 0.3s forwards;
+    animation-delay: calc(var(--item-index, 0) * 0.05s);
+    opacity: 0;
+}
+
+/* Effet de glassmorphism pour le menu */
+@supports (backdrop-filter: blur(10px)) {
+    .newadd_onnote_convert_menu {
+        background: rgba(26, 28, 53, 0.8);
+    }
+}
+
+/* Style responsive pour s'adapter à tous les écrans */
+@media (max-width: 768px) {
+    .newadd_onnote_convert_menu_icon {
+        right: 60px;
+        width: 36px;
+        height: 36px;
+    }
+    
+    .newadd_onnote_convert_menu {
+        width: calc(100% - 40px);
+        right: 20px;
+        max-width: 280px;
+    }
+}
+
+
+/*═══════════════════════════*\
+  🟠 PARTIE 33  
+\*═══════════════════════════*/
+            .creation-success {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .success-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                animation: slideIn 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+                z-index: 10;
+            }
+            
+            .success-icon {
+                font-size: 3rem;
+                color: white;
+                background: rgba(255, 255, 255, 0.2);
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 20px;
+                animation: scaleIn 0.5s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+            }
+            
+            .success-message {
+                font-size: 1.5rem;
+                color: white;
+                font-weight: 600;
+                animation: fadeIn 0.5s 0.4s both;
+            }
+            
+            @keyframes slideIn {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+            }
+            
+            @keyframes scaleIn {
+                from { transform: scale(0); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+/*═══════════════════════════*\
+  🟡 PARTIE 34  
+\*═══════════════════════════*/
+/* Styles pour la création de catégories */
+.navaddVisualType {
+    display: flex;
+    gap: 10px;
+}
+
+.visual-option {
+    flex: 1;
+    padding: 15px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.visual-option .option-icon {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    transition: transform 0.3s ease;
+}
+
+.visual-option:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.visual-option.selected {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: var(--accent-1);
+}
+
+.emoji-selector-container {
+    max-height: 300px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.navaddSearch {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.navaddSearch input {
+    padding-left: 40px;
+}
+
+.search-icon {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    opacity: 0.7;
+}
+
+.emoji-categories {
+    display: flex;
+    overflow-x: auto;
+    padding: 10px 0;
+    margin-bottom: 10px;
+    scrollbar-width: thin;
+}
+
+.emoji-categories::-webkit-scrollbar {
+    height: 4px;
+}
+
+.emoji-categories::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.emoji-category {
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.emoji-category.active {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    overflow-y: auto;
+    max-height: 200px;
+}
+
+.emoji-item {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.emoji-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.emoji-item.selected {
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid var(--accent-1);
+}
+
+.image-uploader-container {
+    transition: all 0.3s ease;
+}
+
+.navaddImageUpload .upload-preview {
+    height: 120px;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.navaddImageUpload .upload-preview:hover {
+    border-color: var(--accent-1);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.navaddImageUpload .upload-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    opacity: 0.7;
+}
+
+.navaddImageUpload .upload-preview.has-image {
+    padding: 0;
+    border: none;
+}
+
+.navaddImageUpload .upload-preview.has-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.navaddPreview {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+}
+
+.nav-item-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.nav-item-preview::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+    border-radius: 3px;
+    opacity: 0.7;
+}
+
+.nav-item-preview .preview-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.nav-item-preview .preview-name {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.nav-item-preview:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Style pour le bouton d'ajout de catégorie dans le modal de création */
+.navaddButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 15px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+    border-radius: 8px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.navaddButton:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3));
+    transform: translateY(-2px);
+}
+
+.navaddButton .add-icon {
+    margin-right: 8px;
+    font-size: 1.2rem;
+}
+
+/* Classe pour les nouvelles catégories personnalisées */
+.nav-item.navaddCustom {
+    animation: newCategoryPulse 1s ease-in-out;
+}
+
+@keyframes newCategoryPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); box-shadow: 0 0 15px var(--accent-1); }
+    100% { transform: scale(1); }
+}
+
+/* Animation des emojis */
+@keyframes emojiFloat {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .emoji-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+
+/*═══════════════════════════*\
+  🔴 PARTIE 35  
+\*═══════════════════════════*/
+
+.Category_SadHope-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 2rem;
+    perspective: 1000px;
+    overflow: hidden;
+}
+
+.Category_SadHope-card {
+    position: relative;
+    width: 100%;
+    max-width: 550px;
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    transform-style: preserve-3d;
+    animation: Category_SadHope-float 6s ease-in-out infinite;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@keyframes Category_SadHope-float {
+    0%, 100% { transform: translateY(0) rotateX(0) rotateY(0); }
+    25% { transform: translateY(-10px) rotateX(2deg) rotateY(-1deg); }
+    50% { transform: translateY(0) rotateX(0) rotateY(0); }
+    75% { transform: translateY(10px) rotateX(-2deg) rotateY(1deg); }
+}
+
+.Category_SadHope-transition {
+    animation: Category_SadHope-pulse 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes Category_SadHope-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.Category_SadHope-phases {
+    position: relative;
+    z-index: 10;
+}
+
+.Category_SadHope-phase {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.Category_SadHope-phase.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+    position: relative;
+}
+
+.Category_SadHope-emoji {
+    margin-bottom: 1.5rem;
+}
+
+.Category_SadHope-emoji-picture {
+    display: flex;
+    justify-content: center;
+}
+
+.Category_SadHope-emoji-img {
+    width: 120px;
+    height: 120px;
+    animation: Category_SadHope-bounce 3s ease-in-out infinite;
+}
+
+@keyframes Category_SadHope-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+.Category_SadHope-message {
+    margin-bottom: 2rem;
+}
+
+.Category_SadHope-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+.Category_SadHope-hope .Category_SadHope-title {
+    background: linear-gradient(90deg, #10b981, #6366f1, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+.Category_SadHope-text {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    max-width: 90%;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.Category_SadHope-category {
+    color: var(--accent-1);
+    font-weight: 600;
+}
+
+.Category_SadHope-action {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.Category_SadHope-delete-btn,
+.Category_SadHope-create-btn,
+.Category_SadHope-switch-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    border: none;
+    cursor: pointer;
+}
+
+.Category_SadHope-delete-btn {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.Category_SadHope-delete-btn:hover {
+    background: rgba(239, 68, 68, 0.25);
+    transform: translateY(-2px);
+}
+
+.Category_SadHope-switch-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.Category_SadHope-switch-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+}
+
+.Category_SadHope-create-btn {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.Category_SadHope-create-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
+
+.Category_SadHope-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.Category_SadHope-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.Category_SadHope-particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: Category_SadHope-float-particle 15s linear infinite;
+}
+
+@keyframes Category_SadHope-float-particle {
+    0% { 
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 0;
+    }
+    20% {
+        opacity: 0.6;
+    }
+    80% {
+        opacity: 0.6;
+    }
+    100% { 
+        transform: translate(calc(100px - 200px * var(--random-x, 0.5)), 
+                           calc(100px - 200px * var(--random-y, 0.5))) 
+                  rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.Category_SadHope-deleting {
+    animation: Category_SadHope-delete 0.8s forwards cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes Category_SadHope-delete {
+    0% { 
+        transform: scale(1) rotate(0);
+        opacity: 1;
+    }
+    100% { 
+        transform: scale(0.5) rotate(5deg);
+        opacity: 0;
+    }
+}
+
+/* Styles adaptés pour les écrans mobiles */
+@media (max-width: 768px) {
+    .Category_SadHope-card {
+        padding: 1.5rem;
+    }
+    
+    .Category_SadHope-emoji-img {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .Category_SadHope-title {
+        font-size: 1.5rem;
+    }
+    
+    .Category_SadHope-text {
+        font-size: 1rem;
+    }
+    
+    .Category_SadHope-action {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .Category_SadHope-delete-btn,
+    .Category_SadHope-create-btn,
+    .Category_SadHope-switch-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+
+/*═══════════════════════════*\
+  🟣 PARTIE 36  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🟢 PARTIE 37  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🔵 PARTIE 38  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🟠 PARTIE 39  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🟡 PARTIE 40  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🔴 PARTIE 41  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🟣 PARTIE 42  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🟢 PARTIE 43  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🔵 PARTIE 44  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🟠 PARTIE 45  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🟡 PARTIE 46  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🔴 PARTIE 47  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🟣 PARTIE 48  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🟢 PARTIE 49  
+\*═══════════════════════════*/
+
+
+/*═══════════════════════════*\
+  🔵 PARTIE 50  
+\*═══════════════════════════*/

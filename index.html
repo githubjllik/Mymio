@@ -508,16 +508,56 @@
 <div class="note-container" id="noteContainer" style="display: none;">
     <div class="editor-container">
         <textarea id="editor"></textarea>
-        
-        <!-- Icône de conversion Markdown -->
-<div class="newadd_onnote_convert_icon" id="newadd_onnote_convertIcon" title="Convertir Markdown">
+<!-- Nouvelle icône de conversion avec menu déroulant -->
+<div class="newadd_onnote_convert_menu_icon" id="newadd_onnote_convertMenuIcon" title="Options de conversion">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
-        <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
-        <line x1="9" y1="9" x2="15" y2="9"></line>
-        <line x1="9" y1="13" x2="15" y2="13"></line>
-        <line x1="9" y1="17" x2="13" y2="17"></line>
+        <path d="M16 3h5v5"></path>
+        <path d="M4 20L21 3"></path>
+        <path d="M21 16v5h-5"></path>
+        <path d="M15 15l6 6"></path>
+        <path d="M4 4l5 5"></path>
     </svg>
+</div>
+
+<!-- Menu déroulant de conversion -->
+<div class="newadd_onnote_convert_menu" id="newadd_onnote_convertMenu">
+    <div class="newadd_onnote_convert_header">
+        <h3>Options de conversion</h3>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer;" id="newadd_onnote_closeConvertMenu">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+    </div>
+    
+    <!-- Option de conversion Markdown -->
+    <div class="newadd_onnote_convert_item" id="newadd_onnote_convertIcon">
+        <div class="newadd_onnote_convert_item_icon newadd_onnote_markdown_convert_icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
+                <line x1="9" y1="9" x2="15" y2="9"></line>
+                <line x1="9" y1="13" x2="15" y2="13"></line>
+                <line x1="9" y1="17" x2="13" y2="17"></line>
+            </svg>
+        </div>
+        <div class="newadd_onnote_convert_item_content">
+            <div class="newadd_onnote_convert_item_title">Markdown</div>
+            <div class="newadd_onnote_convert_item_description">Convertir le texte en Markdown vers HTML</div>
+        </div>
+    </div>
+    
+    <!-- Option de conversion LaTeX -->
+    <div class="newadd_onnote_convert_item" id="newadd_onnote_latexIcon">
+        <div class="newadd_onnote_convert_item_icon newadd_onnote_latex_convert_icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 3C3.89 3 3 3.89 3 5V15C3 16.11 3.89 17 5 17H9V19H15V17H19C20.11 17 21 16.11 21 15V5C21 3.89 20.11 3 19 3H5M5 5H19V15H5V5M11 6V9H8V11H11V14H13V11H16V9H13V6H11Z"></path>
+            </svg>
+        </div>
+        <div class="newadd_onnote_convert_item_content">
+            <div class="newadd_onnote_convert_item_title">LaTeX</div>
+            <div class="newadd_onnote_convert_item_description">Convertir les formules mathématiques LaTeX</div>
+        </div>
+    </div>
 </div>
 
         <!-- Nouvelle icône d'exportation -->
@@ -615,6 +655,52 @@
                 </div>
             </div>
             
+
+        
+        
+        <!-- Section Navigateurs Recommandés -->
+<div class="newadd_onnote_browsers_section">
+    <div class="newadd_onnote_browsers_header">
+        <div class="newadd_onnote_browsers_icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </div>
+        <p>Pour une exportation optimale, utilisez un navigateur moderne</p>
+    </div>
+    <div class="newadd_onnote_browsers_container">
+        <a href="https://www.brave.com/" target="_blank" class="newadd_onnote_browser_item">
+            <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/brave/brave_48x48.png" alt="Brave" class="newadd_onnote_browser_icon">
+            <span>Brave</span>
+        </a>
+        <a href="https://www.google.com/chrome/" target="_blank" class="newadd_onnote_browser_item">
+            <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" class="newadd_onnote_browser_icon">
+            <span>Chrome</span>
+        </a>
+        <a href="https://www.microsoft.com/edge" target="_blank" class="newadd_onnote_browser_item">
+            <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="Edge" class="newadd_onnote_browser_icon">
+            <span>Edge</span>
+        </a>
+        <a href="https://www.mozilla.org/firefox/" target="_blank" class="newadd_onnote_browser_item">
+            <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" class="newadd_onnote_browser_icon">
+            <span>Firefox</span>
+        </a>
+        <a href="https://www.opera.com/" target="_blank" class="newadd_onnote_browser_item">
+            <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/opera/opera_48x48.png" alt="Opera" class="newadd_onnote_browser_icon">
+            <span>Opera</span>
+        </a>
+        <a href="https://www.apple.com/safari/" target="_blank" class="newadd_onnote_browser_item">
+            <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" class="newadd_onnote_browser_icon">
+            <span>Safari</span>
+        </a>
+        <a href="https://vivaldi.com/" target="_blank" class="newadd_onnote_browser_item">
+            <img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/vivaldi/vivaldi_48x48.png" alt="Vivaldi" class="newadd_onnote_browser_icon">
+            <span>Vivaldi</span>
+        </a>
+    </div>
+</div>
 
         </div>
     </div>
@@ -2044,6 +2130,87 @@
                 </svg>
                 Supprimer
             </button>
+        </div>
+    </div>
+</div>
+<!-- Modal pour créer une nouvelle catégorie -->
+<div id="navaddModal" class="creation-modal">
+    <div class="creation-modal-content">
+        <div class="creation-modal-header">
+            <div class="type-indicator">
+                <div class="type-icon">🏷️</div>
+                <h2 class="modal-title">Créer une nouvelle catégorie</h2>
+            </div>
+            <button class="close-modal">&times;</button>
+        </div>
+        
+        <div class="creation-modal-body">
+            <div class="form-group">
+                <label for="navaddName">Nom de la catégorie <span class="char-counter">0/30</span></label>
+                <input type="text" id="navaddName" placeholder="Ex: Projets, Voyages, Santé..." maxlength="30">
+            </div>
+            
+            <div class="form-group">
+                <label>Représentation visuelle</label>
+                <div class="navaddVisualType">
+                    <div class="visual-option selected" data-type="emoji">
+                        <div class="option-icon">😀</div>
+                        <span>Emoji</span>
+                    </div>
+                    <div class="visual-option" data-type="image">
+                        <div class="option-icon">🖼️</div>
+                        <span>Image</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group emoji-selector-container">
+                <label>Choisir un emoji</label>
+                <div class="navaddSearch">
+                    <input type="text" id="navaddEmojiSearch" placeholder="Rechercher un emoji...">
+                    <div class="search-icon">🔍</div>
+                </div>
+                <div class="emoji-categories">
+                    <div class="emoji-category active" data-category="recent">🕒</div>
+                    <div class="emoji-category" data-category="smileys">😀</div>
+                    <div class="emoji-category" data-category="people">👨‍👩‍👧‍👦</div>
+                    <div class="emoji-category" data-category="animals">🐱</div>
+                    <div class="emoji-category" data-category="food">🍔</div>
+                    <div class="emoji-category" data-category="travel">✈️</div>
+                    <div class="emoji-category" data-category="activities">⚽</div>
+                    <div class="emoji-category" data-category="objects">💡</div>
+                    <div class="emoji-category" data-category="symbols">❤️</div>
+                    <div class="emoji-category" data-category="flags">🏁</div>
+                </div>
+                <div class="emoji-grid"></div>
+            </div>
+            
+            <div class="form-group image-uploader-container" style="display: none;">
+                <label>Télécharger une image PNG</label>
+                <div class="navaddImageUpload">
+                    <input type="file" id="navaddImageInput" accept="image/png" style="display: none;">
+                    <div class="upload-preview">
+                        <div class="upload-icon">📤</div>
+                        <span>Glisser-déposer ou cliquer pour télécharger</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Aperçu</label>
+                <div class="navaddPreview">
+                    <div class="nav-item-preview">
+                        <div class="preview-icon"></div>
+                        <span class="preview-name">Nouvelle catégorie</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="creation-modal-footer">
+            <div class="quantum-particles"></div>
+            <button class="cancel-btn">Annuler</button>
+            <button class="create-btn navaddCreateBtn">Créer la catégorie</button>
         </div>
     </div>
 </div>

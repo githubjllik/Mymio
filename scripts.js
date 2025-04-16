@@ -21,6 +21,24 @@ async function checkAuthentication() {
     return false;
 }
 
+
+  // Détection rapide des capacités du navigateur pour l'export PDF
+function getBrowserPDFCapabilities() {
+    const isChrome = navigator.userAgent.indexOf("Chrome") !== -1;
+    const isEdge = navigator.userAgent.indexOf("Edg") !== -1;
+    const isFirefox = navigator.userAgent.indexOf("Firefox") !== -1;
+    const isSafari = navigator.userAgent.indexOf("Safari") !== -1 && 
+                    navigator.userAgent.indexOf("Chrome") === -1;
+    
+    // La plupart des navigateurs modernes supportent l'export direct en PDF
+    return {
+        supportsFastExport: isChrome || isEdge || isFirefox || isSafari,
+        // Chromium préfère le format PDF en impression
+        defaultsToSavePDF: isChrome || isEdge
+    };
+}
+
+
 // Variables globales pour suivre la catégorie et le type sélectionnés
 let currentCategory = 'universe'; // Catégorie par défaut
 let currentType = 'Tous';         // Type par défaut
@@ -104,20 +122,25 @@ function filterContent(category, type) {
             });
             attachCardClickHandlers();
         } else {
-            grid.style.display = 'grid';
-            grid.innerHTML = ''; // Réinitialiser le contenu
-
-            let filteredData;
-            if (type === 'Tous') {
-                filteredData = sampleData.filter(data => data.category === category);
+            // Vérifier si la catégorie a des éléments
+            const filteredData = type === 'Tous' 
+                ? sampleData.filter(data => data.category === category)
+                : sampleData.filter(data => data.category === category && data.type.toLowerCase() === type.toLowerCase());
+            
+            if (filteredData.length === 0) {
+                // Aucun élément dans cette catégorie - afficher le message d'état vide
+                grid.style.display = 'block';
+                grid.innerHTML = createCategory_SadHopeMessage(category);
+                attachCategory_SadHopeHandlers(category);
             } else {
-                filteredData = sampleData.filter(data => data.category === category && data.type.toLowerCase() === type.toLowerCase());
+                grid.style.display = 'grid';
+                grid.innerHTML = ''; // Réinitialiser le contenu
+                
+                filteredData.forEach(data => {
+                    grid.innerHTML += createContentCard(data);
+                });
+                attachCardClickHandlers();
             }
-
-            filteredData.forEach(data => {
-                grid.innerHTML += createContentCard(data);
-            });
-            attachCardClickHandlers();
         }
     }
 
@@ -126,6 +149,238 @@ function filterContent(category, type) {
 
     // Mise à jour de la visibilité du hub de création
     toggleCreationHubVisibility();
+}
+
+// Fonction pour créer le message d'état vide avec émotions
+function createCategory_SadHopeMessage(category) {
+    return `
+    <div class="Category_SadHope-container">
+        <div class="Category_SadHope-card">
+            <div class="Category_SadHope-phases">
+                <div class="Category_SadHope-phase Category_SadHope-sad active" data-phase="sad">
+                    <div class="Category_SadHope-emoji">
+                        <picture class="Category_SadHope-emoji-picture">
+                            <source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.webp" type="image/webp">
+                            <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f62d/512.gif" alt="😭" class="Category_SadHope-emoji-img">
+                        </picture>
+                    </div>
+                    <div class="Category_SadHope-message">
+                        <h3 class="Category_SadHope-title">Oh non, je suis vide...</h3>
+                        <p class="Category_SadHope-text">Je n'ai aucun élément dans ma catégorie <span class="Category_SadHope-category">${category}</span>. Peut-être que je ne suis plus utile?</p>
+                    </div>
+                    <div class="Category_SadHope-action">
+                        <button class="Category_SadHope-delete-btn" data-category="${category}">
+                            <svg class="Category_SadHope-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            <span>Me supprimer</span>
+                        </button>
+                        <button class="Category_SadHope-switch-btn" data-target="hope">
+                            <svg class="Category_SadHope-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Attends...</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="Category_SadHope-phase Category_SadHope-hope" data-phase="hope">
+                    <div class="Category_SadHope-emoji">
+                        <picture class="Category_SadHope-emoji-picture">
+                            <source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1f979/512.webp" type="image/webp">
+                            <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f979/512.gif" alt="🥹" class="Category_SadHope-emoji-img">
+                        </picture>
+                    </div>
+                    <div class="Category_SadHope-message">
+                        <h3 class="Category_SadHope-title">Je peux être utile!</h3>
+                        <p class="Category_SadHope-text">Tu peux m'aider en ajoutant un élément dans ma catégorie <span class="Category_SadHope-category">${category}</span>.</p>
+                    </div>
+                    <div class="Category_SadHope-action">
+                        <button class="Category_SadHope-create-btn" data-category="${category}">
+                            <svg class="Category_SadHope-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="12" y1="8" x2="12" y2="16"></line>
+                                <line x1="8" y1="12" x2="16" y2="12"></line>
+                            </svg>
+                            <span>Créer un élément</span>
+                        </button>
+                        <button class="Category_SadHope-switch-btn" data-target="sad">
+                            <svg class="Category_SadHope-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                            <span>Retour</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="Category_SadHope-particles"></div>
+        </div>
+    </div>
+    `;
+}
+
+// Fonction pour attacher les gestionnaires d'événements
+function attachCategory_SadHopeHandlers(category) {
+    // Gestionnaire pour basculer entre les phases (garder ce code existant)
+    document.querySelectorAll('.Category_SadHope-switch-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetPhase = this.dataset.target;
+            const container = document.querySelector('.Category_SadHope-container');
+            
+            document.querySelectorAll('.Category_SadHope-phase').forEach(phase => {
+                phase.classList.remove('active');
+            });
+            
+            document.querySelector(`.Category_SadHope-${targetPhase}`).classList.add('active');
+            
+            // Ajouter effet de transition
+            container.classList.add('Category_SadHope-transition');
+            setTimeout(() => {
+                container.classList.remove('Category_SadHope-transition');
+            }, 600);
+            
+            // Ajouter des particules animées pour l'effet visuel
+            createCategory_SadHopeParticles();
+        });
+    });
+    
+    // Gestionnaire pour le bouton de suppression
+    document.querySelector('.Category_SadHope-delete-btn').addEventListener('click', async function() {
+        const categoryToDelete = this.dataset.category;
+        
+        // Animation de suppression
+        const container = document.querySelector('.Category_SadHope-container');
+        container.classList.add('Category_SadHope-deleting');
+        
+        // Attendre l'animation
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Supprimer la catégorie de Supabase
+        try {
+            // Chercher l'ID de la catégorie
+            const { data: categories, error: fetchError } = await supabase
+                .from('categories')
+                .select('id')
+                .eq('name', categoryToDelete);
+            
+            if (fetchError) throw fetchError;
+            
+            if (categories && categories.length > 0) {
+                const categoryId = categories[0].id;
+                
+                // Supprimer la catégorie
+                const { error: deleteError } = await supabase
+                    .from('categories')
+                    .delete()
+                    .eq('id', categoryId);
+                
+                if (deleteError) throw deleteError;
+                
+                // Supprimer l'élément de navigation
+                const navItem = document.querySelector(`.nav-item[data-category="${categoryToDelete}"]`);
+                if (navItem) {
+                    navItem.classList.add('removing');
+                    setTimeout(() => {
+                        navItem.remove();
+                    }, 300);
+                }
+                
+                // Afficher un message de succès
+                showGlobalMessage(`Catégorie "${categoryToDelete}" supprimée avec succès`);
+                
+                // Rediriger vers l'univers
+                setTimeout(() => {
+                    currentCategory = 'universe';
+                    document.getElementById('nav-universe').click();
+                }, 500);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la suppression de la catégorie:', error);
+            showGlobalMessage('Erreur lors de la suppression de la catégorie', 'error');
+            
+            // Revenir à l'état normal
+            container.classList.remove('Category_SadHope-deleting');
+        }
+    });
+    
+    // NOUVELLE IMPLÉMENTATION pour le bouton de création
+    document.querySelector('.Category_SadHope-create-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Référence au bouton de création universel et au menu
+        const universalCreationButton = document.querySelector('.creation-button');
+        const creationMenu = document.querySelector('.creation-menu');
+        
+        // Simulation d'animation sur le bouton universel
+        universalCreationButton.classList.add('clicked');
+        setTimeout(() => {
+            universalCreationButton.classList.remove('clicked');
+        }, 600);
+        
+        // Afficher le menu de création avec animation
+        creationMenu.style.display = 'flex';
+        creationMenu.classList.add('animation-popin');
+        setTimeout(() => {
+            creationMenu.classList.remove('animation-popin');
+        }, 300);
+        
+        // Sélectionner directement "Note" comme option par défaut
+        const noteCreationItem = document.querySelector('.creation-item[data-type="note"]');
+        if (noteCreationItem) {
+            // Attendre un peu pour que l'animation soit visible
+            setTimeout(() => {
+                // Sauvegarder la catégorie courante pour l'utiliser plus tard
+                window.lastSelectedEmptyCategory = category;
+                // Simuler un clic sur "Note"
+                noteCreationItem.click();
+            }, 100);
+        }
+    });
+    
+    // Créer des particules initiales
+    createCategory_SadHopeParticles();
+}
+
+// Fonction pour créer des particules animées
+function createCategory_SadHopeParticles() {
+    const container = document.querySelector('.Category_SadHope-particles');
+    if (!container) return;
+    
+    // Vider le conteneur
+    container.innerHTML = '';
+    
+    // Déterminer la phase active pour ajuster les couleurs
+    const activePhase = document.querySelector('.Category_SadHope-phase.active').dataset.phase;
+    const colors = activePhase === 'sad' 
+        ? ['#6e7efc', '#8b5cf6', '#ec4899'] 
+        : ['#10b981', '#6366f1', '#f59e0b'];
+    
+    // Créer des particules
+    for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'Category_SadHope-particle';
+        
+        // Position aléatoire
+        const size = Math.random() * 8 + 2;
+        const posX = Math.random() * 100;
+        const posY = Math.random() * 100;
+        const delay = Math.random() * 5;
+        const duration = Math.random() * 10 + 10;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${posX}%`;
+        particle.style.top = `${posY}%`;
+        particle.style.backgroundColor = color;
+        particle.style.animationDelay = `${delay}s`;
+        particle.style.animationDuration = `${duration}s`;
+        
+        container.appendChild(particle);
+    }
 }
 
 
@@ -194,6 +449,230 @@ function updateCategoryCounts() {
                 card.addEventListener('click', handleCardClick);
             });
         }
+        
+                // Intégrer gestionnaire de clic après création des cartes
+        function attachCardClickHandlers() {
+            document.querySelectorAll('.content-card').forEach(card => {
+                card.addEventListener('click', handleCardClick);
+            });
+        }
+        
+// Fonction pour attacher les gestionnaires de boutons d'action
+function attachCardActionHandlers() {
+    // Au lieu d'attacher directement aux boutons, on utilise la délégation d'événements
+    // en attachant à un parent stable (le conteneur de la grille)
+    const grid = document.getElementById('contentGrid');
+    
+    // Supprimer les anciens gestionnaires pour éviter les doublons
+    grid.removeEventListener('click', handleGridButtonClicks);
+    
+    // Ajouter le nouveau gestionnaire
+    grid.addEventListener('click', handleGridButtonClicks);
+}
+
+// Fonction de gestion des clics sur les boutons dans la grille
+function handleGridButtonClicks(e) {
+    // Vérifier si le clic était sur un bouton d'édition
+    if (e.target.classList.contains('card-edit-btn')) {
+        e.stopPropagation(); // Empêcher le clic de la carte
+        const id = e.target.dataset.id;
+        const card = e.target.closest('.content-card');
+        console.log("Bouton d'édition cliqué pour l'ID:", id); // Debug
+        openSampleEditModal(id, card);
+    }
+    // Vérifier si le clic était sur un bouton de suppression
+    else if (e.target.classList.contains('card-delete-btn')) {
+        e.stopPropagation(); // Empêcher le clic de la carte
+        const id = e.target.dataset.id;
+        
+        if (confirm('Êtes-vous sûr de vouloir supprimer cet élément?')) {
+            handleDeleteAction(id);
+        }
+    }
+}
+
+// Fonction pour gérer la suppression
+async function handleDeleteAction(id) {
+    try {
+        // Vérifier si c'est un élément de démonstration
+        if (id.startsWith('demo-')) {
+            // Élément de démonstration, suppression locale seulement
+            window.sampleData = window.sampleData.filter(item => item.id !== id);
+            
+            // Actualiser l'interface
+            populateGrid();
+            updateCategoryCounts();
+            updateNavOrder();
+        } else {
+            // Élément de Supabase
+            const success = await deleteElementFromSupabase(id);
+            
+            if (success) {
+                // Supprimer l'élément du tableau local
+                window.sampleData = window.sampleData.filter(item => item.id !== id);
+                
+                // Actualiser l'interface
+                populateGrid();
+                updateCategoryCounts();
+                updateNavOrder();
+                console.log('Élément supprimé et interface mise à jour');
+            } else {
+                // Si la suppression échoue, resynchroniser avec Supabase
+                alert('Erreur lors de la suppression. Actualisation des données...');
+                await syncWithSupabase();
+            }
+        }
+    } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        alert('Une erreur est survenue lors de la suppression.');
+        // Resynchroniser en cas d'erreur
+        await syncWithSupabase();
+    }
+}
+
+        // Fonctions pour gérer les clics sur les cartes
+
+
+async function handleCardClick(event) {
+    // Si le clic vient d'un bouton d'action, ne pas traiter le clic sur la carte
+    if (event.target.classList.contains('card-edit-btn') || 
+        event.target.classList.contains('card-delete-btn')) {
+        return;
+    }
+    
+    const card = event.currentTarget;
+    const type = card.dataset.type;
+    const elementId = card.dataset.id;
+    
+    document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    window.currentElementId = elementId;
+
+    // Le reste de votre fonction reste inchangé
+    if (type === 'chat') {
+        // Masquer la grille immédiatement
+        document.getElementById('contentGrid').style.display = 'none';
+        document.getElementById('chatContainer').style.display = 'block';
+        
+        // Masquer les deux interfaces par défaut
+        document.getElementById('setupForm').style.display = 'none';
+        document.getElementById('chatInterface').style.display = 'none';
+        
+        // Vérifier rapidement le cache
+        if (cachedConversations.has(elementId)) {
+            document.getElementById('chatInterface').style.display = 'block';
+        } else {
+            // Vérification rapide de l'existence d'une conversation
+            const hasConversation = await checkConversationStatus(elementId);
+            if (hasConversation) {
+                document.getElementById('chatInterface').style.display = 'block';
+            } else {
+                document.getElementById('setupForm').style.display = 'block';
+            }
+        }
+        
+        // Lancer l'ouverture complète du chat en arrière-plan
+        openChat(elementId);
+    } else if (type === 'note') {
+        openNote(elementId);
+    } else if (type === 'dossier') {
+        openFolderInterface();
+    }
+}
+
+// Fonction pour mettre à jour l'ordre des nav-items
+function updateNavOrder() {
+    const mainNav = document.querySelector('.main-nav');
+    const universeNav = document.getElementById('nav-universe');
+    const otherNavs = Array.from(document.querySelectorAll('.nav-item:not(#nav-universe)'));
+
+    // Compte le nombre d'éléments par catégorie
+    const categoryCounts = {};
+    sampleData.forEach(item => {
+        categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
+    });
+
+    // Trie les nav-items par nombre d'éléments
+    otherNavs.sort((a, b) => {
+        const countA = categoryCounts[a.dataset.category] || 0;
+        const countB = categoryCounts[b.dataset.category] || 0;
+        return countB - countA;
+    });
+
+    // Réorganise les nav-items
+    mainNav.innerHTML = ''; // Vide la nav
+    mainNav.appendChild(universeNav); // Ajoute d'abord l'univers
+    otherNavs.forEach(nav => mainNav.appendChild(nav)); // Ajoute le reste dans l'ordre
+}
+
+// Fonction pour créer une carte de contenu
+function createContentCard(data) {
+    // S'assurer que l'objet de données a un ID (pour les données de démonstration)
+    if (!data.id) {
+        data.id = 'demo-' + Math.random().toString(36).substr(2, 9);
+    }
+    // Fonction pour générer l'affichage des images
+    const generateImagesDisplay = (type, images) => {
+        if (!data.description) {
+            return `
+                <div class="card-images ${type}-images">
+                    ${images.map(image => `<span class="card-image ${type}-image">${image}</span>`).join('')}
+                </div>
+            `;
+        }
+        return '';
+    };
+
+    // Détermine l'icône en fonction du type
+    const typeIcon = {
+        chat: "💬",
+        note: "📝",
+        dossier: "📁"
+    }[data.type] || "📄";
+
+    return `
+        <div class="content-card ${data.type}-card" data-type="${data.type}" data-title="${data.title}" data-id="${data.id}">
+            <div class="card-header">
+                <div class="card-category">
+                    <span class="type-icon">${typeIcon}</span>
+                    ${data.category}
+                </div>
+                <h3 class="card-title">${data.title}</h3>
+                <div class="card-meta">
+                    <span>📅 ${data.date}</span>
+                    <span>⭐ ${data.priority}</span>
+                </div>
+            </div>
+            <div class="card-content">
+                ${data.description ? 
+                    `<p class="card-description">${data.description}</p>` : 
+                    generateImagesDisplay(data.type, data.images)
+                }
+                <div class="card-tags">
+                    ${data.tags.map(tag => `<span class="card-tag">${tag}</span>`).join('')}
+                </div>
+            </div>
+            <div class="card-actions">
+                <button class="card-edit-btn" data-id="${data.id}">✏️</button>
+                <button class="card-delete-btn" data-id="${data.id}">🗑️</button>
+            </div>
+        </div>
+    `;
+}
+
+
+       // Fonction pour peupler la grille
+function populateGrid() {
+    const grid = document.getElementById('contentGrid');
+    grid.innerHTML = ''; // Réinitialiser le contenu
+
+    sampleData.forEach(data => {
+        grid.innerHTML += createContentCard(data);
+    });
+    
+    attachCardClickHandlers();
+    attachCardActionHandlers(); // Assurez-vous que cette ligne est présente
+}
 
         // Ajouter après vos fonctions JavaScript existantes
 
@@ -1298,99 +1777,7 @@ function initializeAmbientAnimations() {
     animate();
 }
 
-// Fonction pour mettre à jour l'ordre des nav-items
-function updateNavOrder() {
-    const mainNav = document.querySelector('.main-nav');
-    const universeNav = document.getElementById('nav-universe');
-    const otherNavs = Array.from(document.querySelectorAll('.nav-item:not(#nav-universe)'));
 
-    // Compte le nombre d'éléments par catégorie
-    const categoryCounts = {};
-    sampleData.forEach(item => {
-        categoryCounts[item.category] = (categoryCounts[item.category] || 0) + 1;
-    });
-
-    // Trie les nav-items par nombre d'éléments
-    otherNavs.sort((a, b) => {
-        const countA = categoryCounts[a.dataset.category] || 0;
-        const countB = categoryCounts[b.dataset.category] || 0;
-        return countB - countA;
-    });
-
-    // Réorganise les nav-items
-    mainNav.innerHTML = ''; // Vide la nav
-    mainNav.appendChild(universeNav); // Ajoute d'abord l'univers
-    otherNavs.forEach(nav => mainNav.appendChild(nav)); // Ajoute le reste dans l'ordre
-}
-
-// Fonction pour créer une carte de contenu
-function createContentCard(data) {
-    // S'assurer que l'objet de données a un ID (pour les données de démonstration)
-    if (!data.id) {
-        data.id = 'demo-' + Math.random().toString(36).substr(2, 9);
-    }
-    // Fonction pour générer l'affichage des images
-    const generateImagesDisplay = (type, images) => {
-        if (!data.description) {
-            return `
-                <div class="card-images ${type}-images">
-                    ${images.map(image => `<span class="card-image ${type}-image">${image}</span>`).join('')}
-                </div>
-            `;
-        }
-        return '';
-    };
-
-    // Détermine l'icône en fonction du type
-    const typeIcon = {
-        chat: "💬",
-        note: "📝",
-        dossier: "📁"
-    }[data.type] || "📄";
-
-    return `
-        <div class="content-card ${data.type}-card" data-type="${data.type}" data-title="${data.title}" data-id="${data.id}">
-            <div class="card-header">
-                <div class="card-category">
-                    <span class="type-icon">${typeIcon}</span>
-                    ${data.category}
-                </div>
-                <h3 class="card-title">${data.title}</h3>
-                <div class="card-meta">
-                    <span>📅 ${data.date}</span>
-                    <span>⭐ ${data.priority}</span>
-                </div>
-            </div>
-            <div class="card-content">
-                ${data.description ? 
-                    `<p class="card-description">${data.description}</p>` : 
-                    generateImagesDisplay(data.type, data.images)
-                }
-                <div class="card-tags">
-                    ${data.tags.map(tag => `<span class="card-tag">${tag}</span>`).join('')}
-                </div>
-            </div>
-            <div class="card-actions">
-                <button class="card-edit-btn" data-id="${data.id}">✏️</button>
-                <button class="card-delete-btn" data-id="${data.id}">🗑️</button>
-            </div>
-        </div>
-    `;
-}
-
-
-       // Fonction pour peupler la grille
-function populateGrid() {
-    const grid = document.getElementById('contentGrid');
-    grid.innerHTML = ''; // Réinitialiser le contenu
-
-    sampleData.forEach(data => {
-        grid.innerHTML += createContentCard(data);
-    });
-    
-    attachCardClickHandlers();
-    attachCardActionHandlers(); // Assurez-vous que cette ligne est présente
-}
 
 
 
@@ -3671,52 +4058,6 @@ function updateBreadcrumb(navItem) {
             });
         });
 
-        // Fonctions pour gérer les clics sur les cartes
-
-
-async function handleCardClick(event) {
-    const card = event.currentTarget;
-    const type = card.dataset.type;
-    const elementId = card.dataset.id;
-    
-    document.querySelectorAll('.content-card').forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
-    window.currentElementId = elementId;
-
-    if (type === 'chat') {
-        // Masquer la grille immédiatement
-        document.getElementById('contentGrid').style.display = 'none';
-        document.getElementById('chatContainer').style.display = 'block';
-        
-        // Masquer les deux interfaces par défaut
-        document.getElementById('setupForm').style.display = 'none';
-        document.getElementById('chatInterface').style.display = 'none';
-        
-        // Vérifier rapidement le cache
-        if (cachedConversations.has(elementId)) {
-            document.getElementById('chatInterface').style.display = 'block';
-        } else {
-            // Vérification rapide de l'existence d'une conversation
-            const hasConversation = await checkConversationStatus(elementId);
-            if (hasConversation) {
-                document.getElementById('chatInterface').style.display = 'block';
-            } else {
-                document.getElementById('setupForm').style.display = 'block';
-            }
-        }
-        
-        // Lancer l'ouverture complète du chat en arrière-plan
-        openChat(elementId);
-    } else if (type === 'note') {
-        openNote(elementId);
-    } else if (type === 'dossier') {
-        openFolderInterface();
-    }
-}
-
-
-
-
 
 
         // Fonction pour ouvrir le chat
@@ -4501,7 +4842,7 @@ function adjustEditorHeight() {
     }
 }
 
-// Fonctions d'exportation pour la note
+// Fonction unifiée d'initialisation de l'exportation des notes
 function initializeNoteExport() {
     // Références aux éléments
     const exportIcon = document.getElementById('newadd_onnote_exportIcon');
@@ -4509,13 +4850,6 @@ function initializeNoteExport() {
     const closeMenuBtn = document.getElementById('newadd_onnote_closeExportMenu');
     const exportItems = document.querySelectorAll('.newadd_onnote_export_item');
     const loadingOverlay = document.getElementById('newadd_onnote_loadingOverlay');
-    
-    // Fermer le menu si on clique ailleurs
-    document.addEventListener('click', (e) => {
-        if (!exportMenu.contains(e.target) && e.target !== exportIcon) {
-            exportMenu.classList.remove('active');
-        }
-    });
     
     // Ouvrir/fermer le menu d'exportation
     exportIcon.addEventListener('click', () => {
@@ -4527,35 +4861,7 @@ function initializeNoteExport() {
         exportMenu.classList.remove('active');
     });
     
-    // Gérer les clics sur les formats d'exportation
-    exportItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const format = item.getAttribute('data-format');
-            exportNote(format);
-            exportMenu.classList.remove('active');
-        });
-    });
-}
-
-// Initialisation des fonctionnalités d'exportation
-function initializeNoteExport() {
-    // Récupérer les éléments DOM
-    const exportIcon = document.getElementById('newadd_onnote_exportIcon');
-    const exportMenu = document.getElementById('newadd_onnote_exportMenu');
-    const closeExportMenu = document.getElementById('newadd_onnote_closeExportMenu');
-    const exportItems = document.querySelectorAll('.newadd_onnote_export_item');
-    
-    // Afficher/masquer le menu d'exportation
-    exportIcon.addEventListener('click', () => {
-        exportMenu.classList.toggle('active');
-    });
-    
-    // Fermer le menu d'exportation
-    closeExportMenu.addEventListener('click', () => {
-        exportMenu.classList.remove('active');
-    });
-    
-    // Fermer le menu si on clique en dehors
+    // Fermer le menu si on clique ailleurs
     document.addEventListener('click', (e) => {
         if (!exportIcon.contains(e.target) && !exportMenu.contains(e.target)) {
             exportMenu.classList.remove('active');
@@ -4565,7 +4871,7 @@ function initializeNoteExport() {
     // Initialiser le convertisseur Markdown
     initializeMarkdownConverter();
     
-    // Gérer les clics sur les options d'exportation
+    // Gérer les clics sur les formats d'exportation
     exportItems.forEach(item => {
         item.addEventListener('click', () => {
             const format = item.getAttribute('data-format');
@@ -4577,14 +4883,48 @@ function initializeNoteExport() {
                 return;
             }
             
-            // Gérer les autres formats d'exportation...
-            // (code existant pour les autres formats)
+            // Pour les autres formats
+            exportNote(format);
             
             // Fermer le menu d'exportation
             exportMenu.classList.remove('active');
         });
     });
 }
+
+// Initialisation du menu de conversion
+function initializeConversionMenu() {
+    const convertMenuIcon = document.getElementById('newadd_onnote_convertMenuIcon');
+    const convertMenu = document.getElementById('newadd_onnote_convertMenu');
+    const closeMenuBtn = document.getElementById('newadd_onnote_closeConvertMenu');
+    const convertItems = convertMenu.querySelectorAll('.newadd_onnote_convert_item');
+    
+    // Ouvrir/fermer le menu de conversion
+    convertMenuIcon.addEventListener('click', () => {
+        convertMenu.classList.toggle('active');
+        
+        // Animer les éléments du menu avec un délai
+        convertItems.forEach((item, index) => {
+            item.style.setProperty('--item-index', index);
+        });
+    });
+    
+    // Fermer avec le bouton X
+    closeMenuBtn.addEventListener('click', () => {
+        convertMenu.classList.remove('active');
+    });
+    
+    // Fermer le menu si on clique ailleurs
+    document.addEventListener('click', (e) => {
+        if (!convertMenuIcon.contains(e.target) && !convertMenu.contains(e.target)) {
+            convertMenu.classList.remove('active');
+        }
+    });
+    
+    // Les gestionnaires d'événements existants pour les conversions sont déjà définis
+    // et fonctionneront toujours car nous utilisons les mêmes ID
+}
+
 
 // Initialisation de la fonctionnalité de conversion Markdown
 function initializeMarkdownConverter() {
@@ -4838,7 +5178,223 @@ function initializeMarkdownConverter() {
     }
 }
 
-// Fonction principale d'exportation
+// Initialisation de la fonctionnalité de conversion LaTeX
+function initializeLaTeXConverter() {
+    const latexIcon = document.getElementById('newadd_onnote_latexIcon');
+    
+    if (!latexIcon) return;
+    
+    // Vérifier si MathJax est chargé
+    if (typeof MathJax === 'undefined') {
+        // Chargement de MathJax
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js';
+        script.async = true;
+        
+        // Configurer MathJax avant son chargement
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            options: {
+                renderActions: {
+                    addMenu: []
+                }
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady().then(function() {
+                        // Typeset initial formulas after page load
+                        renderStoredLatexFormulas();
+                    });
+                }
+            }
+        };
+        
+        // Quand MathJax est chargé
+        script.onload = function() {
+            console.log('MathJax chargé avec succès');
+        };
+        
+        document.head.appendChild(script);
+    }
+    
+    // Fonction pour rendre les formules LaTeX stockées dans les éléments data-latex
+    function renderStoredLatexFormulas() {
+        const formulas = document.querySelectorAll('.latex-formula-container');
+        formulas.forEach(formula => {
+            const latexCode = formula.getAttribute('data-latex');
+            if (latexCode) {
+                try {
+                    // Utiliser MathJax pour rendre la formule
+                    formula.innerHTML = '\\[' + latexCode + '\\]';
+                } catch (err) {
+                    console.error('Erreur lors du rendu de la formule:', err);
+                }
+            }
+        });
+        
+        // Déclencher le rendu MathJax
+        if (typeof MathJax !== 'undefined') {
+            MathJax.typesetPromise().catch(err => {
+                console.error('Erreur MathJax:', err);
+            });
+        }
+    }
+    
+    // Observer les mutations du DOM pour réagir aux changements dans l'éditeur
+    function setupMutationObserver() {
+        if (!window.latexMutationObserver && window.editorInstance) {
+            const targetNode = window.editorInstance.editor;
+            if (!targetNode) return;
+            
+            const config = { childList: true, subtree: true };
+            const callback = function(mutationsList, observer) {
+                let needsRendering = false;
+                for (const mutation of mutationsList) {
+                    if (mutation.type === 'childList') {
+                        const formulaContainers = document.querySelectorAll('.latex-formula-container');
+                        formulaContainers.forEach(container => {
+                            if (!container.querySelector('.MathJax')) {
+                                needsRendering = true;
+                            }
+                        });
+                        if (needsRendering) {
+                            renderStoredLatexFormulas();
+                            break;
+                        }
+                    }
+                }
+            };
+            
+            window.latexMutationObserver = new MutationObserver(callback);
+            window.latexMutationObserver.observe(targetNode, config);
+        }
+    }
+    
+    // Traiter la conversion LaTeX lorsqu'on clique sur l'icône
+    latexIcon.addEventListener('click', () => {
+        if (!window.editorInstance) return;
+        
+        try {
+            // Afficher une notification de traitement
+            showNotification('Conversion des formules LaTeX en cours...', 'info');
+            
+            // Récupérer le contenu HTML actuel de l'éditeur
+            const editorContent = window.editorInstance.value;
+            
+            // Créer un élément temporaire pour analyser le contenu HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = editorContent;
+            
+            // Rechercher les balises contenant du LaTeX
+            const paragraphs = tempDiv.querySelectorAll('p');
+            let conversionCount = 0;
+            
+            paragraphs.forEach(paragraph => {
+                // Ignorer les paragraphes déjà traités
+                if (paragraph.classList.contains('latex-rendered') || 
+                    paragraph.querySelector('.latex-formula-container')) {
+                    return;
+                }
+                
+                const text = paragraph.textContent.trim();
+                
+                // Vérifier si le paragraphe contient une formule LaTeX
+                if (isLaTeXFormula(text)) {
+                    // Créer l'élément pour la formule rendue avec le contenu persistant
+                    const renderedElement = document.createElement('div');
+                    renderedElement.classList.add('latex-rendered');
+                    
+                    // Élément container qui stocke la formule LaTeX originale et qui sera rendu
+                    const formulaContainer = document.createElement('div');
+                    formulaContainer.classList.add('latex-formula-container');
+                    formulaContainer.setAttribute('data-latex', text);
+                    
+                    // Ajouter le contenu original en texte brut (sera caché par CSS mais préservé)
+                    const originalTextElement = document.createElement('div');
+                    originalTextElement.classList.add('latex-original-text');
+                    originalTextElement.textContent = text;
+                    
+                    // Ajouter tous les éléments
+                    renderedElement.appendChild(formulaContainer);
+                    renderedElement.appendChild(originalTextElement);
+                    
+                    // Remplacer le paragraphe original
+                    paragraph.parentNode.replaceChild(renderedElement, paragraph);
+                    conversionCount++;
+                }
+            });
+            
+            // Si des conversions ont été faites, mettre à jour l'éditeur
+            if (conversionCount > 0) {
+                // Mettre à jour le contenu de l'éditeur
+                window.editorInstance.value = tempDiv.innerHTML;
+                
+                // Attendre un peu pour que l'éditeur se mette à jour
+                setTimeout(() => {
+                    // Rendre les formules LaTeX
+                    renderStoredLatexFormulas();
+                    
+                    // Configurer l'observateur pour les futurs changements
+                    setupMutationObserver();
+                    
+                    latexIcon.classList.add('latex-conversion-success');
+                    setTimeout(() => {
+                        latexIcon.classList.remove('latex-conversion-success');
+                    }, 1000);
+                    showNotification(`${conversionCount} formule(s) LaTeX convertie(s) avec succès`, 'success');
+                }, 200);
+            } else {
+                showNotification('Aucune formule LaTeX trouvée à convertir', 'info');
+            }
+            
+        } catch (error) {
+            console.error('Erreur lors de la conversion LaTeX:', error);
+            showNotification('Erreur lors de la conversion LaTeX', 'error');
+        }
+    });
+    
+    // Fonction pour vérifier si un texte est une formule LaTeX
+    function isLaTeXFormula(text) {
+        // Recherche des motifs LaTeX courants
+        const latexPatterns = [
+            /\\begin\{/,               // Environnements LaTeX
+            /\\end\{/,
+            /\\frac\{/,                // Fractions
+            /\\sqrt\{/,                // Racines
+            /\\sum_/,                  // Sommes
+            /\\int_/,                  // Intégrales
+            /\\lim_/,                  // Limites
+            /\\prod_/,                 // Produits
+            /\\alpha|\\beta|\\gamma/,  // Lettres grecques
+            /\\left\(|\\right\)/,      // Parenthèses
+            /\\mathbb\{|\\mathcal\{/,  // Styles de texte mathématique
+            /\^\{|\^\d/,               // Exposants
+            /\_\{|\_\d/,               // Indices
+            /\\cdot|\\times|\\div/,    // Opérateurs mathématiques
+            /\\partial/,               // Dérivées partielles
+            /\\infty/,                 // Infini
+            /\\to/,                    // Flèches
+            /\\ldots/,                 // Points de suspension
+        ];
+        
+        return latexPatterns.some(pattern => pattern.test(text));
+    }
+    
+    // Lancer le rendu au chargement de la page
+    setTimeout(() => {
+        renderStoredLatexFormulas();
+        setupMutationObserver();
+    }, 500);
+}
+
+  // Fonction principale d'exportation (optimisée)
 async function exportNote(format) {
     // Vérifier si l'éditeur existe et a du contenu
     if (!window.editorInstance) return;
@@ -4850,13 +5406,23 @@ async function exportNote(format) {
     }
     
     const title = getDocumentTitle() || 'Note';
-    showLoading(true);
     
     try {
+        // Optimisation pour le format PDF
+        if (format === 'pdf') {
+            // Montrer brièvement le chargement (juste pour UX)
+            showLoading(true);
+            setTimeout(() => showLoading(false), 200);
+            
+            // Exportation PDF rapide
+            await exportToPDF(content, title);
+            return;
+        }
+        
+        // Pour les autres formats, suivre le workflow normal
+        showLoading(true);
+        
         switch (format) {
-            case 'pdf':
-                await exportToPDF(content, title);
-                break;
             case 'docx':
                 await exportToDocx(content, title);
                 break;
@@ -4879,6 +5445,8 @@ async function exportNote(format) {
         showLoading(false);
     }
 }
+
+
 
 // Extraire un titre depuis le contenu (h1 ou premier paragraphe)
 function getDocumentTitle() {
@@ -4904,82 +5472,145 @@ function getDocumentTitle() {
     return null;
 }
 
-// Exporter en PDF
+
+  // Exporter en PDF (méthode optimisée pour vitesse + fidélité)
 async function exportToPDF(content, title) {
     try {
-        // Créer un conteneur temporaire pour le rendu
-        const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = content;
-        tempContainer.style.width = '210mm'; // Format A4
-        tempContainer.style.padding = '20mm';
-        tempContainer.style.backgroundColor = 'white';
-        tempContainer.style.color = 'black';
-        
-        // Ajuster les styles pour l'impression
-        const styles = document.createElement('style');
-        styles.textContent = `
-            body { font-family: 'Arial', sans-serif; color: black; }
-            h1, h2, h3, h4, h5, h6 { color: black; }
-            a { color: #0366d6; text-decoration: underline; }
-            img { max-width: 100%; height: auto; }
-            table { border-collapse: collapse; width: 100%; margin: 15px 0; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-        `;
-        tempContainer.appendChild(styles);
-        
-        // Ajouter le conteneur temporaire au DOM pour le rendu
-        tempContainer.style.position = 'absolute';
-        tempContainer.style.left = '-9999px';
-        document.body.appendChild(tempContainer);
-        
-        // Créer le PDF (format A4)
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
-            orientation: 'portrait',
-            unit: 'mm',
-            format: 'a4'
-        });
-        
-        // Utiliser html2canvas pour le rendu
-        const canvas = await html2canvas(tempContainer, {
-            scale: 2, // Meilleure qualité
-            useCORS: true,
-            logging: false
-        });
-        
-        // Convertir le canvas en image
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-        
-        // Calculer les dimensions pour ajuster au format A4
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        
-        // Ajouter des pages selon la hauteur du contenu
-        let heightLeft = pdfHeight;
-        let position = 0;
-        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pdf.internal.pageSize.getHeight();
-        
-        while (heightLeft >= 0) {
-            position = heightLeft - pdfHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-            heightLeft -= pdf.internal.pageSize.getHeight();
+        // Créer un blob avec le contenu HTML formaté
+        const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>${title}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
         }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            color: black;
+            margin: 0;
+            padding: 0;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+            page-break-inside: auto;
+        }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+        td, th {
+            padding: 8px;
+            border: 1px solid #ddd;
+            word-break: break-word;
+        }
+        th { background-color: #f2f2f2; }
+        h1, h2, h3, h4, h5, h6 {
+            page-break-after: avoid;
+            break-after: avoid;
+        }
+        pre, code {
+            white-space: pre-wrap;
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 0.5em;
+            border-radius: 3px;
+        }
+        blockquote {
+            border-left: 3px solid #ddd;
+            padding-left: 1em;
+            margin-left: 0;
+        }
+        a { color: #0066cc; text-decoration: underline; }
+        .pdf-footer {
+            position: fixed;
+            bottom: 10mm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10pt;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    ${content}
+
+</body>
+</html>`;
+
+        // Créer un blob et une URL
+        const blob = new Blob([htmlContent], {type: 'text/html'});
+        const blobUrl = URL.createObjectURL(blob);
         
-        // Nettoyer
-        document.body.removeChild(tempContainer);
+        // Créer un iframe invisible pour le rendu
+        const printFrame = document.createElement('iframe');
+        printFrame.style.position = 'fixed';
+        printFrame.style.right = '0';
+        printFrame.style.bottom = '0';
+        printFrame.style.width = '0';
+        printFrame.style.height = '0';
+        printFrame.style.border = '0';
+        printFrame.src = blobUrl;
+        document.body.appendChild(printFrame);
         
-        // Télécharger le PDF
-        pdf.save(`${title}.pdf`);
-        showNotification('PDF exporté avec succès');
+        // Attendre que l'iframe soit chargé
+        await new Promise(resolve => {
+            printFrame.onload = resolve;
+        });
+
+        // Déclencher l'impression programmatiquement
+        const frameWindow = printFrame.contentWindow;
+        
+        // Créer un élément pour le résultat de l'impression
+        const printResult = document.createElement('div');
+        printResult.style.display = 'none';
+        document.body.appendChild(printResult);
+        
+        // Convertir directement en PDF via l'API print du navigateur
+        frameWindow.focus();
+        frameWindow.document.title = title;
+        
+        // Utiliser l'API print mais capturer le résultat directement
+        const printPromise = new Promise(resolve => {
+            // Ajouter un gestionnaire temporaire pour capturer le PDF généré
+            window.addEventListener('focus', function onFocus() {
+                window.removeEventListener('focus', onFocus);
+                
+                // Petit délai pour permettre au navigateur de finaliser le PDF
+                setTimeout(() => {
+                    // Nettoyage et notification
+                    URL.revokeObjectURL(blobUrl);
+                    document.body.removeChild(printFrame);
+                    document.body.removeChild(printResult);
+                    showNotification('PDF exporté avec succès');
+                    resolve();
+                }, 100);
+            }, {once: true});
+            
+            // Lancer l'impression (affiche la boîte de dialogue de sauvegarde PDF directement)
+            frameWindow.print();
+        });
+        
+        // Attendre que l'impression soit terminée
+        await printPromise;
+        
     } catch (error) {
         console.error('Erreur lors de l\'exportation PDF:', error);
-        showNotification('Erreur lors de l\'exportation PDF');
+        showNotification('Erreur lors de l\'exportation PDF', 'error');
     }
 }
+
+
 
 // Exporter en DOCX
 async function exportToDocx(content, title) {
@@ -5353,7 +5984,8 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// Afficher/masquer l'overlay de chargement
+
+  // Afficher/masquer l'overlay de chargement de manière optimisée
 function showLoading(show) {
     const overlay = document.getElementById('newadd_onnote_loadingOverlay');
     if (show) {
@@ -5362,6 +5994,8 @@ function showLoading(show) {
         overlay.classList.remove('active');
     }
 }
+
+
 
 // Modifier la fonction openNote pour initialiser l'exportation
 function openNote(elementId) {
@@ -5443,6 +6077,29 @@ function openNote(elementId) {
             
             // Initialiser les fonctionnalités d'exportation
             initializeNoteExport();
+            
+            // Initialiser le convertisseur Markdown
+            initializeMarkdownConverter();
+            
+            // Initialiser le convertisseur LaTeX
+            initializeLaTeXConverter();
+            // Ajouter cette ligne dans la fonction openNote après les autres initialisations
+initializeConversionMenu();
+
+                        // Rendre les formules LaTeX existantes
+            setTimeout(() => {
+                const formulas = document.querySelectorAll('.latex-formula-container');
+                if (formulas.length > 0 && typeof MathJax !== 'undefined') {
+                    try {
+                        MathJax.typesetPromise().catch(err => {
+                            console.error('Erreur MathJax lors du chargement:', err);
+                        });
+                    } catch (e) {
+                        console.error('Erreur lors du rendu des formules LaTeX:', e);
+                    }
+                }
+            }, 500);
+
         });
 }
 
@@ -5488,74 +6145,11 @@ async function exitNote() {
 
 
 
-        // Intégrer gestionnaire de clic après création des cartes
-        function attachCardClickHandlers() {
-            document.querySelectorAll('.content-card').forEach(card => {
-                card.addEventListener('click', handleCardClick);
-            });
-        }
-        
-        // Fonction pour attacher les gestionnaires de boutons d'action
-function attachCardActionHandlers() {
-    // Gestionnaires pour les boutons de modification
-    document.querySelectorAll('.card-edit-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation(); // Empêcher le clic de la carte
-            const id = this.dataset.id;
-            const card = this.closest('.content-card');
-            console.log("Bouton d'édition cliqué pour l'ID:", id); // Debug
-            openEditModal(id, card);
-        });
-    });
-    
-    // Gestionnaires pour les boutons de suppression
-// Remplacez ce bloc dans votre fonction attachCardActionHandlers
-document.querySelectorAll('.card-delete-btn').forEach(btn => {
-    btn.addEventListener('click', async function(e) {
-        e.stopPropagation(); // Empêcher le clic de la carte
-        const id = this.dataset.id;
-        
-        if (confirm('Êtes-vous sûr de vouloir supprimer cet élément?')) {
-            try {
-                // Vérifier si c'est un élément de démonstration
-                if (id.startsWith('demo-')) {
-                    // Élément de démonstration, suppression locale seulement
-                    window.sampleData = window.sampleData.filter(item => item.id !== id);
-                    
-                    // Actualiser l'interface
-                    populateGrid();
-                    updateCategoryCounts();
-                    updateNavOrder();
-                } else {
-                    // Élément de Supabase
-                    const success = await deleteElementFromSupabase(id);
-                    
-                    if (success) {
-                        // Supprimer l'élément du tableau local
-                        window.sampleData = window.sampleData.filter(item => item.id !== id);
-                        
-                        // Actualiser l'interface
-                        populateGrid();
-                        updateCategoryCounts();
-                        updateNavOrder();
-                        console.log('Élément supprimé et interface mise à jour');
-                    } else {
-                        // Si la suppression échoue, resynchroniser avec Supabase
-                        alert('Erreur lors de la suppression. Actualisation des données...');
-                        await syncWithSupabase();
-                    }
-                }
-            } catch (error) {
-                console.error('Erreur lors de la suppression:', error);
-                alert('Une erreur est survenue lors de la suppression.');
-                // Resynchroniser en cas d'erreur
-                await syncWithSupabase();
-            }
-        }
-    });
-});
 
-}
+
+
+
+
 
 
 
@@ -6221,54 +6815,67 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Ouvrir le modal de création
-    function openCreationModal(type) {
-              // Réinitialiser le formulaire
-        resetForm();
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden'; // Empêcher le défilement
-        
-
-        
-        // Pré-sélectionner le type
-        typeOptions.forEach(option => {
-            if (option.dataset.type === type) {
-                option.classList.add('selected');
-                selectedType = type;
-                
-                // Mettre à jour l'indicateur de type
-                const typeIndicator = modal.querySelector('.type-indicator');
-                typeIndicator.dataset.type = type;
-                
-                const typeIcon = {
-                    'dossier': '📁',
-                    'note': '📝',
-                    'chat': '💬'
-                }[type];
-                
-                typeIndicator.querySelector('.type-icon').textContent = typeIcon;
-                
-                // Mettre à jour le titre du modal
-                let modalTitle = 'Créer un nouveau ';
-                if (type === 'dossier') modalTitle += 'dossier';
-                else if (type === 'note') modalTitle += 'note';
-                else if (type === 'chat') modalTitle += 'chat';
-                
-                modal.querySelector('.modal-title').textContent = modalTitle;
-            }
-        });
-        
-        // Peupler les catégories
-        populateCategories();
-        
-        // Ajouter des particules d'animation
-        createParticles();
-        
-        // Focus sur le champ de titre
+// Ouvrir le modal de création
+function openCreationModal(type) {
+    // Réinitialiser le formulaire
+    resetCreationForm();
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Empêcher le défilement
+    
+    // Pré-sélectionner le type
+    typeOptions.forEach(option => {
+        if (option.dataset.type === type) {
+            option.classList.add('selected');
+            selectedType = type;
+            
+            // Mettre à jour l'indicateur de type
+            const typeIndicator = modal.querySelector('.type-indicator');
+            typeIndicator.dataset.type = type;
+            
+            const typeIcon = {
+                'dossier': '📁',
+                'note': '📝',
+                'chat': '💬'
+            }[type];
+            
+            typeIndicator.querySelector('.type-icon').textContent = typeIcon;
+            
+            // Mettre à jour le titre du modal
+            let modalTitle = 'Créer un nouveau ';
+            if (type === 'dossier') modalTitle += 'dossier';
+            else if (type === 'note') modalTitle += 'note';
+            else if (type === 'chat') modalTitle += 'chat';
+            
+            modal.querySelector('.modal-title').textContent = modalTitle;
+        }
+    });
+    
+    // Peupler les catégories
+    populateCategoryGrid();
+    
+    // NOUVEAU CODE: Si nous venons d'une catégorie vide, pré-sélectionner cette catégorie
+    if (window.lastSelectedEmptyCategory) {
         setTimeout(() => {
-            titleInput.focus();
+            const categoryItems = document.querySelectorAll('.category-item');
+            categoryItems.forEach(item => {
+                if (item.dataset.category === window.lastSelectedEmptyCategory) {
+                    // Simuler un clic sur cette catégorie
+                    item.click();
+                }
+            });
+            // Réinitialiser la variable après utilisation
+            window.lastSelectedEmptyCategory = null;
         }, 300);
     }
+    
+    // Ajouter des particules d'animation
+    createParticles();
+    
+    // Focus sur le champ de titre
+    setTimeout(() => {
+        titleInput.focus();
+    }, 300);
+}
     
     // Gestion des clics sur les options de type
     typeOptions.forEach(option => {
@@ -6362,8 +6969,9 @@ function closeModal() {
     modal.style.display = 'none';
     document.body.style.overflow = ''; // Réactiver le défilement
     
-    // Réinitialiser complètement le formulaire et supprimer l'animation de succès
-    resetForm();
+// Réinitialiser complètement le formulaire et supprimer l'animation de succès
+resetCreationForm();
+
 }
 
     
@@ -6378,7 +6986,7 @@ function closeModal() {
     });
     
 // Réinitialiser le formulaire
-function resetForm() {
+function resetCreationForm() {
     selectedCategory = null;
     selectedPriority = null;
     currentTags = [];
@@ -6443,14 +7051,16 @@ function resetForm() {
     }
     
 // Création d'un nouvel élément
-createBtn.addEventListener('click', async () => {
-  // À ajouter au début de la fonction du bouton createBtn
-console.log("Début création - Type:", selectedType);
-console.log("Catégorie:", selectedCategory);
-console.log("Titre:", titleInput.value);
-console.log("Priorité:", selectedPriority);
-
+document.querySelector('.create-btn')?.addEventListener('click', async function() {
     console.log("Bouton créer cliqué");
+    const modal = document.getElementById('creation-modal');
+    const titleInput = document.getElementById('title-input');
+    
+    // Obtenir les valeurs depuis les variables globales ou les éléments
+    const selectedType = modal.querySelector('.type-option.selected')?.dataset.type;
+    const selectedCategory = modal.querySelector('.category-item.selected')?.dataset.category;
+    const selectedPriority = modal.querySelector('.priority-option.selected')?.dataset.priority;
+    
     // Vérifier que les champs obligatoires sont remplis
     if (!selectedType || !selectedCategory || !titleInput.value || !selectedPriority) {
         console.log("Champs manquants:", {
@@ -6459,36 +7069,31 @@ console.log("Priorité:", selectedPriority);
             title: titleInput.value,
             priority: selectedPriority
         });
-        
+
         // Mettre en évidence les champs manquants
-        if (!selectedType) {
-            modal.querySelector('.type-selection').classList.add('error');
-        }
-        if (!selectedCategory) {
-            modal.querySelector('.category-selector').classList.add('error');
-        }
-        if (!titleInput.value) {
-            titleInput.classList.add('error');
-        }
-        if (!selectedPriority) {
-            modal.querySelector('.priority-options').classList.add('error');
-        }
+        if (!selectedType) modal.querySelector('.type-selection')?.classList.add('error');
+        if (!selectedCategory) modal.querySelector('.category-selector')?.classList.add('error');
+        if (!titleInput.value) titleInput.classList.add('error');
+        if (!selectedPriority) modal.querySelector('.priority-options')?.classList.add('error');
+
+        showGlobalMessage("Veuillez remplir tous les champs obligatoires.", "error");
         return;
     }
-    
-    // Traiter les tags s'il y a du texte dans l'input mais pas encore ajouté à la liste
-    if (tagsInput.value.trim()) {
-        // Diviser l'entrée par les virgules et traiter chaque partie comme un tag séparé
-        const inputTags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag);
-        
-        // Ajouter chaque tag non déjà inclus, jusqu'à la limite de 3 tags au total
-        inputTags.forEach(tagText => {
-            if (!currentTags.includes(tagText) && currentTags.length < 3) {
-                addTag(tagText);
-            }
-        });
-    }
 
+    // Obtenir les tags
+    const currentTags = Array.from(modal.querySelectorAll('.tag')).map(tag => 
+        tag.textContent.replace('×', '').trim()
+    );
+    
+    const descriptionInput = document.getElementById('description-input');
+    
+    // Déterminer les images en fonction du type
+    const typeImages = {
+        'dossier': ["📁", "📂", "🗂️"],
+        'note': ["📝", "📄", "📃"],
+        'chat': ["🗨️", "💭", "💬"]
+    };
+    
     // Créer l'objet de données
     const newItem = {
         category: selectedCategory,
@@ -6500,143 +7105,98 @@ console.log("Priorité:", selectedPriority);
         tags: currentTags,
         priority: selectedPriority
     };
-    
+
     console.log("Nouvel élément créé:", newItem);
-    
+
     // Animation de création en cours
     const content = modal.querySelector('.creation-modal-content');
     content.classList.add('creating');
-    
-    // Enregistrer dans Supabase
-    const success = await saveElementToSupabase(newItem);
-    
-    if (success) {
-        // Ajouter l'élément à sampleData
-        window.sampleData.push(newItem);
-        
-        highlightNewElement(newItem.title);
-        
-        // Actualiser la grille
-        populateGrid();
-        
-        // Mettre à jour les compteurs
-        updateCategoryCounts();
-        
-        // Mettre à jour l'ordre des éléments de navigation
-        updateNavOrder();
-        
-        // Si la catégorie actuelle est celle qui vient d'être ajoutée, mettre à jour l'affichage
-        const activeNavItem = document.querySelector('.nav-item.active');
-        if (activeNavItem && activeNavItem.dataset.category === selectedCategory) {
-            filterContentByCategory(selectedCategory);
+
+    try {
+        // Enregistrer dans Supabase
+        const success = await saveElementToSupabase(newItem);
+
+        if (success) {
+            // Ajouter l'élément à sampleData
+            window.sampleData.push(newItem);
+
+            // Actualiser la grille et les compteurs
+            populateGrid();
+            updateCategoryCounts();
+            updateNavOrder();
+
+            // Afficher un message de succès
+            showGlobalMessage("Élément créé avec succès !");
+
+            // Animation de création réussie
+            createSuccessAnimation();
+
+            // Fermer le modal après un délai
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.body.style.overflow = ''; // Réactiver le défilement
+                
+                // Réinitialiser complètement le formulaire
+                const resetFunction = window.resetCreationForm || function() {
+                    titleInput.value = '';
+                    descriptionInput.value = '';
+                    document.getElementById('tags-input').value = '';
+                    modal.querySelector('.tags-list').innerHTML = '';
+                    modal.querySelector('.char-counter').textContent = '0/100';
+                    
+                    modal.querySelectorAll('.type-option').forEach(opt => opt.classList.remove('selected'));
+                    modal.querySelectorAll('.priority-option').forEach(opt => opt.classList.remove('selected'));
+                    modal.querySelectorAll('.category-item').forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Supprimer l'overlay de succès s'il existe
+                    const overlay = modal.querySelector('.success-overlay');
+                    if (overlay) overlay.remove();
+                    
+                    // Réinitialiser les classes d'animation
+                    content.classList.remove('creation-success');
+                    content.classList.remove('creating');
+                    
+                    // Réinitialiser les erreurs
+                    modal.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+                };
+                resetFunction();
+            }, 1500);
         } else {
-            // Sinon, filtrer pour afficher tous les éléments
-            filterContentByCategory('universe');
+            throw new Error("Enregistrement échoué");
         }
-        
-        // Animation de création réussie
-        createSuccessAnimation();
-        
-        // Fermer le modal
-        setTimeout(() => {
-            closeModal();
-            // Ré-afficher la grille après la fermeture
-            document.getElementById('contentGrid').style.display = 'grid';
-        }, 1500);
-    } else {
-        // En cas d'erreur
+    } catch (error) {
+        console.error("Erreur lors de la création:", error);
+
         content.classList.remove('creating');
-        
+
         // Afficher un message d'erreur
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'error-message';
-        errorMessage.textContent = "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.";
-        content.appendChild(errorMessage);
-        
-        setTimeout(() => {
-            errorMessage.remove();
-        }, 3000);
+        showGlobalMessage("Une erreur est survenue lors de l'enregistrement.", "error");
     }
 });
 
 
 
+
     
-    // Animation de succès
-    function createSuccessAnimation() {
-        const content = modal.querySelector('.creation-modal-content');
-        content.classList.add('creation-success');
-        
-        // Ajouter une superposition d'animation
-        const overlay = document.createElement('div');
-        overlay.className = 'success-overlay';
-        overlay.innerHTML = `
-            <div class="success-icon">✓</div>
-            <div class="success-message">Élément créé avec succès!</div>
-        `;
-        content.appendChild(overlay);
-        
-        // Styles pour l'animation de succès
-        const style = document.createElement('style');
-        style.innerHTML = `
-            .creation-success {
-                position: relative;
-                overflow: hidden;
-            }
-            
-            .success-overlay {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                animation: slideIn 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-                z-index: 10;
-            }
-            
-            .success-icon {
-                font-size: 3rem;
-                color: white;
-                background: rgba(255, 255, 255, 0.2);
-                width: 80px;
-                height: 80px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-bottom: 20px;
-                animation: scaleIn 0.5s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-            }
-            
-            .success-message {
-                font-size: 1.5rem;
-                color: white;
-                font-weight: 600;
-                animation: fadeIn 0.5s 0.4s both;
-            }
-            
-            @keyframes slideIn {
-                from { transform: translateY(100%); }
-                to { transform: translateY(0); }
-            }
-            
-            @keyframes scaleIn {
-                from { transform: scale(0); opacity: 0; }
-                to { transform: scale(1); opacity: 1; }
-            }
-            
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-        `;
-        document.head.appendChild(style);
-    }
+// Animation de succès
+function createSuccessAnimation() {
+    const content = document.getElementById('creation-modal').querySelector('.creation-modal-content');
+    content.classList.add('creation-success');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'success-overlay';
+    overlay.innerHTML = `
+        <div class="success-icon">✓</div>
+        <div class="success-message">Élément créé avec succès !</div>
+    `;
+    content.appendChild(overlay);
+
+    setTimeout(() => {
+        overlay.remove();
+        content.classList.remove('creation-success');
+    }, 1500);
+}
+
     
     // Associer la fonctionnalité aux éléments du menu principal
     const creationButton = document.querySelector('.creation-button');
@@ -6822,6 +7382,102 @@ console.log("Priorité:", selectedPriority);
     document.head.appendChild(creationMenuStyle);
 });
 
+// Ajouter avant la fin de votre event listener DOMContentLoaded ou tout de suite après
+// Styles pour l'animation du menu popup
+const creationMenuAnimStyle = document.createElement('style');
+creationMenuAnimStyle.innerHTML = `
+    @keyframes popIn {
+        0% { transform: scale(0.8); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .animation-popin {
+        animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    .Category_SadHope-create-btn {
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+    
+    .Category_SadHope-create-btn:hover {
+        transform: scale(1.05);
+    }
+`;
+document.head.appendChild(creationMenuAnimStyle);
+
+
+// Fonction pour afficher un message global d'état (succès/erreur)
+function showGlobalMessage(message, type = 'success') {
+    const existingMessage = document.querySelector('.global-message');
+    if (existingMessage) existingMessage.remove();
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `global-message ${type}`;
+    messageDiv.textContent = message;
+
+    document.body.appendChild(messageDiv);
+
+    setTimeout(() => {
+        messageDiv.classList.add('fade-out');
+        setTimeout(() => messageDiv.remove(), 500);
+    }, 3000);
+}
+
+// Styles pour les messages globaux
+const globalMessageStyle = document.createElement('style');
+globalMessageStyle.innerHTML = `
+    .global-message {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(34, 197, 94, 0.9); /* Succès par défaut */
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        z-index: 10000;
+        transition: all 0.5s ease;
+    }
+    .global-message.error {
+        background: rgba(239, 68, 68, 0.9); /* Erreur */
+    }
+    .global-message.fade-out {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+`;
+document.head.appendChild(globalMessageStyle);
+
+// Fonction pour supprimer les indications d'erreur lors de la saisie
+function removeErrorOnInput() {
+    const titleInput = document.getElementById('title-input');
+    const tagsInput = document.getElementById('tags-input');
+    const modal = document.getElementById('creation-modal');
+    
+    if (titleInput) titleInput.addEventListener('input', () => titleInput.classList.remove('error'));
+    if (tagsInput) tagsInput.addEventListener('input', () => tagsInput.classList.remove('error'));
+    
+    modal?.querySelectorAll('.type-option')?.forEach(option => {
+        option.addEventListener('click', () => modal.querySelector('.type-selection')?.classList.remove('error'));
+    });
+    
+    modal?.querySelectorAll('.priority-option')?.forEach(option => {
+        option.addEventListener('click', () => modal.querySelector('.priority-options')?.classList.remove('error'));
+    });
+    
+    modal?.querySelector('.category-grid')?.addEventListener('click', () => {
+        modal.querySelector('.category-selector')?.classList.remove('error');
+    });
+}
+
+// Appeler la fonction pour configurer la suppression des erreurs
+document.addEventListener('DOMContentLoaded', function() {
+    removeErrorOnInput();
+});
+
+
 // Fonction pour mettre en évidence les nouveaux éléments ajoutés
 function highlightNewElement(title) {
     setTimeout(() => {
@@ -6844,7 +7500,8 @@ let editSelectedCategory = null;
 let editSelectedPriority = null;
 
 // Fonction pour ouvrir le modal d'édition
-function openEditModal(id, card) {
+// Première fonction renommée en openSampleEditModal
+function openSampleEditModal(id, card) {
     console.log("Ouverture du modal d'édition pour ID:", id); // Debug
     
     const editModal = document.getElementById('edit-modal');
@@ -6902,7 +7559,7 @@ function openEditModal(id, card) {
 }
 
 
-// Fonction pour peupler les catégories dans le modal d'édition
+// Fonction mise à jour pour peupler les catégories dans le modal d'édition
 function populateEditCategories() {
     const categoryGrid = document.querySelector('.edit-category-grid');
     categoryGrid.innerHTML = '';
@@ -6914,7 +7571,16 @@ function populateEditCategories() {
         const category = item.dataset.category;
         // Exclure "Mon univers" et "Identity"
         if (category !== 'universe' && category !== 'Identity') {
-            const emoji = item.innerText.trim();
+            let emoji;
+            
+            // Vérifier si l'élément contient une image
+            const img = item.querySelector('img');
+            if (img) {
+                emoji = `<img src="${img.src}" alt="${category}" style="width: 20px; height: 20px; object-fit: contain;">`;
+            } else {
+                emoji = item.innerText.trim();
+            }
+            
             const tooltip = item.querySelector('.tooltip').innerText;
             
             const categoryItem = document.createElement('div');
@@ -6943,6 +7609,7 @@ function populateEditCategories() {
         }
     });
 }
+
 
 // Fonction pour ajouter un tag dans le modal d'édition
 function addEditTag(text) {
@@ -7585,40 +8252,33 @@ async function addSocialAccount(account) {
 // Fonction pour enregistrer un nouvel élément dans Supabase
 async function saveElementToSupabase(element) {
     try {
-        console.log('Tentative d\'enregistrement:', element);
-        
-        // Assurez-vous que les champs sont correctement formatés
-        const formattedElement = {
-            ...element,
-            // Assurez-vous que tags et images sont des tableaux JSON valides
-            tags: Array.isArray(element.tags) ? element.tags : [],
-            images: Array.isArray(element.images) ? element.images : []
-        };
-        
         const { data, error } = await supabase
             .from('elements')
-            .insert([formattedElement])
+            .insert([element])
             .select();
-        
+
         if (error) {
-            console.error('Erreur d\'enregistrement:', error);
+            console.error('Erreur lors de l\'enregistrement dans Supabase:', error);
+            showGlobalMessage("Erreur lors de l'enregistrement dans la base de données.", "error");
             return false;
         }
-        
+
         if (data && data.length > 0) {
-            console.log('Élément enregistré avec ID:', data[0].id);
+            console.log('Élément enregistré avec succès:', data[0]);
             // Mise à jour de l'élément local avec l'ID généré
             element.id = data[0].id;
             return true;
-        } else {
-            console.error('Pas de données retournées après insertion');
-            return false;
         }
+
+        console.error('Aucune donnée retournée après l\'insertion.');
+        return false;
     } catch (error) {
-        console.error('Exception lors de l\'enregistrement:', error);
+        console.error('Exception lors de la sauvegarde:', error);
+        showGlobalMessage("Erreur critique lors de la création.", "error");
         return false;
     }
 }
+
 
 async function syncWithSupabase() {
     try {
@@ -9586,7 +10246,7 @@ function renderApps(apps) {
         // Ajouter l'écouteur pour le bouton d'édition
         editBtn.addEventListener('click', (e) => {
             e.stopPropagation(); // Empêcher la propagation jusqu'à la carte
-            openEditModal(app);
+            openWebAppEditModal(app);
         });
         
         // Ajouter l'écouteur pour le bouton de suppression
@@ -9769,7 +10429,8 @@ function openAppDetail(app) {
 }
 
 // Fonction pour ouvrir le modal d'édition avec les données pré-remplies
-function openEditModal(app) {
+// Deuxième fonction renommée en openWebAppEditModal
+function openWebAppEditModal(app) {
     // Récupérer le modal d'ajout
     const addModal = document.getElementById('webapp_onidentity-add-modal');
     const modalTitle = addModal.querySelector('.webapp_onidentity-modal-title');
@@ -10755,12 +11416,13 @@ function initializeAddAppModal() {
             block: 'center' 
         });
         
-        // Réinitialiser le formulaire
-        resetForm();
+// Réinitialiser le formulaire
+resetAppForm();
+
     }
     
     // Fonction pour réinitialiser le formulaire
-    function resetForm() {
+    function resetAppForm() {
         addForm.reset();
         appDateInput.value = today;
         previewDate.textContent = `Créé le ${formattedDate}`;
@@ -11495,8 +12157,783 @@ async function saveApplicationToSupabase(app) {
 /*══════════════════════════════╗
   🟨 JS PARTIE 14
   ═════════════════════════════╝*/
+// === Gestion des catégories personnalisées ===
+
+// Structure pour stocker les emojis par catégorie
+const navaddEmojiData = {
+    recent: [], // Sera rempli avec les emojis récemment utilisés
+    smileys: ["😀", "😁", "😂", "🤣", "😃", "😄", "😅", "😆", "😉", "😊", "😋", "😎", "😍", "😘", "🥰", "😗", "😙", "😚", "🙂", "🤗", "🤩", "🤔", "🤨", "😐", "😑", "😶", "🙄", "😏", "😣", "😥", "😮", "🤐", "😯", "😪", "😫", "😴", "😌", "😛", "😜", "😝", "🤤", "😒", "😓", "😔", "😕", "🙃", "🤑", "😲", "☹️", "🙁", "😖", "😞", "😟", "😤", "😢", "😭", "😦", "😧", "😨", "😩", "🤯", "😬", "😰", "😱", "🥵", "🥶", "😳", "🤪", "😵", "😡", "😠", "🤬", "😷", "🤒", "🤕", "🤢", "🤮", "🤧", "😇", "🤠", "🤡", "🥳", "🥴", "🥺", "🤥", "🤫", "🤭", "🧐", "🤓"],
+    people: ["👶", "👧", "🧒", "👦", "👩", "🧑", "👨", "👵", "🧓", "👴", "👲", "👳‍♀️", "👳‍♂️", "🧕", "🧔", "👱‍♂️", "👱‍♀️", "👨‍🦰", "👩‍🦰", "👨‍🦱", "👩‍🦱", "👨‍🦲", "👩‍🦲", "👨‍🦳", "👩‍🦳", "🎅", "🤶", "👸", "🤴", "👰", "🤵", "👼", "🤰", "🤱", "🙇‍♀️", "🙇‍♂️", "💁‍♀️", "💁‍♂️", "🙅‍♀️", "🙅‍♂️", "🙆‍♀️", "🙆‍♂️", "🙋‍♀️", "🙋‍♂️", "🤦‍♀️", "🤦‍♂️", "🤷‍♀️", "🤷‍♂️", "🙎‍♀️", "🙎‍♂️", "🙍‍♀️", "🙍‍♂️", "💇‍♀️", "💇‍♂️", "💆‍♀️", "💆‍♂️", "🧖‍♀️", "🧖‍♂️", "💅", "🤳", "💃", "🕺", "👯‍♀️", "👯‍♂️", "🕴", "🚶‍♀️", "🚶‍♂️", "🏃‍♀️", "🏃‍♂️", "👫", "👭", "👬", "💑", "👩‍❤️‍👩", "👨‍❤️‍👨", "💏", "👩‍❤️‍💋‍👩", "👨‍❤️‍💋‍👨", "👪", "👨‍👩‍👧", "👨‍👩‍👧‍👦", "👨‍👩‍👦‍👦", "👨‍👩‍👧‍👧", "👩‍👩‍👦", "👩‍👩‍👧", "👩‍👩‍👧‍👦", "👩‍👩‍👦‍👦", "👩‍👩‍👧‍👧", "👨‍👨‍👦", "👨‍👨‍👧", "👨‍👨‍👧‍👦", "👨‍👨‍👦‍👦", "👨‍👨‍👧‍👧", "👩‍👦", "👩‍👧", "👩‍👧‍👦", "👩‍👦‍👦", "👩‍👧‍👧", "👨‍👦", "👨‍👧", "👨‍👧‍👦", "👨‍👦‍👦", "👨‍👧‍👧", "🤲", "👐", "🙌", "👏", "🤝", "👍", "👎", "👊", "✊", "🤛", "🤜", "🤞", "✌️", "🤟", "🤘", "👌", "👈", "👉", "👆", "👇", "☝️", "✋", "🤚", "🖐", "🖖", "👋", "🤙", "💪", "🦵", "🦶", "🖕", "✍️", "🙏", "💍", "💄", "💋", "👄", "👅", "👂", "👃", "👣", "👁", "👀", "🧠", "🦴", "🦷", "🗣", "👤", "👥"],
+    animals: ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🦝", "🐻", "🐼", "🦘", "🦡", "🐨", "🐯", "🦁", "🐮", "🐷", "🐽", "🐸", "🐵", "🙈", "🙉", "🙊", "🐒", "🐔", "🐧", "🐦", "🐤", "🐣", "🐥", "🦆", "🦢", "🦅", "🦉", "🦚", "🦜", "🦇", "🐺", "🐗", "🐴", "🦄", "🐝", "🐛", "🦋", "🐌", "🐚", "🐞", "🐜", "🦗", "🕷", "🕸", "🦂", "🦟", "🦠", "🐢", "🐍", "🦎", "🦖", "🦕", "🐙", "🦑", "🦐", "🦞", "🦀", "🐡", "🐠", "🐟", "🐬", "🐳", "🐋", "🦈", "🐊", "🐅", "🐆", "🦓", "🦍", "🐘", "🦏", "🦛", "🐪", "🐫", "🦙", "🦒", "🐃", "🐂", "🐄", "🐎", "🐖", "🐏", "🐑", "🐐", "🦌", "🐕", "🐩", "🐈", "🐓", "🦃", "🕊", "🐇", "🐁", "🐀", "🐿", "🦔", "🐾", "🐉", "🐲", "🌵", "🎄", "🌲", "🌳", "🌴", "🌱", "🌿", "☘️", "🍀", "🎍", "🎋", "🍃", "🍂", "🍁", "🍄", "🌾", "💐", "🌷", "🌹", "🥀", "🌺", "🌸", "🌼", "🌻", "🌞", "🌝", "🌛", "🌜", "🌚", "🌕", "🌖", "🌗", "🌘", "🌑", "🌒", "🌓", "🌔", "🌙", "🌎", "🌍", "🌏", "💫", "⭐️", "🌟", "✨", "⚡️", "☄️", "💥", "🔥", "🌪", "🌈", "☀️", "🌤", "⛅️", "🌥", "☁️", "🌦", "🌧", "⛈", "🌩", "🌨", "❄️", "☃️", "⛄️", "🌬", "💨", "💧", "💦", "☔️", "☂️", "🌊", "🌫"],
+    food: ["🍏", "🍎", "🍐", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🍈", "🍒", "🍑", "🍍", "🥭", "🥥", "🥝", "🍅", "🍆", "🥑", "🥦", "🥒", "🥬", "🌶", "🌽", "🥕", "🥔", "🍠", "🥐", "🍞", "🥖", "🥨", "🥯", "🧀", "🥚", "🍳", "🥞", "🥓", "🥩", "🍗", "🍖", "🌭", "🍔", "🍟", "🍕", "🥪", "🥙", "🌮", "🌯", "🥗", "🥘", "🥫", "🍝", "🍜", "🍲", "🍛", "🍣", "🍱", "🥟", "🍤", "🍙", "🍚", "🍘", "🍥", "🥮", "🥠", "🍢", "🍡", "🍧", "🍨", "🍦", "🥧", "🍰", "🧁", "🎂", "🍮", "🍭", "🍬", "🍫", "🍿", "🧂", "🍩", "🍪", "🌰", "🥜", "🍯", "🥛", "🍼", "☕️", "🍵", "🥤", "🍶", "🍺", "🍻", "🥂", "🍷", "🥃", "🍸", "🍹", "🍾", "🥄", "🍴", "🍽", "🥣", "🥡", "🥢"],
+    travel: ["🚗", "🚕", "🚙", "🚌", "🚎", "🏎", "🚓", "🚑", "🚒", "🚐", "🚚", "🚛", "🚜", "🛴", "🚲", "🛵", "🏍", "🚨", "🚔", "🚍", "🚘", "🚖", "🚡", "🚠", "🚟", "🚃", "🚋", "🚞", "🚝", "🚄", "🚅", "🚈", "🚂", "🚆", "🚇", "🚊", "🚉", "✈️", "🛫", "🛬", "🛩", "💺", "🛰", "🚀", "🛸", "🚁", "🛶", "⛵️", "🚤", "🛥", "🛳", "⛴", "🚢", "⚓️", "⛽️", "🚧", "🚦", "🚥", "🚏", "🗺", "🗿", "🗽", "🗼", "🏰", "🏯", "🏟", "🎡", "🎢", "🎠", "⛲️", "⛱", "🏖", "🏝", "🏜", "🌋", "⛰", "🏔", "🗻", "🏕", "⛺️", "🏠", "🏡", "🏘", "🏚", "🏗", "🏭", "🏢", "🏬", "🏣", "🏤", "🏥", "🏦", "🏨", "🏪", "🏫", "🏩", "💒", "🏛", "⛪️", "🕌", "🕍", "🕋", "⛩", "🛤", "🛣", "🗾", "🎑", "🏞", "🌅", "🌄", "🌠", "🎇", "🎆", "🌇", "🌆", "🏙", "🌃", "🌌", "🌉", "🌁"],
+    activities: ["⚽️", "🏀", "🏈", "⚾️", "🥎", "🏐", "🏉", "🎾", "🥏", "🎱", "🏓", "🏸", "🥅", "🏒", "🏑", "🥍", "🏏", "⛳️", "🏹", "🎣", "🥊", "🥋", "🎽", "⛸", "🥌", "🛷", "🛹", "🎿", "⛷", "🏂", "🏋️‍♀️", "🏋🏻‍♂️", "🤼‍♀️", "🤼‍♂️", "🤸‍♀️", "🤸🏻‍♂️", "⛹️‍♀️", "⛹️‍♂️", "🤺", "🤾‍♀️", "🤾‍♂️", "🏌️‍♀️", "🏌️‍♂️", "🏇", "🧘‍♀️", "🧘‍♂️", "🏄‍♀️", "🏄‍♂️", "🏊‍♀️", "🏊‍♂️", "🤽‍♀️", "🤽‍♂️", "🚣‍♀️", "🚣‍♂️", "🧗‍♀️", "🧗‍♂️", "🚵‍♀️", "🚵‍♂️", "🚴‍♀️", "🚴‍♂️", "🏆", "🥇", "🥈", "🥉", "🏅", "🎖", "🏵", "🎗", "🎫", "🎟", "🎪", "🤹‍♀️", "🤹‍♂️", "🎭", "🎨", "🎬", "🎤", "🎧", "🎼", "🎹", "🥁", "🎷", "🎺", "🎸", "🎻", "🎲", "🧩", "♟", "🎯", "🎳", "🎮", "🎰"],
+    objects: ["🔮", "📱", "📲", "💻", "⌨️", "🖥", "🖨", "🖱", "🖲", "🕹", "🗜", "💽", "💾", "💿", "📀", "📼", "📷", "📸", "📹", "🎥", "📽", "🎞", "📞", "☎️", "📟", "📠", "📺", "📻", "🎙", "🎚", "🎛", "⏱", "⏲", "⏰", "🕰", "⌛️", "⏳", "📡", "🔋", "🔌", "💡", "🔦", "🕯", "🗑", "🛢", "💸", "💵", "💴", "💶", "💷", "💰", "💳", "🧾", "💎", "⚖️", "🔧", "🔨", "⚒", "🛠", "⛏", "🔩", "⚙️", "⛓", "🔫", "💣", "🔪", "🗡", "⚔️", "🛡", "🚬", "⚰️", "⚱️", "🏺", "🧭", "🧱", "🔮", "🧿", "🧸", "📿", "💈", "⚗️", "🔭", "🧰", "🧲", "🧪", "🧫", "🧬", "🧯", "🔬", "🕳", "💊", "💉", "🌡", "🚽", "🚰", "🚿", "🛁", "🛀", "🛀🏻", "🧴", "🧵", "🧶", "🧷", "🧹", "🧺", "🧻", "🧼", "🧽", "🛎", "🔑", "🗝", "🚪", "🛋", "🛏", "🛌", "🖼", "🛍", "🧳", "🛒", "🎁", "🎈", "🎏", "🎀", "🎊", "🎉", "🧨", "🎎", "🏮", "🎐", "🧧", "✉️", "📩", "📨", "📧", "💌", "📥", "📤", "📦", "🏷", "📪", "📫", "📬", "📭", "📮", "📯", "📜", "📃", "📄", "📑", "🧾", "📊", "📈", "📉", "🗒", "🗓", "📆", "📅", "🗑", "📇", "🗃", "🗳", "🗄", "📋", "📁", "📂", "🗂", "🗞", "📰", "📓", "📔", "📒", "📕", "📗", "📘", "📙", "📚", "📖", "🔖", "🧷", "🔗", "📎", "🖇", "📐", "📏", "🧮", "📌", "📍", "✂️", "🖊", "🖋", "✒️", "🖌", "🖍", "📝", "✏️", "🔍", "🔎", "🔏", "🔐", "🔒", "🔓"],
+    symbols: ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "☮️", "✝️", "☪️", "🕉", "☸️", "✡️", "🔯", "🕎", "☯️", "☦️", "🛐", "⛎", "♈️", "♉️", "♊️", "♋️", "♌️", "♍️", "♎️", "♏️", "♐️", "♑️", "♒️", "♓️", "🆔", "⚛️", "🉑", "☢️", "☣️", "📴", "📳", "🈶", "🈚️", "🈸", "🈺", "🈷️", "✴️", "🆚", "💮", "🉐", "㊙️", "㊗️", "🈴", "🈵", "🈹", "🈲", "🅰️", "🅱️", "🆎", "🆑", "🅾️", "🆘", "❌", "⭕️", "🛑", "⛔️", "📛", "🚫", "💯", "💢", "♨️", "🚷", "🚯", "🚳", "🚱", "🔞", "📵", "🚭", "❗️", "❕", "❓", "❔", "‼️", "⁉️", "🔅", "🔆", "〽️", "⚠️", "🚸", "🔱", "⚜️", "🔰", "♻️", "✅", "🈯️", "💹", "❇️", "✳️", "❎", "🌐", "💠", "Ⓜ️", "🌀", "💤", "🏧", "🚾", "♿️", "🅿️", "🈳", "🈂️", "🛂", "🛃", "🛄", "🛅", "🚹", "🚺", "🚼", "🚻", "🚮", "🎦", "📶", "🈁", "🔣", "ℹ️", "🔤", "🔡", "🔠", "🆖", "🆗", "🆙", "🆒", "🆕", "🆓", "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "🔢", "#️⃣", "*️⃣", "⏏️", "▶️", "⏸", "⏯", "⏹", "⏺", "⏭", "⏮", "⏩", "⏪", "⏫", "⏬", "◀️", "🔼", "🔽", "➡️", "⬅️", "⬆️", "⬇️", "↗️", "↘️", "↙️", "↖️", "↕️", "↔️", "↪️", "↩️", "⤴️", "⤵️", "🔀", "🔁", "🔂", "🔄", "🔃", "🎵", "🎶", "➕", "➖", "➗", "✖️", "♾", "💲", "💱", "™️", "©️", "®️", "〰️", "➰", "➿", "🔚", "🔙", "🔛", "🔝", "🔜", "✔️", "☑️", "🔘", "⚪️", "⚫️", "🔴", "🔵", "🔺", "🔻", "🔸", "🔹", "🔶", "🔷", "🔳", "🔲", "▪️", "▫️", "◾️", "◽️", "◼️", "◻️", "⬛️", "⬜️", "🔈", "🔇", "🔉", "🔊", "🔔", "🔕", "📣", "📢", "👁‍🗨", "💬", "💭", "🗯", "♠️", "♣️", "♥️", "♦️", "🃏", "🎴", "🀄️", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚", "🕛", "🕜", "🕝", "🕞", "🕟", "🕠", "🕡", "🕢", "🕣", "🕤", "🕥", "🕦", "🕧"],
+    flags: ["🏳️", "🏴", "🏁", "🚩", "🏳️‍🌈", "🏴‍☠️", "🇦🇫", "🇦🇽", "🇦🇱", "🇩🇿", "🇦🇸", "🇦🇩", "🇦🇴", "🇦🇮", "🇦🇶", "🇦🇬", "🇦🇷", "🇦🇲", "🇦🇼", "🇦🇺", "🇦🇹", "🇦🇿", "🇧🇸", "🇧🇭", "🇧🇩", "🇧🇧", "🇧🇾", "🇧🇪", "🇧🇿", "🇧🇯", "🇧🇲", "🇧🇹", "🇧🇴", "🇧🇦", "🇧🇼", "🇧🇷", "🇮🇴", "🇻🇬", "🇧🇳", "🇧🇬", "🇧🇫", "🇧🇮", "🇰🇭", "🇨🇲", "🇨🇦", "🇮🇨", "🇨🇻", "🇧🇶", "🇰🇾", "🇨🇫", "🇹🇩", "🇨🇱", "🇨🇳", "🇨🇽", "🇨🇨", "🇨🇴", "🇰🇲", "🇨🇬", "🇨🇩", "🇨🇰", "🇨🇷", "🇨🇮", "🇭🇷", "🇨🇺", "🇨🇼", "🇨🇾", "🇨🇿", "🇩🇰", "🇩🇯", "🇩🇲", "🇩🇴", "🇪🇨", "🇪🇬", "🇸🇻", "🇬🇶", "🇪🇷", "🇪🇪", "🇪🇹", "🇪🇺", "🇫🇰", "🇫🇴", "🇫🇯", "🇫🇮", "🇫🇷", "🇬🇫", "🇵🇫", "🇹🇫", "🇬🇦", "🇬🇲", "🇬🇪", "🇩🇪", "🇬🇭", "🇬🇮", "🇬🇷", "🇬🇱", "🇬🇩", "🇬🇵", "🇬🇺", "🇬🇹", "🇬🇬", "🇬🇳", "🇬🇼", "🇬🇾", "🇭🇹", "🇭🇳", "🇭🇰", "🇭🇺", "🇮🇸", "🇮🇳", "🇮🇩", "🇮🇷", "🇮🇶", "🇮🇪", "🇮🇲", "🇮🇱", "🇮🇹", "🇯🇲", "🇯🇵", "🎌", "🇯🇪", "🇯🇴", "🇰🇿", "🇰🇪", "🇰🇮", "🇽🇰", "🇰🇼", "🇰🇬", "🇱🇦", "🇱🇻", "🇱🇧", "🇱🇸", "🇱🇷", "🇱🇾", "🇱🇮", "🇱🇹", "🇱🇺", "🇲🇴", "🇲🇰", "🇲🇬", "🇲🇼", "🇲🇾", "🇲🇻", "🇲🇱", "🇲🇹", "🇲🇭", "🇲🇶", "🇲🇷", "🇲🇺", "🇾🇹", "🇲🇽", "🇫🇲", "🇲🇩", "🇲🇨", "🇲🇳", "🇲🇪", "🇲🇸", "🇲🇦", "🇲🇿", "🇲🇲", "🇳🇦", "🇳🇷", "🇳🇵", "🇳🇱", "🇳🇨", "🇳🇿", "🇳🇮", "🇳🇪", "🇳🇬", "🇳🇺", "🇳🇫", "🇰🇵", "🇲🇵", "🇳🇴", "🇴🇲", "🇵🇰", "🇵🇼", "🇵🇸", "🇵🇦", "🇵🇬", "🇵🇾", "🇵🇪", "🇵🇭", "🇵🇳", "🇵🇱", "🇵🇹", "🇵🇷", "🇶🇦", "🇷🇪", "🇷🇴", "🇷🇺", "🇷🇼", "🇼🇸", "🇸🇲", "🇸🇦", "🇸🇳", "🇷🇸", "🇸🇨", "🇸🇱", "🇸🇬", "🇸🇽", "🇸🇰", "🇸🇮", "🇬🇸", "🇸🇧", "🇸🇴", "🇿🇦", "🇰🇷", "🇸🇸", "🇪🇸", "🇱🇰", "🇧🇱", "🇸🇭", "🇰🇳", "🇱🇨", "🇵🇲", "🇻🇨", "🇸🇩", "🇸🇷", "🇸🇿", "🇸🇪", "🇨🇭", "🇸🇾", "🇹🇼", "🇹🇯", "🇹🇿", "🇹🇭", "🇹🇱", "🇹🇬", "🇹🇰", "🇹🇴", "🇹🇹", "🇹🇳", "🇹🇷", "🇹🇲", "🇹🇨", "🇹🇻", "🇻🇮", "🇺🇬", "🇺🇦", "🇦🇪", "🇬🇧", "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "🏴󠁧󠁢󠁷󠁬󠁳󠁿", "🇺🇳", "🇺🇸", "🇺🇾", "🇺🇿", "🇻🇺", "🇻🇦", "🇻🇪", "🇻🇳", "🇼🇫", "🇪🇭", "🇾🇪", "🇿🇲", "🇿🇼"]
+};
+
+// Ajouter un bouton d'ajout de catégorie dans le modal de création
+document.addEventListener('DOMContentLoaded', function() {
+    // Ajouter le bouton "Ajouter une catégorie" dans le modal de création
+    const categorySelector = document.querySelector('.category-selector');
+    if (categorySelector) {
+        const navaddButton = document.createElement('div');
+        navaddButton.className = 'navaddButton';
+        navaddButton.innerHTML = `
+            <span class="add-icon">➕</span>
+            <span>Ajouter une nouvelle catégorie</span>
+        `;
+        categorySelector.appendChild(navaddButton);
+        
+        // Gestionnaire d'événement pour le bouton d'ajout de catégorie
+        navaddButton.addEventListener('click', openNavaddModal);
+    }
+    
+    // Initialiser le modal de création de catégorie
+    initNavaddModal();
+    
+    // Charger les catégories personnalisées depuis Supabase au chargement
+    loadCustomCategories();
+});
+
+// Fonction pour ouvrir le modal d'ajout de catégorie
+function openNavaddModal() {
+    const navaddModal = document.getElementById('navaddModal');
+    navaddModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Empêcher le défilement
+    
+    // Réinitialiser le formulaire
+    resetNavaddForm();
+    
+    // Charger les emojis récents
+    loadRecentEmojis();
+    
+    // Focus sur le champ de nom
+    setTimeout(() => {
+        document.getElementById('navaddName').focus();
+    }, 300);
+}
+
+// Fonction pour initialiser le modal d'ajout de catégorie
+function initNavaddModal() {
+    const navaddModal = document.getElementById('navaddModal');
+    const closeBtn = navaddModal.querySelector('.close-modal');
+    const cancelBtn = navaddModal.querySelector('.cancel-btn');
+    const createBtn = navaddModal.querySelector('.navaddCreateBtn');
+    const visualOptions = navaddModal.querySelectorAll('.visual-option');
+    const nameInput = document.getElementById('navaddName');
+    const emojiSearch = document.getElementById('navaddEmojiSearch');
+    const emojiCategories = navaddModal.querySelectorAll('.emoji-category');
+    const uploadPreview = navaddModal.querySelector('.upload-preview');
+    const imageInput = document.getElementById('navaddImageInput');
+    
+    // Gestion du compteur de caractères pour le nom
+    nameInput.addEventListener('input', () => {
+        const length = nameInput.value.length;
+        const charCounter = navaddModal.querySelector('.char-counter');
+        charCounter.textContent = `${length}/30`;
+        
+        // Mettre à jour la couleur en fonction de la longueur
+        if (length > 25) {
+            charCounter.style.color = '#ef4444';
+        } else if (length > 20) {
+            charCounter.style.color = '#f59e0b';
+        } else {
+            charCounter.style.color = '';
+        }
+        
+        // Mettre à jour l'aperçu
+        updateNavaddPreview();
+    });
+    
+    // Gestion des options de type visuel
+    visualOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            visualOptions.forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+            
+            const type = option.dataset.type;
+            const emojiContainer = navaddModal.querySelector('.emoji-selector-container');
+            const imageContainer = navaddModal.querySelector('.image-uploader-container');
+            
+            if (type === 'emoji') {
+                emojiContainer.style.display = 'block';
+                imageContainer.style.display = 'none';
+            } else if (type === 'image') {
+                emojiContainer.style.display = 'none';
+                imageContainer.style.display = 'block';
+            }
+            
+            // Mettre à jour l'aperçu
+            updateNavaddPreview();
+        });
+    });
+    
+    // Gestion de la recherche d'emoji
+    emojiSearch.addEventListener('input', () => {
+        const searchTerm = emojiSearch.value.toLowerCase();
+        searchEmojis(searchTerm);
+    });
+    
+    // Gestion des catégories d'emoji
+    emojiCategories.forEach(category => {
+        category.addEventListener('click', () => {
+            emojiCategories.forEach(cat => cat.classList.remove('active'));
+            category.classList.add('active');
+            
+            const categoryName = category.dataset.category;
+            displayEmojisByCategory(categoryName);
+        });
+    });
+    
+    // Gestion du téléchargement d'image
+    uploadPreview.addEventListener('click', () => {
+        imageInput.click();
+    });
+    
+    imageInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                uploadPreview.innerHTML = `<img src="${event.target.result}" alt="Image catégorie">`;
+                uploadPreview.classList.add('has-image');
+                
+                // Mettre à jour l'aperçu
+                updateNavaddPreview(event.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Gestion du glisser-déposer pour l'upload d'image
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadPreview.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadPreview.addEventListener(eventName, () => {
+            uploadPreview.classList.add('highlight');
+        }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadPreview.addEventListener(eventName, () => {
+            uploadPreview.classList.remove('highlight');
+        }, false);
+    });
+    
+    uploadPreview.addEventListener('drop', (e) => {
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === 'image/png') {
+            imageInput.files = e.dataTransfer.files;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                uploadPreview.innerHTML = `<img src="${event.target.result}" alt="Image catégorie">`;
+                uploadPreview.classList.add('has-image');
+                
+                // Mettre à jour l'aperçu
+                updateNavaddPreview(event.target.result);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // Afficher un message d'erreur si ce n'est pas un PNG
+            uploadPreview.classList.add('error');
+            setTimeout(() => {
+                uploadPreview.classList.remove('error');
+            }, 2000);
+        }
+    }, false);
+    
+    // Fermer le modal
+    closeBtn.addEventListener('click', closeNavaddModal);
+    cancelBtn.addEventListener('click', closeNavaddModal);
+    
+    // Cliquer en dehors du modal pour le fermer
+    navaddModal.addEventListener('click', (e) => {
+        if (e.target === navaddModal) {
+            closeNavaddModal();
+        }
+    });
+    
+    // Créer la catégorie
+    createBtn.addEventListener('click', createNewCategory);
+    
+    // Afficher les emojis de la première catégorie par défaut
+    displayEmojisByCategory('recent');
+}
+
+// Fonction pour fermer le modal d'ajout de catégorie
+function closeNavaddModal() {
+    const navaddModal = document.getElementById('navaddModal');
+    navaddModal.style.display = 'none';
+    document.body.style.overflow = ''; // Réactiver le défilement
+}
+
+// Fonction pour réinitialiser le formulaire d'ajout de catégorie
+function resetNavaddForm() {
+    const navaddModal = document.getElementById('navaddModal');
+    const nameInput = document.getElementById('navaddName');
+    const emojiSearch = document.getElementById('navaddEmojiSearch');
+    const uploadPreview = navaddModal.querySelector('.upload-preview');
+    const imageInput = document.getElementById('navaddImageInput');
+    
+    // Réinitialiser les champs
+    nameInput.value = '';
+    emojiSearch.value = '';
+    
+    // Réinitialiser l'aperçu de l'image
+    uploadPreview.classList.remove('has-image');
+    uploadPreview.innerHTML = `
+        <div class="upload-icon">📤</div>
+        <span>Glisser-déposer ou cliquer pour télécharger</span>
+    `;
+    
+    // Réinitialiser l'input file
+    imageInput.value = '';
+    
+    // Réinitialiser la sélection d'emoji
+    navaddModal.querySelectorAll('.emoji-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
+    // Sélectionner l'option emoji par défaut
+    navaddModal.querySelectorAll('.visual-option').forEach(option => {
+        if (option.dataset.type === 'emoji') {
+            option.classList.add('selected');
+        } else {
+            option.classList.remove('selected');
+        }
+    });
+    
+    // Afficher le sélecteur d'emoji, masquer l'uploader d'image
+    navaddModal.querySelector('.emoji-selector-container').style.display = 'block';
+    navaddModal.querySelector('.image-uploader-container').style.display = 'none';
+    
+    // Réinitialiser l'aperçu
+    const previewIcon = navaddModal.querySelector('.preview-icon');
+    const previewName = navaddModal.querySelector('.preview-name');
+    previewIcon.textContent = '➕';
+    previewName.textContent = 'Nouvelle catégorie';
+}
+
+// Fonction pour afficher les emojis par catégorie
+function displayEmojisByCategory(categoryName) {
+    const emojiGrid = document.querySelector('.emoji-grid');
+    emojiGrid.innerHTML = '';
+    
+    const emojis = navaddEmojiData[categoryName] || [];
+    
+    emojis.forEach(emoji => {
+        const emojiItem = document.createElement('div');
+        emojiItem.className = 'emoji-item';
+        emojiItem.textContent = emoji;
+        
+        emojiItem.addEventListener('click', () => {
+            // Désélectionner tous les emojis
+            document.querySelectorAll('.emoji-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Sélectionner cet emoji
+            emojiItem.classList.add('selected');
+            
+            // Mettre à jour l'aperçu
+            updateNavaddPreview(emoji);
+            
+            // Ajouter aux emojis récents
+            addToRecentEmojis(emoji);
+        });
+        
+        emojiGrid.appendChild(emojiItem);
+    });
+}
+
+// Fonction pour rechercher des emojis
+function searchEmojis(searchTerm) {
+    if (!searchTerm) {
+        // Si la recherche est vide, afficher la catégorie actuellement sélectionnée
+        const activeCategory = document.querySelector('.emoji-category.active');
+        displayEmojisByCategory(activeCategory.dataset.category);
+        return;
+    }
+    
+    const emojiGrid = document.querySelector('.emoji-grid');
+    emojiGrid.innerHTML = '';
+    
+    // Rechercher dans toutes les catégories sauf "recent"
+    const allEmojis = [];
+    for (const category in navaddEmojiData) {
+        if (category !== 'recent') {
+            allEmojis.push(...navaddEmojiData[category]);
+        }
+    }
+    
+    // Filtrer les résultats (simple, pourrait être amélioré avec des métadonnées d'emoji)
+    const results = allEmojis.filter((emoji, index, self) => {
+        return self.indexOf(emoji) === index; // Supprimer les doublons
+    });
+    
+    // Limite à 50 résultats pour des raisons de performance
+    const limitedResults = results.slice(0, 50);
+    
+    if (limitedResults.length === 0) {
+        emojiGrid.innerHTML = '<div class="no-results">Aucun résultat trouvé</div>';
+    } else {
+        limitedResults.forEach(emoji => {
+            const emojiItem = document.createElement('div');
+            emojiItem.className = 'emoji-item';
+            emojiItem.textContent = emoji;
+            
+            emojiItem.addEventListener('click', () => {
+                // Désélectionner tous les emojis
+                document.querySelectorAll('.emoji-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                
+                // Sélectionner cet emoji
+                emojiItem.classList.add('selected');
+                
+                // Mettre à jour l'aperçu
+                updateNavaddPreview(emoji);
+                
+                // Ajouter aux emojis récents
+                addToRecentEmojis(emoji);
+            });
+            
+            emojiGrid.appendChild(emojiItem);
+        });
+    }
+}
+
+// Fonction pour mettre à jour l'aperçu
+function updateNavaddPreview(iconContent) {
+    const previewIcon = document.querySelector('.preview-icon');
+    const previewName = document.querySelector('.preview-name');
+    const nameInput = document.getElementById('navaddName');
+    
+    // Mettre à jour le nom
+    previewName.textContent = nameInput.value || 'Nouvelle catégorie';
+    
+    // Mettre à jour l'icône
+    if (iconContent) {
+        if (typeof iconContent === 'string' && iconContent.startsWith('data:')) {
+            // C'est une image
+            previewIcon.innerHTML = `<img src="${iconContent}" alt="Icône" style="width: 100%; height: 100%; object-fit: contain;">`;
+        } else {
+            // C'est un emoji
+            previewIcon.textContent = iconContent;
+        }
+    }
+}
+
+// Fonction pour charger les emojis récents
+function loadRecentEmojis() {
+    // Récupérer les emojis récents du localStorage
+    let recentEmojis = JSON.parse(localStorage.getItem('navaddRecentEmojis')) || [];
+    
+    // Mettre à jour le tableau des emojis récents
+    navaddEmojiData.recent = recentEmojis;
+    
+    // Afficher les emojis récents si c'est la catégorie active
+    const activeCategory = document.querySelector('.emoji-category.active');
+    if (activeCategory && activeCategory.dataset.category === 'recent') {
+        displayEmojisByCategory('recent');
+    }
+}
+
+// Fonction pour ajouter un emoji aux récents
+function addToRecentEmojis(emoji) {
+    // Récupérer les emojis récents du localStorage
+    let recentEmojis = JSON.parse(localStorage.getItem('navaddRecentEmojis')) || [];
+    
+    // Supprimer l'emoji s'il existe déjà
+    recentEmojis = recentEmojis.filter(e => e !== emoji);
+    
+    // Ajouter l'emoji au début
+    recentEmojis.unshift(emoji);
+    
+    // Limiter à 32 emojis récents
+    if (recentEmojis.length > 32) {
+        recentEmojis = recentEmojis.slice(0, 32);
+    }
+    
+    // Sauvegarder dans le localStorage
+    localStorage.setItem('navaddRecentEmojis', JSON.stringify(recentEmojis));
+    
+    // Mettre à jour le tableau des emojis récents
+    navaddEmojiData.recent = recentEmojis;
+}
+
+// Fonction pour créer une nouvelle catégorie
+async function createNewCategory() {
+    const nameInput = document.getElementById('navaddName');
+    const name = nameInput.value.trim();
+    const visualOptions = document.querySelectorAll('.visual-option');
+    const visualType = Array.from(visualOptions).find(opt => opt.classList.contains('selected'))?.dataset.type;
+    let emoji = '';
+    let isImage = false;
+    let imageData = null;
+    
+    // Vérifier si le nom est renseigné
+    if (!name) {
+        nameInput.classList.add('error');
+        return;
+    }
+    
+    // Récupérer l'emoji ou l'image
+    if (visualType === 'emoji') {
+        const selectedEmoji = document.querySelector('.emoji-item.selected');
+        if (!selectedEmoji) {
+            document.querySelector('.emoji-grid').classList.add('error');
+            return;
+        }
+        emoji = selectedEmoji.textContent;
+    } else if (visualType === 'image') {
+        const imageInput = document.getElementById('navaddImageInput');
+        if (!imageInput.files[0]) {
+            document.querySelector('.upload-preview').classList.add('error');
+            return;
+        }
+        isImage = true;
+        
+        // Lire l'image en tant que Data URL
+        const reader = new FileReader();
+        imageData = await new Promise((resolve, reject) => {
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(imageInput.files[0]);
+        });
+        
+        emoji = imageData; // Stocker l'image en base64
+    }
+    
+    // Animation de création en cours
+    const content = document.querySelector('#navaddModal .creation-modal-content');
+    content.classList.add('creating');
+    
+    try {
+        // Créer la nouvelle catégorie
+        const newCategory = {
+            name: name,
+            emoji: emoji,
+            is_image: isImage,
+            order: 0 // Sera trié automatiquement
+        };
+        
+        // Vérifier que supabase est défini
+        if (typeof supabase === 'undefined') {
+            throw new Error('La connexion à Supabase n\'est pas disponible');
+        }
+        
+        // Enregistrer dans Supabase
+        const { data, error } = await supabase
+            .from('categories')
+            .insert([newCategory])
+            .select();
+        
+        if (error) {
+            console.error('Erreur Supabase:', error);
+            throw new Error(error.message);
+        }
+        
+        if (!data || data.length === 0) {
+            throw new Error('Aucune donnée retournée par Supabase');
+        }
+        
+        // Créer et ajouter le nouvel élément de navigation
+        const categoryId = data[0].id;
+        createNavElement(categoryId, name, emoji, isImage);
+        
+        // Animation de succès
+        createNavaddSuccessAnimation();
+        
+        // Fermer le modal après un délai
+        setTimeout(() => {
+            closeNavaddModal();
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Erreur lors de la création de la catégorie:', error);
+        
+        // En cas d'erreur
+        content.classList.remove('creating');
+        
+        // Afficher un message d'erreur
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message';
+        errorMessage.textContent = "Une erreur est survenue lors de l'enregistrement. Veuillez réessayer.";
+        content.appendChild(errorMessage);
+        
+        setTimeout(() => {
+            errorMessage.remove();
+        }, 3000);
+    }
+}
+
+// Fonction pour créer un élément de navigation pour la nouvelle catégorie
+function createNavElement(id, name, emoji, isImage) {
+    const mainNav = document.querySelector('.main-nav');
+    const identityNav = document.getElementById('nav-identity');
+    
+    // Créer le nouvel élément
+    const navItem = document.createElement('div');
+    navItem.className = 'nav-item navaddCustom';
+    navItem.id = `navadd-${id}`;
+    navItem.dataset.category = name;
+    
+    // Ajouter le contenu
+    if (isImage) {
+        navItem.innerHTML = `
+            <img src="${emoji}" alt="${name}" style="width: 24px; height: 24px; object-fit: contain;">
+            <span class="tooltip">${name}</span>
+        `;
+    } else {
+        navItem.innerHTML = `
+            ${emoji}
+            <span class="tooltip">${name}</span>
+        `;
+    }
+    
+    // Ajouter l'événement de clic
+    navItem.addEventListener('click', function() {
+        // Désélectionner tous les éléments
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // Sélectionner cet élément
+        this.classList.add('active');
+        
+        // Filtrer le contenu
+        currentCategory = name;
+        filterContent(name, currentType);
+    });
+    
+    // Insérer avant l'élément Identity
+    mainNav.insertBefore(navItem, identityNav);
+    
+    // Mettre à jour les catégories dans le modal de création
+    populateCategoryGrid(); // Utiliser la nouvelle fonction renommée ici
+    
+    // Animation
+    setTimeout(() => {
+        navItem.classList.add('pulse');
+        setTimeout(() => {
+            navItem.classList.remove('pulse');
+        }, 1000);
+    }, 100);
+}
+
+// Fonction pour animer le succès de la création
+function createNavaddSuccessAnimation() {
+    const content = document.querySelector('#navaddModal .creation-modal-content');
+    content.classList.add('creation-success');
+    
+    // Ajouter une superposition d'animation
+    const overlay = document.createElement('div');
+    overlay.className = 'success-overlay';
+    overlay.innerHTML = `
+        <div class="success-icon">✓</div>
+        <div class="success-message">Catégorie créée avec succès!</div>
+    `;
+    content.appendChild(overlay);
+}
+
+// Fonction pour charger les catégories personnalisées depuis Supabase
+async function loadCustomCategories() {
+    try {
+        const { data, error } = await supabase
+            .from('categories')
+            .select('*')
+            .order('order', { ascending: true });
+        
+        if (error) {
+            console.error('Erreur lors du chargement des catégories:', error);
+            return;
+        }
+        
+        if (data) {
+            // Ajouter chaque catégorie à la navigation
+            data.forEach(category => {
+                createNavElement(category.id, category.name, category.emoji, category.is_image);
+            });
+        }
+    } catch (error) {
+        console.error('Exception lors du chargement des catégories:', error);
+    }
+}
+
+// Nouvelle fonction renommée pour éviter le conflit
+function populateCategoryGrid() {
+    const categoryGrid = document.querySelector('.category-grid');
+    if (!categoryGrid) return;
+    
+    categoryGrid.innerHTML = '';
+    
+    // Utiliser les éléments de la navigation principale comme catégories
+    const navItems = document.querySelectorAll('.main-nav .nav-item');
+    
+    navItems.forEach(item => {
+        const category = item.dataset.category;
+        // Exclure "Mon univers" et "Identity"
+        if (category !== 'universe' && category !== 'Identity') {
+            let emoji;
+            
+            // Vérifier si l'élément contient une image
+            const img = item.querySelector('img');
+            if (img) {
+                emoji = `<img src="${img.src}" alt="${category}" style="width: 20px; height: 20px; object-fit: contain;">`;
+            } else {
+                emoji = item.innerText.trim();
+            }
+            
+            const tooltip = item.querySelector('.tooltip').innerText;
+            
+            const categoryItem = document.createElement('div');
+            categoryItem.className = 'category-item';
+            categoryItem.dataset.category = category;
+            categoryItem.innerHTML = `
+                <div class="category-icon">${emoji}</div>
+                <div class="category-name">${tooltip}</div>
+            `;
+            
+            categoryItem.addEventListener('click', () => {
+                document.querySelectorAll('.category-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                categoryItem.classList.add('selected');
+                selectedCategory = category;
+            });
+            
+            categoryGrid.appendChild(categoryItem);
+        }
+    });
+}
+
 
 
 //══════════════════════════════╗
 // 🟩 JS PARTIE 15
 //══════════════════════════════╝
+// Ajouter à la fin du fichier JavaScript
+// Gestionnaire global pour capturer les clics sur les boutons de création
+document.addEventListener('click', function(e) {
+    // Vérifier si le clic était sur un bouton de création dans une catégorie vide
+    if (e.target.closest('.Category_SadHope-create-btn')) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Obtenir la catégorie du bouton
+        const btn = e.target.closest('.Category_SadHope-create-btn');
+        const category = btn.dataset.category;
+        
+        // Référence au bouton de création universel et au menu
+        const universalCreationButton = document.querySelector('.creation-button');
+        const creationMenu = document.querySelector('.creation-menu');
+        
+        // Simulation d'animation sur le bouton universel
+        universalCreationButton.classList.add('clicked');
+        setTimeout(() => {
+            universalCreationButton.classList.remove('clicked');
+        }, 600);
+        
+        // Afficher le menu de création
+        creationMenu.style.display = 'flex';
+        
+        // Sauvegarder la catégorie pour l'utiliser plus tard
+        window.lastSelectedEmptyCategory = category;
+        
+        // Sélectionner directement "Note" comme option par défaut
+        const noteCreationItem = document.querySelector('.creation-item[data-type="note"]');
+        if (noteCreationItem) {
+            setTimeout(() => {
+                noteCreationItem.click();
+            }, 100);
+        }
+    }
+});
+
+// Initialiser la variable globale
+window.lastSelectedEmptyCategory = null;
+
+
+/*══════════════════════════════╗
+  🟠 JS PARTIE 16
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🟣 JS PARTIE 17
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🔴 JS PARTIE 18
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🟢 JS PARTIE 19
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🔵 JS PARTIE 20
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🟡 JS PARTIE 21
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🟠 JS PARTIE 22
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🟣 JS PARTIE 23
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🔴 JS PARTIE 24
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🟢 JS PARTIE 25
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🔵 JS PARTIE 26
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🟡 JS PARTIE 27
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🟠 JS PARTIE 28
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🟣 JS PARTIE 29
+  ═════════════════════════════╝*/
+
+
+/*══════════════════════════════╗
+  🔴 JS PARTIE 30
+  ═════════════════════════════╝*/
