@@ -12868,11 +12868,664 @@ window.lastSelectedEmptyCategory = null;
   🟠 JS PARTIE 16
   ═════════════════════════════╝*/
 
+// Fonction pour initialiser les paradigmes et affirmations
+async function initCitParadigm() {
+    // Sélection des éléments DOM
+    const toggleBtn = document.getElementById('CitParadigm_onidentity-toggle-creator');
+    const formContainer = document.getElementById('CitParadigm_onidentity-form');
+    const textInput = document.getElementById('CitParadigm_onidentity-text');
+    const reflectionInput = document.getElementById('CitParadigm_onidentity-reflection');
+    const saveBtn = document.getElementById('CitParadigm_onidentity-save');
+    const isPrimaryCheckbox = document.getElementById('CitParadigm_onidentity-is-primary');
+    const previewText = document.getElementById('CitParadigm_onidentity-preview-text');
+    const previewContainer = document.getElementById('CitParadigm_onidentity-preview');
+    const primaryList = document.getElementById('CitParadigm_onidentity-primary-list');
+    const secondaryList = document.getElementById('CitParadigm_onidentity-secondary-list');
+    const primaryCount = document.getElementById('CitParadigm_onidentity-primary-count');
+    const secondaryCount = document.getElementById('CitParadigm_onidentity-secondary-count');
+    
+    // Variables pour stocker les options sélectionnées
+    let selectedBg = 'gradient-1';
+    let selectedFont = 'inter';
+    let selectedAnimation = 'none';
+    let selectedType = 'paradigm';
+    
+    // Charger les paradigmes depuis Supabase
+    await loadParadigmsFromSupabase();
+    
+    // Événement pour afficher/masquer le formulaire
+    toggleBtn.addEventListener('click', function() {
+        formContainer.classList.toggle('active');
+        toggleBtn.classList.toggle('active');
+    });
+    
+    // Mise à jour en temps réel du texte prévisualisé
+    textInput.addEventListener('input', function() {
+        previewText.textContent = this.value || 'Votre affirmation apparaîtra ici...';
+    });
+    
+    // Événements pour les options de style
+    document.querySelectorAll('.CitParadigm_onidentity-bg-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.CitParadigm_onidentity-bg-option').forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            selectedBg = this.getAttribute('data-bg');
+            updatePreview();
+        });
+    });
+    
+    document.querySelectorAll('.CitParadigm_onidentity-font-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.CitParadigm_onidentity-font-option').forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            selectedFont = this.getAttribute('data-font');
+            updatePreview();
+        });
+    });
+    
+    document.querySelectorAll('.CitParadigm_onidentity-animation-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.CitParadigm_onidentity-animation-option').forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            selectedAnimation = this.getAttribute('data-animation');
+            updatePreview();
+        });
+    });
+    
+    document.querySelectorAll('.CitParadigm_onidentity-type-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.CitParadigm_onidentity-type-option').forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            selectedType = this.getAttribute('data-type');
+        });
+    });
+    
+    // Mise à jour de la prévisualisation
+    function updatePreview() {
+        // Mise à jour du fond
+        previewContainer.className = 'CitParadigm_onidentity-form-preview';
+        previewContainer.classList.add('bg-' + selectedBg);
+        
+        // Mise à jour de la police
+        previewText.style.fontFamily = getFontFamily(selectedFont);
+        
+        // Mise à jour de l'animation
+        previewText.className = 'CitParadigm_onidentity-preview-text';
+        if (selectedAnimation !== 'none') {
+            previewText.classList.add('text-anim-' + selectedAnimation);
+        }
+        
+        // Ajout d'animations de particules si nécessaire
+        if (selectedBg === 'particles') {
+            addParticles(previewContainer);
+        } else {
+            removeParticles(previewContainer);
+        }
+    }
+    
+    // Obtenir la famille de police
+    function getFontFamily(font) {
+        switch(font) {
+            case 'inter': return "'Inter', sans-serif";
+            case 'playfair': return "'Playfair Display', serif";
+            case 'montserrat': return "'Montserrat', sans-serif";
+            case 'raleway': return "'Raleway', sans-serif";
+            case 'roboto': return "'Roboto', sans-serif";
+            default: return "'Inter', sans-serif";
+        }
+    }
+    
+    // Ajouter des particules animées
+    function addParticles(container) {
+        const particlesContainer = document.createElement('div');
+        particlesContainer.className = 'particles-container';
+        
+        // Créer des particules
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.width = Math.random() * 5 + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.opacity = Math.random() * 0.5;
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            particle.style.animationDelay = (Math.random() * 5) + 's';
+            
+            particlesContainer.appendChild(particle);
+        }
+        
+        container.appendChild(particlesContainer);
+    }
+    
+    // Supprimer les particules
+    function removeParticles(container) {
+        const particlesContainer = container.querySelector('.particles-container');
+        if (particlesContainer) {
+            container.removeChild(particlesContainer);
+        }
+    }
+    
+    // Chargement des paradigmes depuis Supabase
+    async function loadParadigmsFromSupabase() {
+        try {
+            const { data, error } = await supabase
+                .from('paradigms')
+                .select('*')
+                .order('created_at', { ascending: false });
+                
+            if (error) {
+                console.error('Erreur lors du chargement des paradigmes:', error);
+                return;
+            }
+            
+            // Convertir les données Supabase au format attendu par le code
+            const paradigms = data.map(item => ({
+                id: item.id,
+                text: item.text,
+                reflection: item.reflection || '',
+                background: item.background,
+                font: item.font,
+                animation: item.animation,
+                type: item.type,
+                isPrimary: item.is_primary
+            }));
+            
+            // Rendre les paradigmes
+            renderParadigms(paradigms);
+            
+        } catch (err) {
+            console.error('Erreur inattendue:', err);
+        }
+    }
+    
+    // Sauvegarder un nouveau paradigme
+    saveBtn.addEventListener('click', async function() {
+        if (!textInput.value.trim()) {
+            alert('Veuillez saisir une affirmation.');
+            return;
+        }
+        
+        const isPrimary = isPrimaryCheckbox.checked;
+        
+        // Si c'est une citation principale, vérifier la limite
+        if (isPrimary) {
+            const { data, error } = await supabase
+                .from('paradigms')
+                .select('id')
+                .eq('is_primary', true);
+                
+            if (error) {
+                console.error('Erreur lors de la vérification des paradigmes principaux:', error);
+                return;
+            }
+            
+            if (data.length >= 3) {
+                alert('Vous ne pouvez avoir que 3 affirmations essentielles maximum. Veuillez d\'abord en supprimer une.');
+                return;
+            }
+        }
+        
+        // Créer le nouveau paradigme pour Supabase
+        const newParadigm = {
+            text: textInput.value,
+            reflection: reflectionInput.value,
+            background: selectedBg,
+            font: selectedFont,
+            animation: selectedAnimation,
+            type: selectedType,
+            is_primary: isPrimary
+        };
+        
+        // Sauvegarder dans Supabase
+        try {
+            const { data, error } = await supabase
+                .from('paradigms')
+                .insert([newParadigm])
+                .select();
+                
+            if (error) {
+                console.error('Erreur lors de la sauvegarde du paradigme:', error);
+                alert('Une erreur est survenue lors de la sauvegarde.');
+                return;
+            }
+            
+            // Convertir le format pour l'affichage
+            const savedParadigm = {
+                id: data[0].id,
+                text: data[0].text,
+                reflection: data[0].reflection || '',
+                background: data[0].background,
+                font: data[0].font,
+                animation: data[0].animation,
+                type: data[0].type,
+                isPrimary: data[0].is_primary
+            };
+            
+            // Ajouter le paradigme à la liste appropriée
+            addParadigmToList(savedParadigm);
+            
+            // Réinitialiser le formulaire
+            textInput.value = '';
+            reflectionInput.value = '';
+            previewText.textContent = 'Votre affirmation apparaîtra ici...';
+            isPrimaryCheckbox.checked = false;
+            
+            // Réinitialiser les styles par défaut
+            document.querySelector('.CitParadigm_onidentity-bg-option[data-bg="gradient-1"]').click();
+            document.querySelector('.CitParadigm_onidentity-font-option[data-font="inter"]').click();
+            document.querySelector('.CitParadigm_onidentity-animation-option[data-animation="none"]').click();
+            document.querySelector('.CitParadigm_onidentity-type-option[data-type="paradigm"]').click();
+            
+        } catch (err) {
+            console.error('Erreur inattendue:', err);
+            alert('Une erreur inattendue est survenue.');
+        }
+    });
+    
+    // Fonction pour rendre tous les paradigmes
+    function renderParadigms(paradigms) {
+        // Vider les listes
+        primaryList.innerHTML = '';
+        secondaryList.innerHTML = '';
+        
+        // Compter les paradigmes de chaque type
+        let primaryCounter = 0;
+        let secondaryCounter = 0;
+        
+        // Ajouter chaque paradigme à la liste appropriée
+        paradigms.forEach(paradigm => {
+            if (paradigm.isPrimary) {
+                primaryCounter++;
+                primaryList.appendChild(createParadigmCard(paradigm));
+            } else {
+                secondaryCounter++;
+                secondaryList.appendChild(createParadigmCard(paradigm));
+            }
+        });
+        
+        // Mettre à jour les compteurs
+        primaryCount.textContent = primaryCounter;
+        secondaryCount.textContent = secondaryCounter;
+        
+        // Afficher les états vides si nécessaire
+        if (primaryCounter === 0) {
+            primaryList.innerHTML = `
+                <div class="CitParadigm_onidentity-empty-state">
+                    <div class="CitParadigm_onidentity-empty-icon">✨</div>
+                    <p>Ajoutez jusqu'à 3 affirmations essentielles qui guident votre existence</p>
+                </div>
+            `;
+        }
+        
+        if (secondaryCounter === 0) {
+            secondaryList.innerHTML = `
+                <div class="CitParadigm_onidentity-empty-state">
+                    <div class="CitParadigm_onidentity-empty-icon">📚</div>
+                    <p>Votre collection d'affirmations et de paradigmes personnels</p>
+                </div>
+            `;
+        }
+    }
+    
+    // Ajouter un paradigme à la liste appropriée
+    function addParadigmToList(paradigm) {
+        const card = createParadigmCard(paradigm);
+        
+        if (paradigm.isPrimary) {
+            // Supprimer l'état vide s'il existe
+            const emptyState = primaryList.querySelector('.CitParadigm_onidentity-empty-state');
+            if (emptyState) {
+                primaryList.removeChild(emptyState);
+            }
+            
+            primaryList.appendChild(card);
+            primaryCount.textContent = parseInt(primaryCount.textContent) + 1;
+        } else {
+            // Supprimer l'état vide s'il existe
+            const emptyState = secondaryList.querySelector('.CitParadigm_onidentity-empty-state');
+            if (emptyState) {
+                secondaryList.removeChild(emptyState);
+            }
+            
+            secondaryList.appendChild(card);
+            secondaryCount.textContent = parseInt(secondaryCount.textContent) + 1;
+        }
+    }
+    
+    // Créer une carte de paradigme
+    function createParadigmCard(paradigm) {
+        const card = document.createElement('div');
+        card.className = 'CitParadigm_onidentity-card';
+        card.setAttribute('data-id', paradigm.id);
+        
+        // Créer l'arrière-plan
+        const bg = document.createElement('div');
+        bg.className = 'CitParadigm_onidentity-bg bg-' + paradigm.background;
+        
+        // Ajouter des particules si nécessaire
+        if (paradigm.background === 'particles') {
+            addParticles(bg);
+        }
+        
+        card.appendChild(bg);
+        
+        // Créer le contenu
+        const content = document.createElement('div');
+        content.className = 'CitParadigm_onidentity-card-content';
+        
+        // Ajouter le texte
+        const text = document.createElement('div');
+        text.className = 'CitParadigm_onidentity-text';
+        if (paradigm.animation !== 'none') {
+            text.classList.add('text-anim-' + paradigm.animation);
+        }
+        text.style.fontFamily = getFontFamily(paradigm.font);
+        text.textContent = paradigm.text;
+        content.appendChild(text);
+        
+        // Ajouter la réflexion si elle existe
+        if (paradigm.reflection) {
+            const reflection = document.createElement('div');
+            reflection.className = 'CitParadigm_onidentity-reflection';
+            reflection.textContent = paradigm.reflection;
+            content.appendChild(reflection);
+        }
+        
+        // Ajouter le type
+        const type = document.createElement('div');
+        type.className = 'CitParadigm_onidentity-type';
+        type.setAttribute('data-type', paradigm.type);
+        type.textContent = paradigm.type.charAt(0).toUpperCase() + paradigm.type.slice(1);
+        content.appendChild(type);
+        
+        // Ajouter les actions
+        const actions = document.createElement('div');
+        actions.className = 'CitParadigm_onidentity-card-actions';
+        
+        // Ajouter l'action d'épingler/désépingler
+        const pinBtn = document.createElement('button');
+        pinBtn.className = 'CitParadigm_onidentity-action-btn';
+        pinBtn.innerHTML = paradigm.isPrimary 
+            ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6h2v-6h5v-2l-2-2z"/></svg>' 
+            : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15l-5-2.18L7 18V5h10v13z"/></svg>';
+        pinBtn.title = paradigm.isPrimary ? 'Retirer des essentiels' : 'Ajouter aux essentiels';
+        
+        // Ajouter l'action de suppression
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'CitParadigm_onidentity-action-btn';
+        deleteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>';
+        deleteBtn.title = 'Supprimer';
+        
+        actions.appendChild(pinBtn);
+        actions.appendChild(deleteBtn);
+        content.appendChild(actions);
+        
+        card.appendChild(content);
+        
+        // Événement pour épingler/désépingler
+        pinBtn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            
+            // Si on veut épingler et qu'il y a déjà 3 citations principales
+            if (!paradigm.isPrimary) {
+                const { data, error } = await supabase
+                    .from('paradigms')
+                    .select('id')
+                    .eq('is_primary', true);
+                    
+                if (error) {
+                    console.error('Erreur lors de la vérification des paradigmes principaux:', error);
+                    return;
+                }
+                
+                if (data.length >= 3) {
+                    alert('Vous ne pouvez avoir que 3 affirmations essentielles maximum. Veuillez d\'abord en supprimer une.');
+                    return;
+                }
+            }
+            
+            // Mettre à jour dans Supabase
+            try {
+                const { error } = await supabase
+                    .from('paradigms')
+                    .update({ is_primary: !paradigm.isPrimary })
+                    .eq('id', paradigm.id);
+                    
+                if (error) {
+                    console.error('Erreur lors de la mise à jour du paradigme:', error);
+                    alert('Une erreur est survenue lors de la mise à jour.');
+                    return;
+                }
+                
+                // Supprimer la carte actuelle
+                const parentList = card.parentNode;
+                parentList.removeChild(card);
+                
+                // Mettre à jour le compteur
+                if (paradigm.isPrimary) {
+                    primaryCount.textContent = parseInt(primaryCount.textContent) - 1;
+                    secondaryCount.textContent = parseInt(secondaryCount.textContent) + 1;
+                } else {
+                    primaryCount.textContent = parseInt(primaryCount.textContent) + 1;
+                    secondaryCount.textContent = parseInt(secondaryCount.textContent) - 1;
+                }
+                
+                // Inverser le statut de la citation
+                paradigm.isPrimary = !paradigm.isPrimary;
+                
+                // Ajouter à la nouvelle liste
+                addParadigmToList(paradigm);
+                
+            } catch (err) {
+                console.error('Erreur inattendue:', err);
+                alert('Une erreur inattendue est survenue.');
+            }
+        });
+        
+        // Événement pour supprimer
+        deleteBtn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            
+            if (!confirm('Êtes-vous sûr de vouloir supprimer cette affirmation ?')) {
+                return;
+            }
+            
+            // Supprimer de Supabase
+            try {
+                const { error } = await supabase
+                    .from('paradigms')
+                    .delete()
+                    .eq('id', paradigm.id);
+                    
+                if (error) {
+                    console.error('Erreur lors de la suppression du paradigme:', error);
+                    alert('Une erreur est survenue lors de la suppression.');
+                    return;
+                }
+                
+                // Supprimer la carte
+                const parentList = card.parentNode;
+                parentList.removeChild(card);
+                
+                // Mettre à jour le compteur
+                if (paradigm.isPrimary) {
+                    primaryCount.textContent = parseInt(primaryCount.textContent) - 1;
+                    
+                    // Afficher l'état vide si nécessaire
+                    if (parseInt(primaryCount.textContent) === 0) {
+                        primaryList.innerHTML = `
+                            <div class="CitParadigm_onidentity-empty-state">
+                                <div class="CitParadigm_onidentity-empty-icon">✨</div>
+                                <p>Ajoutez jusqu'à 3 affirmations essentielles qui guident votre existence</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    secondaryCount.textContent = parseInt(secondaryCount.textContent) - 1;
+                    
+                    // Afficher l'état vide si nécessaire
+                    if (parseInt(secondaryCount.textContent) === 0) {
+                        secondaryList.innerHTML = `
+                            <div class="CitParadigm_onidentity-empty-state">
+                                <div class="CitParadigm_onidentity-empty-icon">📚</div>
+                                <p>Votre collection d'affirmations et de paradigmes personnels</p>
+                            </div>
+                        `;
+                    }
+                }
+                
+            } catch (err) {
+                console.error('Erreur inattendue:', err);
+                alert('Une erreur inattendue est survenue.');
+            }
+        });
+        
+        return card;
+    }
+    
+    // Initialiser l'aperçu
+    updatePreview();
+}
+
+
+// Initialiser lorsque le DOM est chargé
+document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier si l'identité est visible et initialiser les paradigmes
+    const identityContainer = document.getElementById('identityContainer');
+    
+    // Fonction pour initialiser le composant
+    const startInitialization = () => {
+        // Vérifier si Supabase est disponible
+        if (typeof supabase === 'undefined') {
+            console.error('Supabase n\'est pas initialisé. Veuillez vérifier votre configuration.');
+            return;
+        }
+        
+        // Initialiser le composant
+        initCitParadigm();
+    };
+    
+    // Si l'identité est déjà visible, initialiser directement
+    if (identityContainer && window.getComputedStyle(identityContainer).display !== 'none') {
+        startInitialization();
+    } else if (identityContainer) {
+        // Si l'identité n'est pas encore visible, attendre qu'elle le soit
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'style' && 
+                    window.getComputedStyle(identityContainer).display !== 'none') {
+                    startInitialization();
+                    observer.disconnect();
+                }
+            });
+        });
+        
+        observer.observe(identityContainer, { attributes: true });
+    } else {
+        // Cas où l'identityContainer n'existe pas encore, attendre un peu et réessayer
+        setTimeout(() => {
+            const identityContainer = document.getElementById('identityContainer');
+            if (identityContainer) {
+                if (window.getComputedStyle(identityContainer).display !== 'none') {
+                    startInitialization();
+                } else {
+                    // Observer les changements
+                    const observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.attributeName === 'style' && 
+                                window.getComputedStyle(identityContainer).display !== 'none') {
+                                startInitialization();
+                                observer.disconnect();
+                            }
+                        });
+                    });
+                    
+                    observer.observe(identityContainer, { attributes: true });
+                }
+            } else {
+                // Initialiser quand même au cas où
+                startInitialization();
+            }
+        }, 500);
+    }
+});
+
+
+
 
 /*══════════════════════════════╗
   🟣 JS PARTIE 17
   ═════════════════════════════╝*/
-
+ // NavMini - Système de tooltips au clic avec support des éléments dynamiques
+document.addEventListener('DOMContentLoaded', function() {
+  // Créer un élément tooltip global
+  const tooltip = document.createElement('div');
+  tooltip.className = 'NavMini-tooltip';
+  document.body.appendChild(tooltip);
+  
+  // Timeout pour masquer le tooltip
+  let tooltipTimeout;
+  
+  // Utiliser la délégation d'événements pour gérer tous les nav-items, même ceux ajoutés dynamiquement
+  document.addEventListener('click', function(e) {
+    const navItem = e.target.closest('.nav-item');
+    
+    // Si on clique sur un nav-item
+    if (navItem) {
+      // Récupérer le contenu du tooltip
+      const tooltipSpan = navItem.querySelector('.tooltip');
+      if (!tooltipSpan) return; // Sortir si pas de tooltip
+      
+      const tooltipContent = tooltipSpan.textContent;
+      
+      // Positionner le tooltip à côté de l'élément cliqué
+      const rect = navItem.getBoundingClientRect();
+      tooltip.style.top = `${rect.top + (rect.height / 2) - 15}px`;
+      
+      // Définir le contenu du tooltip
+      tooltip.textContent = tooltipContent;
+      
+      // Afficher le tooltip
+      tooltip.classList.add('show');
+      
+      // Nettoyer le timeout précédent si existant
+      if (tooltipTimeout) clearTimeout(tooltipTimeout);
+      
+      // Masquer le tooltip après 2 secondes
+      tooltipTimeout = setTimeout(() => {
+        tooltip.classList.remove('show');
+      }, 2000);
+      
+      // Ne pas empêcher la propagation pour permettre aux autres gestionnaires d'événements de fonctionner
+      // mais conserver la référence que nous avons traité un élément nav
+      e.navItemHandled = true;
+    } 
+    // Si on clique ailleurs que sur un nav-item et que ce n'est pas déjà traité
+    else if (!e.navItemHandled) {
+      tooltip.classList.remove('show');
+      if (tooltipTimeout) clearTimeout(tooltipTimeout);
+    }
+  });
+  
+  // Observer les modifications du DOM pour ajuster les tooltips si nécessaire
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+        // Si de nouveaux éléments sont ajoutés, vérifier s'ils contiennent des nav-items
+        mutation.addedNodes.forEach(function(node) {
+          if (node.nodeType === 1 && (node.classList.contains('nav-item') || node.querySelector('.nav-item'))) {
+            // Des nouveaux nav-items ont été ajoutés, pas besoin d'action supplémentaire
+            // car la délégation d'événements les prendra en compte automatiquement
+          }
+        });
+      }
+    });
+  });
+  
+  // Observer le document entier pour détecter les ajouts dynamiques
+  observer.observe(document.body, { childList: true, subtree: true });
+});
 
 /*══════════════════════════════╗
   🔴 JS PARTIE 18

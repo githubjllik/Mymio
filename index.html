@@ -21,6 +21,7 @@
 <meta name="apple-mobile-web-app-title" content="Mymio" />
 <link rel="manifest" href="/site.webmanifest" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Prism CSS -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css" rel="stylesheet" />
@@ -850,6 +851,185 @@
                 <!-- Généré par JavaScript -->
             </div>
         </div>
+        
+        <div class="identity-section CitParadigm_onidentity-section">
+    <h2 class="identity-section-title">
+        <span>💫</span> Paradigmes & Affirmations
+    </h2>
+    
+    <div class="CitParadigm_onidentity-container">
+        <!-- Section des citations principales -->
+        <div class="CitParadigm_onidentity-primary">
+            <div class="CitParadigm_onidentity-header">
+                <h3>Affirmations Essentielles</h3>
+                <div class="CitParadigm_onidentity-counter"><span id="CitParadigm_onidentity-primary-count">0</span>/3</div>
+            </div>
+            
+            <div class="CitParadigm_onidentity-primary-list" id="CitParadigm_onidentity-primary-list">
+                <!-- Les citations principales seront générées ici par JS -->
+                <div class="CitParadigm_onidentity-empty-state">
+                    <div class="CitParadigm_onidentity-empty-icon">✨</div>
+                    <p>Ajoutez jusqu'à 3 affirmations essentielles qui guident votre existence</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section des citations secondaires -->
+        <div class="CitParadigm_onidentity-secondary">
+            <div class="CitParadigm_onidentity-header">
+                <h3>Bibliothèque d'Affirmations</h3>
+                <div class="CitParadigm_onidentity-counter"><span id="CitParadigm_onidentity-secondary-count">0</span></div>
+            </div>
+            
+            <div class="CitParadigm_onidentity-secondary-list" id="CitParadigm_onidentity-secondary-list">
+                <!-- Les citations secondaires seront générées ici par JS -->
+                <div class="CitParadigm_onidentity-empty-state">
+                    <div class="CitParadigm_onidentity-empty-icon">📚</div>
+                    <p>Votre collection d'affirmations et de paradigmes personnels</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section pour ajouter une nouvelle citation -->
+    <div class="CitParadigm_onidentity-creator">
+        <div class="CitParadigm_onidentity-creator-header">
+            <h3>Créer une nouvelle affirmation</h3>
+            <button id="CitParadigm_onidentity-toggle-creator" class="CitParadigm_onidentity-toggle-btn">
+                <svg class="CitParadigm_onidentity-plus-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="currentColor" d="M12 4a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5a1 1 0 0 1 1-1z"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="CitParadigm_onidentity-form" id="CitParadigm_onidentity-form">
+            <div class="CitParadigm_onidentity-form-preview" id="CitParadigm_onidentity-preview">
+                <div class="CitParadigm_onidentity-preview-text" id="CitParadigm_onidentity-preview-text">Votre affirmation apparaîtra ici...</div>
+            </div>
+            
+            <div class="CitParadigm_onidentity-form-content">
+                <div class="CitParadigm_onidentity-form-group">
+                    <label for="CitParadigm_onidentity-text">Votre affirmation</label>
+                    <textarea id="CitParadigm_onidentity-text" placeholder="Saisissez votre affirmation ou paradigme..."></textarea>
+                </div>
+                
+                <div class="CitParadigm_onidentity-form-group">
+                    <label for="CitParadigm_onidentity-reflection">Réflexion approfondie (optionnel)</label>
+                    <textarea id="CitParadigm_onidentity-reflection" placeholder="Développez votre pensée, pourquoi cette affirmation est importante..."></textarea>
+                </div>
+                
+                <div class="CitParadigm_onidentity-form-row">
+                    <div class="CitParadigm_onidentity-form-group">
+                        <label>Style d'arrière-plan</label>
+                        <div class="CitParadigm_onidentity-backgrounds" id="CitParadigm_onidentity-backgrounds">
+                            <div class="CitParadigm_onidentity-bg-option active" data-bg="gradient-1">
+                                <div class="CitParadigm_onidentity-bg-preview bg-gradient-1"></div>
+                            </div>
+                            <div class="CitParadigm_onidentity-bg-option" data-bg="gradient-2">
+                                <div class="CitParadigm_onidentity-bg-preview bg-gradient-2"></div>
+                            </div>
+                            <div class="CitParadigm_onidentity-bg-option" data-bg="gradient-3">
+                                <div class="CitParadigm_onidentity-bg-preview bg-gradient-3"></div>
+                            </div>
+                            <div class="CitParadigm_onidentity-bg-option" data-bg="cosmos">
+                                <div class="CitParadigm_onidentity-bg-preview bg-cosmos"></div>
+                            </div>
+                            <div class="CitParadigm_onidentity-bg-option" data-bg="neural">
+                                <div class="CitParadigm_onidentity-bg-preview bg-neural"></div>
+                            </div>
+                            <div class="CitParadigm_onidentity-bg-option" data-bg="particles">
+                                <div class="CitParadigm_onidentity-bg-preview bg-particles"></div>
+                            </div>
+                            <div class="CitParadigm_onidentity-bg-option" data-bg="custom">
+                                <div class="CitParadigm_onidentity-bg-preview bg-custom">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                                        <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="CitParadigm_onidentity-form-group">
+                        <label>Police de caractères</label>
+                        <div class="CitParadigm_onidentity-fonts" id="CitParadigm_onidentity-fonts">
+                            <div class="CitParadigm_onidentity-font-option active" data-font="inter">
+                                <span style="font-family: 'Inter', sans-serif;">Aa</span>
+                            </div>
+                            <div class="CitParadigm_onidentity-font-option" data-font="playfair">
+                                <span style="font-family: 'Playfair Display', serif;">Aa</span>
+                            </div>
+                            <div class="CitParadigm_onidentity-font-option" data-font="montserrat">
+                                <span style="font-family: 'Montserrat', sans-serif;">Aa</span>
+                            </div>
+                            <div class="CitParadigm_onidentity-font-option" data-font="raleway">
+                                <span style="font-family: 'Raleway', sans-serif;">Aa</span>
+                            </div>
+                            <div class="CitParadigm_onidentity-font-option" data-font="roboto">
+                                <span style="font-family: 'Roboto', sans-serif;">Aa</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="CitParadigm_onidentity-form-row">
+                    <div class="CitParadigm_onidentity-form-group">
+                        <label>Animation de texte</label>
+                        <div class="CitParadigm_onidentity-animations" id="CitParadigm_onidentity-animations">
+                            <div class="CitParadigm_onidentity-animation-option active" data-animation="none">
+                                <span>Aucune</span>
+                            </div>
+                            <div class="CitParadigm_onidentity-animation-option" data-animation="fade">
+                                <span class="text-anim-fade">Fondu</span>
+                            </div>
+                            <div class="CitParadigm_onidentity-animation-option" data-animation="wave">
+                                <span class="text-anim-wave">Vague</span>
+                            </div>
+                            <div class="CitParadigm_onidentity-animation-option" data-animation="glow">
+                                <span class="text-anim-glow">Lueur</span>
+                            </div>
+                            <div class="CitParadigm_onidentity-animation-option" data-animation="typing">
+                                <span class="text-anim-typing">Machine</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="CitParadigm_onidentity-form-group">
+                        <label>Type d'affirmation</label>
+                        <div class="CitParadigm_onidentity-types" id="CitParadigm_onidentity-types">
+                            <div class="CitParadigm_onidentity-type-option active" data-type="paradigm">
+                                <span>Paradigme</span>
+                            </div>
+                            <div class="CitParadigm_onidentity-type-option" data-type="affirmation">
+                                <span>Affirmation</span>
+                            </div>
+                            <div class="CitParadigm_onidentity-type-option" data-type="reminder">
+                                <span>Rappel</span>
+                            </div>
+                            <div class="CitParadigm_onidentity-type-option" data-type="mantra">
+                                <span>Mantra</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="CitParadigm_onidentity-form-actions">
+                    <button id="CitParadigm_onidentity-save" class="CitParadigm_onidentity-btn CitParadigm_onidentity-btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                        Enregistrer
+                    </button>
+                    <label class="CitParadigm_onidentity-switch">
+                        <input type="checkbox" id="CitParadigm_onidentity-is-primary">
+                        <span class="CitParadigm_onidentity-slider"></span>
+                        <span class="CitParadigm_onidentity-switch-label">Affirmation essentielle</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
     
     <div class="identity-section Social_md_social-identity-section">
     <h2 class="identity-section-title">
